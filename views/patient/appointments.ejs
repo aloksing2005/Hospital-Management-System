@@ -1,0 +1,142 @@
+<% var title = 'My Appointments - HMS'; %>
+<%- include('../partials/header') %>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-3 col-lg-2 sidebar p-0">
+      <div class="p-3 text-white">
+        <h5 class="fw-bold"><i class="fas fa-heartbeat me-2"></i>Patient Panel</h5>
+      </div>
+      <nav class="nav flex-column">
+        <a class="nav-link" href="/patient/dashboard"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+        <a class="nav-link" href="/patient/doctors"><i class="fas fa-user-md me-2"></i>Find Doctors</a>
+        <a class="nav-link active" href="/patient/appointments"><i class="fas fa-calendar-check me-2"></i>My Appointments</a>
+        <a class="nav-link" href="/patient/prescriptions"><i class="fas fa-file-prescription me-2"></i>Prescriptions</a>
+        <a class="nav-link" href="/patient/symptom-checker"><i class="fas fa-brain me-2"></i>AI Symptom Checker</a>
+        <a class="nav-link" href="/patient/ai-chat"><i class="fas fa-robot me-2"></i>AI Assistant (Book)</a>
+        <a class="nav-link" href="/patient/chat"><i class="fas fa-comments me-2"></i>Chat</a>
+      </nav>
+    </div>
+
+    <div class="col-md-9 col-lg-10 p-4">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold"><i class="fas fa-calendar-check me-2"></i>My Appointments</h2>
+        <a href="/patient/doctors" class="btn btn-primary">
+          <i class="fas fa-plus me-2"></i>Book New
+        </a>
+      </div>
+
+      <div class="card">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="bg-light">
+                <tr>
+                  <th>Doctor</th>
+                  <th>Specialization</th>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Symptoms</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% appointments.forEach(app => { %>
+                  <tr data-id="<%= app.id %>">
+                    <td class="fw-bold">
+                      <img src="<%= app.photo || '/images/default-doctor.jpg' %>" class="rounded-circle me-2" style="width:40px;height:40px;object-fit:cover">
+                      Dr. <%= app.doctor_name %>
+                    </td>
+                    <td><span class="badge bg-info"><%= app.specialization %></span></td>
+                    <td><%= new Date(app.date).toLocaleDateString() %></td>
+                    <td><%= app.time_slot %></td>
+                    <td><small class="text-muted"><%= app.symptoms || 'N/A' %></small></td>
+                    <td>
+                      <span class="badge badge-<%= app.status %>"><%= app.status %></span>
+                    </td>
+                    <td>
+                      <% if (app.status === 'pending') { %>
+                        <form action="/patient/appointments/cancel/<%= app.id %>" method="POST" class="d-inline" onsubmit="return confirm('Cancel this appointment?')">
+                          <button type="submit" class="btn btn-sm btn-danger">
+                            <i class="fas fa-times me-1"></i>Cancel
+                          </button>
+                        </form>
+                      <% } else if (app.status === 'confirmed') { %>
+                        <a href="/consultation/<%= app.id %>" class="btn btn-sm btn-primary">
+                          <i class="fas fa-video me-1"></i>Join Call
+                        </a>
+                      <% } else if (app.status === 'completed') { %>
+                        <span class="text-success me-2"><i class="fas fa-check-circle me-1"></i>Done</span>
+                        <button class="btn btn-sm btn-outline-warning" onclick="openReviewModal('<%= app.id %>', '<%= app.doctor_id %>')">
+                          <i class="fas fa-star me-1"></i>Rate
+                        </button>
+                      <% } else { %>
+                        <span class="text-muted">-</span>
+                      <% } %>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Review Modal -->
+<div class="modal fade" id="reviewModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Rate & Review</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form action="/patient/review" method="POST">
+        <div class="modal-body">
+          <input type="hidden" name="appointment_id" id="rev_app_id">
+          <input type="hidden" name="doctor_id" id="rev_doc_id">
+          <div class="mb-3">
+            <label class="form-label">Rating (1-5)</label>
+            <select class="form-select" name="rating" required>
+              <option value="5">5 - Excellent</option>
+              <option value="4">4 - Good</option>
+              <option value="3">3 - Average</option>
+              <option value="2">2 - Poor</option>
+              <option value="1">1 - Terrible</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Review</label>
+            <textarea class="form-control" name="review" rows="3" required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Submit Review</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openReviewModal(appId, docId) {
+    document.getElementById('rev_app_id').value = appId;
+    document.getElementById('rev_doc_id').value = docId;
+    new bootstrap.Modal(document.getElementById('reviewModal')).show();
+  }
+  socket.on('appointment-update', (data) => {
+    const row = document.querySelector(`tr[data-id="${data.appointmentId}"]`);
+    if (row) {
+      const badge = row.querySelector('.badge');
+      badge.className = `badge badge-${data.status}`;
+      badge.textContent = data.status;
+      showToast('Update', `Your appointment is now ${data.status}`, 'success');
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

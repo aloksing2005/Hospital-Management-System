@@ -1,0 +1,137 @@
+<% var title = 'Health Analytics - HMS'; %>
+<%- include('../partials/header') %>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="container-fluid bg-gray-100 min-h-screen">
+  <div class="row">
+    <%- include('../partials/patient-sidebar', { active: 'analytics' }) %>
+
+    <div class="col-md-9 col-lg-10 p-6">
+      <div class="max-w-6xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">Health Analytics</h2>
+                <p class="text-gray-500 mt-1">Visualize your health trends over time.</p>
+            </div>
+            <button class="bg-indigo-600 text-white px-6 py-3 rounded-2xl font-bold shadow-lg hover:bg-indigo-700 transition">
+                <i class="fas fa-download mr-2"></i> Download Report
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Heart Rate Chart -->
+            <div class="bg-white rounded-3xl shadow-sm p-6 border border-gray-100">
+                <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-heartbeat text-red-500 mr-3"></i> Heart Rate (BPM)
+                </h3>
+                <canvas id="hrChart" height="250"></canvas>
+            </div>
+
+            <!-- Blood Pressure Chart -->
+            <div class="bg-white rounded-3xl shadow-sm p-6 border border-gray-100">
+                <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-tint text-indigo-500 mr-3"></i> Blood Pressure (mmHg)
+                </h3>
+                <canvas id="bpChart" height="250"></canvas>
+            </div>
+
+            <!-- Body Temp Chart -->
+            <div class="bg-white rounded-3xl shadow-sm p-6 border border-gray-100">
+                <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-thermometer-half text-orange-500 mr-3"></i> Body Temp (°F)
+                </h3>
+                <canvas id="tempChart" height="250"></canvas>
+            </div>
+
+            <!-- Health Summary Insights -->
+            <div class="bg-indigo-700 rounded-3xl shadow-xl p-8 text-white relative overflow-hidden">
+                <div class="relative z-10">
+                    <h3 class="text-xl font-bold mb-4">AI Health Insights</h3>
+                    <div class="space-y-4">
+                        <div class="bg-indigo-600/50 p-4 rounded-2xl backdrop-blur-sm border border-indigo-400/20">
+                            <p class="text-sm font-medium">Your heart rate has been stable over the last 7 days. Excellent cardiovascular health!</p>
+                        </div>
+                        <div class="bg-indigo-600/50 p-4 rounded-2xl backdrop-blur-sm border border-indigo-400/20">
+                            <p class="text-sm font-medium">Consider increasing water intake; your BP showed a slight spike on Tuesday morning.</p>
+                        </div>
+                    </div>
+                    <button class="mt-6 bg-white text-indigo-700 px-6 py-2 rounded-xl font-bold text-sm">Ask AI Assistant</button>
+                </div>
+                <i class="fas fa-brain absolute -bottom-10 -right-10 text-9xl text-indigo-600/30"></i>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    // Mock Data for Charts
+    const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    // HR Chart
+    new Chart(document.getElementById('hrChart'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'BPM',
+                data: [72, 75, 71, 78, 74, 72, 73],
+                borderColor: '#ef4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: false, grid: { display: false } }, x: { grid: { display: false } } }
+        }
+    });
+
+    // BP Chart
+    new Chart(document.getElementById('bpChart'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Systolic',
+                    data: [120, 122, 118, 125, 121, 120, 119],
+                    borderColor: '#6366f1',
+                    tension: 0.4
+                },
+                {
+                    label: 'Diastolic',
+                    data: [80, 82, 79, 85, 81, 80, 78],
+                    borderColor: '#a5b4fc',
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            plugins: { legend: { display: true } },
+            scales: { y: { beginAtZero: false, grid: { display: false } }, x: { grid: { display: false } } }
+        }
+    });
+
+    // Temp Chart
+    new Chart(document.getElementById('tempChart'), {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Temp °F',
+                data: [98.6, 98.4, 98.7, 99.1, 98.6, 98.5, 98.6],
+                backgroundColor: '#f97316',
+                borderRadius: 8
+            }]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            scales: { y: { min: 95, max: 105, grid: { display: false } }, x: { grid: { display: false } } }
+        }
+    });
+</script>
+
+<%- include('../partials/footer') %>

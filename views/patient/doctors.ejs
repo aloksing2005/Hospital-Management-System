@@ -1,0 +1,109 @@
+<% var title = 'Find Doctors - HMS'; %>
+<%- include('../partials/header') %>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-3 col-lg-2 sidebar p-0">
+      <div class="p-3 text-white">
+        <h5 class="fw-bold"><i class="fas fa-heartbeat me-2"></i>Patient Panel</h5>
+      </div>
+      <nav class="nav flex-column">
+        <a class="nav-link" href="/patient/dashboard"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+        <a class="nav-link active" href="/patient/doctors"><i class="fas fa-user-md me-2"></i>Find Doctors</a>
+        <a class="nav-link" href="/patient/appointments"><i class="fas fa-calendar-check me-2"></i>My Appointments</a>
+        <a class="nav-link" href="/patient/prescriptions"><i class="fas fa-file-prescription me-2"></i>Prescriptions</a>
+        <a class="nav-link" href="/patient/symptom-checker"><i class="fas fa-brain me-2"></i>AI Symptom Checker</a>
+        <a class="nav-link" href="/patient/ai-chat"><i class="fas fa-robot me-2"></i>AI Assistant (Book)</a>
+        <a class="nav-link" href="/patient/chat"><i class="fas fa-comments me-2"></i>Chat</a>
+      </nav>
+    </div>
+
+    <div class="col-md-9 col-lg-10 p-4">
+      <h2 class="fw-bold mb-4"><i class="fas fa-user-md me-2"></i>Find Doctors</h2>
+
+      <!-- Advanced Search -->
+      <div class="card p-4 mb-4">
+        <form action="/patient/doctors" method="GET" class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label text-muted small mb-1">Search Name</label>
+            <input type="text" name="search" class="form-control" placeholder="Doctor's name..." value="<%= search || '' %>">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label text-muted small mb-1">Specialization</label>
+            <select name="specialization" class="form-select">
+              <option value="">All Specializations</option>
+              <option value="General Physician" <%= specialization === 'General Physician' ? 'selected' : '' %>>General Physician</option>
+              <option value="Cardiologist" <%= specialization === 'Cardiologist' ? 'selected' : '' %>>Cardiologist</option>
+              <option value="Dermatologist" <%= specialization === 'Dermatologist' ? 'selected' : '' %>>Dermatologist</option>
+              <option value="Neurologist" <%= specialization === 'Neurologist' ? 'selected' : '' %>>Neurologist</option>
+              <option value="Orthopedic" <%= specialization === 'Orthopedic' ? 'selected' : '' %>>Orthopedic</option>
+              <option value="ENT" <%= specialization === 'ENT' ? 'selected' : '' %>>ENT</option>
+              <option value="Pediatrician" <%= specialization === 'Pediatrician' ? 'selected' : '' %>>Pediatrician</option>
+              <option value="Gynecologist" <%= specialization === 'Gynecologist' ? 'selected' : '' %>>Gynecologist</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label text-muted small mb-1">Max Fees (₹)</label>
+            <input type="number" name="maxFees" class="form-control" placeholder="E.g. 1000" value="<%= typeof maxFees !== 'undefined' ? maxFees : '' %>">
+          </div>
+          <div class="col-md-2">
+            <label class="form-label text-muted small mb-1">Min Rating</label>
+            <select name="minRating" class="form-select">
+              <option value="">Any</option>
+              <option value="4" <%= typeof minRating !== 'undefined' && minRating === '4' ? 'selected' : '' %>>4+ Stars</option>
+              <option value="3" <%= typeof minRating !== 'undefined' && minRating === '3' ? 'selected' : '' %>>3+ Stars</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="form-label text-muted small mb-1">Sort By</label>
+            <select name="sort" class="form-select">
+              <option value="">Name A-Z</option>
+              <option value="top_rated" <%= typeof sort !== 'undefined' && sort === 'top_rated' ? 'selected' : '' %>>Top Rated</option>
+              <option value="lowest_fees" <%= typeof sort !== 'undefined' && sort === 'lowest_fees' ? 'selected' : '' %>>Lowest Fees</option>
+            </select>
+          </div>
+          <div class="col-12 text-end mt-3">
+            <a href="/patient/doctors" class="btn btn-light me-2">Clear</a>
+            <button type="submit" class="btn btn-primary px-4"><i class="fas fa-filter me-2"></i>Apply Filters</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Doctors Grid -->
+      <div class="row g-4">
+        <% if (doctors.length === 0) { %>
+          <div class="col-12 text-center py-5">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">No doctors found</h4>
+          </div>
+        <% } else { %>
+          <% doctors.forEach(doc => { %>
+            <div class="col-md-6 col-lg-4">
+              <div class="card doctor-card h-100 p-4 text-center">
+                <img src="<%= doc.photo || '/images/default-doctor.jpg' %>" alt="Dr. <%= doc.name %>" class="mx-auto mb-3">
+                <h5 class="fw-bold">Dr. <%= doc.name %></h5>
+                <span class="badge bg-info mb-2"><%= doc.specialization %></span>
+                <div class="mb-2">
+                  <% if (doc.rating > 0) { %>
+                    <span class="text-warning"><i class="fas fa-star"></i> <%= parseFloat(doc.rating).toFixed(1) %></span>
+                    <small class="text-muted">(<%= doc.review_count %> reviews)</small>
+                  <% } else { %>
+                    <small class="text-muted">No reviews yet</small>
+                  <% } %>
+                </div>
+                <p class="text-muted small mb-2"><i class="fas fa-map-marker-alt me-1"></i><%= doc.location || 'Location not set' %></p>
+                <p class="text-success fw-bold mb-3"><i class="fas fa-rupee-sign me-1"></i><%= doc.fees %> per visit</p>
+                <p class="text-muted small mb-3"><i class="fas fa-clock me-1"></i><%= doc.available_from %> - <%= doc.available_to %></p>
+                <a href="/patient/doctors/<%= doc.id %>" class="btn btn-primary">
+                  <i class="fas fa-calendar-plus me-2"></i>Book Appointment
+                </a>
+              </div>
+            </div>
+          <% }) %>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

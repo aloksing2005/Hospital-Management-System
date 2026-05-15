@@ -1,0 +1,109 @@
+<% var title = 'Reports - HMS'; %>
+<%- include('../partials/header') %>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-3 col-lg-2 sidebar p-0">
+      <div class="p-3 text-white">
+        <h5 class="fw-bold"><i class="fas fa-shield-alt me-2"></i>Admin Panel</h5>
+      </div>
+      <nav class="nav flex-column">
+        <a class="nav-link" href="/admin/dashboard"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+        <a class="nav-link" href="/admin/doctors"><i class="fas fa-user-md me-2"></i>Doctors</a>
+        <a class="nav-link" href="/admin/patients"><i class="fas fa-users me-2"></i>Patients</a>
+        <a class="nav-link" href="/admin/appointments"><i class="fas fa-calendar-check me-2"></i>Appointments</a>
+        <a class="nav-link active" href="/admin/reports"><i class="fas fa-chart-bar me-2"></i>Reports</a>
+      </nav>
+    </div>
+
+    <div class="col-md-9 col-lg-10 p-4">
+      <h2 class="fw-bold mb-4"><i class="fas fa-chart-bar me-2"></i>Reports & Analytics</h2>
+
+      <div class="row g-4">
+        <div class="col-md-6">
+          <div class="card p-4">
+            <h5 class="fw-bold mb-3">Monthly Appointments</h5>
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead>
+                  <tr><th>Month</th><th>Appointments</th></tr>
+                </thead>
+                <tbody>
+                  <% monthlyStats.forEach(stat => { %>
+                    <tr>
+                      <td><%= stat.month %></td>
+                      <td><span class="badge bg-primary"><%= stat.count %></span></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="card p-4">
+            <h5 class="fw-bold mb-3">By Specialization</h5>
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead>
+                  <tr><th>Specialization</th><th>Appointments</th></tr>
+                </thead>
+                <tbody>
+                  <% specializationStats.forEach(stat => { %>
+                    <tr>
+                      <td><%= stat.specialization %></td>
+                      <td><span class="badge bg-success"><%= stat.appointments %></span></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      <div class="row g-4 mt-2">
+        <div class="col-12">
+          <div class="card p-4">
+            <h5 class="fw-bold mb-3">Revenue By Doctor (₹)</h5>
+            <div style="height: 300px;">
+              <canvas id="revenueChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const revenueData =`<%- JSON.stringify(revenueStats || []) %>`;
+  
+  if (revenueData.length > 0) {
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: revenueData.map(d => 'Dr. ' + d.doctor_name),
+        datasets: [{
+          label: 'Revenue (₹)',
+          data: revenueData.map(d => d.revenue),
+          backgroundColor: 'rgba(54, 162, 235, 0.6)',
+          borderColor: 'rgba(54, 162, 235, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { callback: function(value) { return '₹' + value; } }
+          }
+        }
+      }
+    });
+  }
+</script>
+
+<%- include('../partials/footer') %>

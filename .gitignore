@@ -1,0 +1,7 @@
+node_modules/
+.env
+*.log
+public/prescriptions/*.pdf
+public/images/*
+!public/images/.gitkeep
+.DS_Store

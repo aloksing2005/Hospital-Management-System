@@ -1,0 +1,60 @@
+<% var title = 'Payment'; %>
+<%- include('partials/header') %>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card p-4">
+        <h3 class="fw-bold mb-4"><i class="fas fa-credit-card me-2"></i>Payment</h3>
+        <div class="mb-3">
+          <label class="form-label">Amount (₹)</label>
+          <input type="number" id="amount" class="form-control" value="500" min="100">
+        </div>
+        <button id="payBtn" class="btn btn-primary w-100">
+          <i class="fas fa-rupee-sign me-2"></i>Pay Now
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+  document.getElementById('payBtn').addEventListener('click', async () => {
+    const amount = document.getElementById('amount').value;
+
+    const res = await fetch('/payment/create-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      const options = {
+        key: data.key,
+        amount: data.amount,
+        currency: 'INR',
+        order_id: data.order_id,
+        handler: async (response) => {
+          const verifyRes = await fetch('/payment/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(response)
+          });
+          const verifyData = await verifyRes.json();
+
+          if (verifyData.success) {
+            showToast('Payment Successful', 'Your payment has been processed!', 'success');
+          } else {
+            showToast('Payment Failed', 'Please try again', 'error');
+          }
+        }
+      };
+      const rzp = new Razorpay(options);
+      rzp.open();
+    }
+  });
+</script>
+
+<%- include('partials/footer') %>

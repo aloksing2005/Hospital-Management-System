@@ -1,0 +1,23 @@
+{
+  "welcome": "Welcome to HMS",
+  "dashboard": "Dashboard",
+  "doctors": "Doctors",
+  "appointments": "Appointments",
+  "lab_reports": "Lab Reports",
+  "ambulance": "Ambulance",
+  "logout": "Logout",
+  "login": "Login",
+  "register": "Register",
+  "emergency": "Emergency",
+  "book_now": "Book Now",
+  "vitals": "Health Vitals",
+  "heart_rate": "Heart Rate",
+  "blood_pressure": "Blood Pressure",
+  "oxygen": "Oxygen Level",
+  "temp": "Body Temperature",
+  "reminders": "Medicine Reminders",
+  "add_reminder": "Add Reminder",
+  "blood_bank": "Blood Bank",
+  "available": "Available",
+  "units": "Units"
+}

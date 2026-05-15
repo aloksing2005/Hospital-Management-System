@@ -1,0 +1,102 @@
+<% var title = 'Chat - HMS'; %>
+<%- include('../partials/header') %>
+
+<div class="container-fluid">
+  <div class="row">
+    <%- include('../partials/patient-sidebar', { active: 'chat' }) %>
+
+    <div class="col-md-9 col-lg-10 p-4">
+      <h2 class="fw-bold mb-4"><i class="fas fa-comments me-2"></i>Chat with Doctor</h2>
+
+      <div class="row">
+        <div class="col-md-4">
+          <div class="card">
+            <div class="card-header bg-white">
+              <h6 class="fw-bold mb-0">My Doctors</h6>
+            </div>
+            <div class="list-group list-group-flush" id="doctorList">
+              <% appointments.forEach(app => { %>
+                <button class="list-group-item list-group-item-action" onclick="selectDoctor('<%= app.doctor_id %>', 'Dr. <%= app.doctor_name %>')">
+                  <div class="d-flex align-items-center">
+                    <img src="<%= app.photo || '/images/default-doctor.jpg' %>" class="rounded-circle me-3" style="width:40px;height:40px;object-fit:cover">
+                    <div>
+                      <h6 class="mb-0">Dr. <%= app.doctor_name %></h6>
+                      <small class="text-muted"><%= app.specialization %></small>
+                    </div>
+                  </div>
+                </button>
+              <% }) %>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div class="card">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+              <h6 class="fw-bold mb-0" id="chatTitle">Select a doctor to chat</h6>
+              <span class="badge bg-success" id="onlineStatus" style="display:none">Online</span>
+            </div>
+            <div class="card-body">
+              <div class="chat-box mb-3" id="chatBox">
+                <div class="text-center text-muted py-5">
+                  <i class="fas fa-comments fa-3x mb-3"></i>
+                  <p>Select a doctor from the list to start chatting</p>
+                </div>
+              </div>
+              <div class="input-group" id="chatInput" style="display:none">
+                <input type="text" id="messageInput" class="form-control" placeholder="Type your message...">
+                <button class="btn btn-primary" onclick="sendMessage()">
+                  <i class="fas fa-paper-plane"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentDoctorId = null;
+  let currentDoctorName = '';
+
+  function selectDoctor(id, name) {
+    currentDoctorId = id;
+    currentDoctorName = name;
+    document.getElementById('chatTitle').textContent = `Chat with ${name}`;
+    document.getElementById('onlineStatus').style.display = 'inline';
+    document.getElementById('chatInput').style.display = 'flex';
+    document.getElementById('chatBox').innerHTML = '';
+    appendChatMessage('Chat started. You can now communicate with your doctor.', 'system', 'System');
+  }
+
+  function appendChatMessage(message, type, fromName) {
+    const chatBox = document.getElementById('chatBox');
+    const div = document.createElement('div');
+    div.className = `chat-message ${type}`;
+    div.innerHTML = `<small class="d-block mb-1 ${type === 'sent' ? 'text-light' : 'text-muted'}">${fromName}</small>${message}`;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const message = input.value.trim();
+    if (!message || !currentDoctorId) return;
+
+    appendChatMessage(message, 'sent', 'You');
+    socket.emit('chat-message', {
+      to: currentDoctorId,
+      from: '<%= user.id %>',
+      fromName: '<%= user.name %>',
+      message
+    });
+    input.value = '';
+  }
+
+  document.getElementById('messageInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessage();
+  });
+</script>
+
+<%- include('../partials/footer') %>

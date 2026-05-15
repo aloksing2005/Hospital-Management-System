@@ -1,0 +1,112 @@
+<% var title = title || 'Live Vitals'; %>
+<%- include('../partials/header') %>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<div class="container-fluid py-4">
+  <div class="row">
+    <%- include('../partials/patient-sidebar', { active: 'vitals' }) %>
+    <div class="col-md-9 col-lg-10 p-3 p-lg-4">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+          <h2 class="fw-bold text-white mb-1"><i class="fas fa-wave-square me-2 text-emerald-400"></i>Live Vitals</h2>
+          <p class="text-white-50 mb-0 small">Simulated stream for monitoring demo — use “Start monitoring” below.</p>
+        </div>
+        <div class="d-flex gap-2">
+          <button type="button" class="btn btn-success rounded-pill px-4" id="btnStartVitals">Start monitoring</button>
+          <button type="button" class="btn btn-outline-light rounded-pill px-4" id="btnStopVitals">Stop</button>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="cyber-card p-4 text-center">
+            <p class="text-white-50 small mb-1">HR</p>
+            <h3 class="text-white fw-black mb-0" id="vHr">—</h3>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="cyber-card p-4 text-center">
+            <p class="text-white-50 small mb-1">SpO₂</p>
+            <h3 class="text-cyan fw-black mb-0" id="vSpo2">—</h3>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="cyber-card p-4 text-center">
+            <p class="text-white-50 small mb-1">BP</p>
+            <h3 class="text-indigo fw-black mb-0" id="vBp">—</h3>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="cyber-card p-4 text-center">
+            <p class="text-white-50 small mb-1">Temp °F</p>
+            <h3 class="text-amber fw-black mb-0" id="vTemp">—</h3>
+          </div>
+        </div>
+      </div>
+
+      <div class="cyber-card p-4">
+        <canvas id="vitalsChart" height="120"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
+<script>
+(function () {
+  var pid = '<%= user.id %>';
+  var chart;
+  document.addEventListener('DOMContentLoaded', function () {
+    var ctx = document.getElementById('vitalsChart');
+    if (ctx && window.Chart) {
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            { label: 'HR', data: [], borderColor: '#a78bfa', tension: 0.35, fill: false },
+            { label: 'SpO2', data: [], borderColor: '#22d3ee', tension: 0.35, fill: false }
+          ]
+        },
+        options: {
+          plugins: { legend: { labels: { color: '#e2e8f0' } } },
+          scales: {
+            x: { ticks: { color: '#94a3b8', maxTicksLimit: 8 }, grid: { color: 'rgba(148,163,184,0.08)' } },
+            y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.08)' }, beginAtZero: false }
+          }
+        }
+      });
+    }
+    var sock = window.hmsSocket && window.hmsSocket();
+    if (!sock) return;
+    sock.on('vitals-update', function (payload) {
+      if (!payload || String(payload.patientId) !== String(pid)) return;
+      var v = payload.vitals;
+      document.getElementById('vHr').textContent = v.hr;
+      document.getElementById('vSpo2').textContent = v.spo2;
+      document.getElementById('vBp').textContent = v.bpSys + '/' + v.bpDia;
+      document.getElementById('vTemp').textContent = v.temp;
+      if (chart) {
+        var t = new Date().toLocaleTimeString();
+        chart.data.labels.push(t);
+        chart.data.datasets[0].data.push(v.hr);
+        chart.data.datasets[1].data.push(v.spo2);
+        if (chart.data.labels.length > 12) {
+          chart.data.labels.shift();
+          chart.data.datasets[0].data.shift();
+          chart.data.datasets[1].data.shift();
+        }
+        chart.update('none');
+      }
+    });
+    document.getElementById('btnStartVitals').addEventListener('click', function () {
+      sock.emit('start-vitals-monitoring', { patientId: pid });
+      if (window.hmsShowToast) window.hmsShowToast('Vitals', 'Monitoring stream started', 'success');
+    });
+    document.getElementById('btnStopVitals').addEventListener('click', function () {
+      sock.emit('stop-vitals-monitoring');
+      if (window.hmsShowToast) window.hmsShowToast('Vitals', 'Stopped', 'info');
+    });
+  });
+})();
+</script>

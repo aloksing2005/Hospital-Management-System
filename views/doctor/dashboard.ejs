@@ -1,0 +1,172 @@
+<% var title = 'Neural Command Center - Dr. ' + doctor.name; %>
+<%- include('../partials/header') %>
+
+<div class="container-fluid mesh-bg min-h-screen">
+  <div class="row">
+    <%- include('../partials/doctor-sidebar', { active: 'dashboard' }) %>
+
+    <div class="col-md-9 col-lg-10 p-8">
+      <!-- Welcome Header -->
+      <div class="page-header flex flex-col md:flex-row justify-between items-start md:items-end mb-12">
+          <div class="animate__animated animate__fadeInLeft">
+              <span class="text-xs font-black uppercase tracking-[0.3em] text-indigo-400 mb-2 block">Physician Command Center</span>
+              <h1 class="text-5xl font-black text-white tracking-tighter">Welcome, Dr. <%= doctor.name %></h1>
+              <p class="text-slate-400 font-medium mt-2">Systems online. All patient data synchronized.</p>
+          </div>
+          <div class="flex gap-3 mt-6 md:mt-0 animate__animated animate__fadeInRight">
+              <div class="glass px-6 py-3 rounded-2xl flex items-center gap-3 border border-white/10">
+                  <div class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></div>
+                  <span class="text-sm font-bold text-slate-300">Live Database Link</span>
+              </div>
+          </div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <div class="cyber-card p-8 group animate__animated animate__zoomIn">
+              <div class="flex justify-between items-start mb-6">
+                  <div class="w-14 h-14 bg-indigo-500/10 text-indigo-400 rounded-2xl flex items-center justify-center text-xl transition-transform group-hover:scale-110">
+                      <i class="fas fa-calendar"></i>
+                  </div>
+              </div>
+              <h3 class="stat-value text-4xl font-black text-white mb-1"><%= stats.total_appointments || 0 %></h3>
+              <p class="text-slate-400 text-sm font-bold uppercase tracking-widest">Total Visits</p>
+          </div>
+
+          <div class="cyber-card p-8 group animate__animated animate__zoomIn animate__delay-1s">
+              <div class="flex justify-between items-start mb-6">
+                  <div class="w-14 h-14 bg-amber-500/10 text-amber-400 rounded-2xl flex items-center justify-center text-xl transition-transform group-hover:scale-110">
+                      <i class="fas fa-clock"></i>
+                  </div>
+              </div>
+              <h3 class="stat-value text-4xl font-black text-white mb-1"><%= stats.pending || 0 %></h3>
+              <p class="text-slate-400 text-sm font-bold uppercase tracking-widest">Pending</p>
+          </div>
+
+          <div class="cyber-card p-8 group animate__animated animate__zoomIn animate__delay-2s">
+              <div class="flex justify-between items-start mb-6">
+                  <div class="w-14 h-14 bg-emerald-500/10 text-emerald-400 rounded-2xl flex items-center justify-center text-xl transition-transform group-hover:scale-110">
+                      <i class="fas fa-check-circle"></i>
+                  </div>
+              </div>
+              <h3 class="stat-value text-4xl font-black text-white mb-1"><%= stats.completed || 0 %></h3>
+              <p class="text-slate-400 text-sm font-bold uppercase tracking-widest">Completed</p>
+          </div>
+
+          <div class="cyber-card p-8 group animate__animated animate__zoomIn animate__delay-3s">
+              <div class="flex justify-between items-start mb-6">
+                  <div class="w-14 h-14 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center text-xl transition-transform group-hover:scale-110">
+                      <i class="fas fa-sun"></i>
+                  </div>
+              </div>
+              <h3 class="stat-value text-4xl font-black text-white mb-1"><%= todayAppointments.length %></h3>
+              <p class="text-slate-400 text-sm font-bold uppercase tracking-widest">Today's List</p>
+          </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <!-- Today's Schedule -->
+        <div class="cyber-card p-0 overflow-hidden">
+            <div class="p-8 border-b border-white/5 flex justify-between items-center">
+                <h3 class="text-xl font-black text-white uppercase tracking-tighter">Today's Schedule</h3>
+                <span class="px-3 py-1 bg-indigo-500/20 text-indigo-400 rounded-lg text-xs font-black uppercase"><%= todayAppointments.length %> Patients</span>
+            </div>
+            <div class="p-8">
+              <% if (todayAppointments.length === 0) { %>
+                <div class="text-center py-12">
+                  <i class="fas fa-calendar-day text-5xl text-white/10 mb-4 block"></i>
+                  <p class="text-slate-500 font-bold">No clinical sessions today</p>
+                </div>
+              <% } else { %>
+                <div class="space-y-4">
+                  <% todayAppointments.forEach(app => { %>
+                    <div class="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition">
+                      <div class="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center text-indigo-400 font-black">
+                        <%= app.time_slot.split(':')[0] %>
+                      </div>
+                      <div class="flex-grow">
+                        <h5 class="text-white font-bold mb-0"><%= app.patient_name %></h5>
+                        <p class="text-xs text-slate-400 font-bold uppercase tracking-widest"><%= app.time_slot %></p>
+                      </div>
+                      <span class="px-3 py-1 bg-amber-500/20 text-amber-400 rounded-lg text-[10px] font-black uppercase"><%= app.status %></span>
+                    </div>
+                  <% }) %>
+                </div>
+              <% } %>
+            </div>
+        </div>
+
+        <!-- Recent Activity Table -->
+        <div class="cyber-card p-0 overflow-hidden">
+            <div class="p-8 border-b border-white/5 flex justify-between items-center">
+                <h3 class="text-xl font-black text-white uppercase tracking-tighter">Recent Neural Sync</h3>
+                <a href="/doctor/appointments" class="text-xs font-black text-indigo-400 uppercase hover:underline">View Stream</a>
+            </div>
+            <div class="p-0">
+              <table class="w-full text-left">
+                <thead>
+                  <tr class="bg-white/5">
+                    <th class="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Patient</th>
+                    <th class="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Timestamp</th>
+                    <th class="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                  <% recentAppointments.forEach(app => { %>
+                    <tr class="hover:bg-white/5 transition">
+                      <td class="px-8 py-5 text-white font-bold"><%= app.patient_name %></td>
+                      <td class="px-8 py-5 text-slate-400 text-sm"><%= new Date(app.date).toLocaleDateString() %></td>
+                      <td class="px-8 py-5">
+                        <span class="px-2 py-1 rounded-md text-[9px] font-black uppercase bg-indigo-500/20 text-indigo-400 border border-indigo-500/20"><%= app.status %></span>
+                      </td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+        </div>
+      </div>
+
+      <!-- Recent Prescriptions -->
+      <div class="cyber-card p-0 overflow-hidden animate__animated animate__fadeInUp">
+          <div class="p-8 border-b border-white/5">
+              <h3 class="text-xl font-black text-white uppercase tracking-tighter">Script Repository</h3>
+          </div>
+          <div class="p-0">
+            <table class="w-full text-left">
+              <thead>
+                <tr class="bg-white/5">
+                  <th class="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Subject</th>
+                  <th class="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Diagnosis</th>
+                  <th class="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Date</th>
+                  <th class="px-8 py-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Action</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-white/5">
+                <% prescriptions.forEach(p => { %>
+                  <tr class="hover:bg-white/5 transition">
+                    <td class="px-8 py-5 text-white font-bold"><%= p.patient_name %></td>
+                    <td class="px-8 py-5 text-slate-400 text-sm font-medium"><%= p.disease %></td>
+                    <td class="px-8 py-5 text-slate-500 text-sm"><%= new Date(p.created_at).toLocaleDateString() %></td>
+                    <td class="px-8 py-5">
+                      <a href="<%= p.file_path %>" target="_blank" class="w-10 h-10 bg-indigo-500 text-white rounded-xl flex items-center justify-center hover:scale-110 transition shadow-lg shadow-indigo-500/20">
+                        <i class="fas fa-file-pdf"></i>
+                      </a>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  socket.on('doctor-notification', (data) => {
+    showToast('Neural Alert', data.message, 'info');
+  });
+</script>
+
+<%- include('../partials/footer') %>

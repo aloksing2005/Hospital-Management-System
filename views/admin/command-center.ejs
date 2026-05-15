@@ -1,0 +1,136 @@
+<% var title = title || 'Command Center'; %>
+<%- include('../partials/header') %>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<div class="container-fluid py-4">
+  <div class="row">
+    <%- include('../partials/admin-sidebar', { active: 'command' }) %>
+    <div class="col-md-9 col-lg-10 p-3 p-lg-4">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+          <h2 class="fw-bold text-white mb-1"><i class="fas fa-satellite-dish me-2 text-indigo-400"></i>Command Center</h2>
+          <p class="text-white-50 mb-0 small">Risk signals, emergency queue, and live operations</p>
+        </div>
+        <span class="badge bg-success bg-opacity-25 text-success border border-success px-3 py-2 rounded-pill">Live</span>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-md-3 col-6">
+          <div class="cyber-card p-4 h-100">
+            <p class="text-white-50 small mb-1">Patients</p>
+            <h3 class="text-white fw-black mb-0"><%= stats.patients || 0 %></h3>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="cyber-card p-4 h-100 border-start border-warning border-3">
+            <p class="text-white-50 small mb-1">Pending visits</p>
+            <h3 class="text-warning fw-black mb-0"><%= stats.pending_appts || 0 %></h3>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="cyber-card p-4 h-100">
+            <p class="text-white-50 small mb-1">Today</p>
+            <h3 class="text-cyan fw-black mb-0"><%= stats.appts_today || 0 %></h3>
+          </div>
+        </div>
+        <div class="col-md-3 col-6">
+          <div class="cyber-card p-4 h-100 border-start border-danger border-3">
+            <p class="text-white-50 small mb-1">Ambulance queue</p>
+            <h3 class="text-danger fw-black mb-0"><%= pendingAmbulance || 0 %></h3>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4">
+        <div class="col-lg-7">
+          <div class="cyber-card p-4">
+            <h5 class="text-white fw-bold mb-3">Patient risk snapshot</h5>
+            <p class="text-white-50 small">Heuristic risk from visit patterns (fetch per patient via API).</p>
+            <div class="table-responsive mt-3">
+              <table class="table table-dark table-hover align-middle rounded-3 overflow-hidden">
+                <thead>
+                  <tr class="text-indigo-300 small text-uppercase">
+                    <th>Patient</th><th>Visits</th><th>Rx</th><th>Risk</th>
+                  </tr>
+                </thead>
+                <tbody id="riskRows">
+                  <% patientsTop.forEach(function (p) { %>
+                    <tr data-pid="<%= p.id %>">
+                      <td class="fw-semibold"><%= p.name %></td>
+                      <td><%= p.appt_n %></td>
+                      <td><%= p.rx_n %></td>
+                      <td><span class="badge bg-secondary risk-badge">…</span></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-5">
+          <div class="cyber-card p-4 mb-4">
+            <h5 class="text-white fw-bold mb-3">Throughput</h5>
+            <canvas id="opsChart" height="220"></canvas>
+          </div>
+          <div class="cyber-card p-4">
+            <h5 class="text-white fw-bold mb-3">Activity</h5>
+            <% if (!activity || !activity.length) { %>
+              <p class="text-white-50 small mb-0">Connect Socket.IO clients to stream live audit events (hooks can push to <code>__HMS_ACTIVITY_LOG__</code>).</p>
+            <% } else { %>
+              <ul class="list-unstyled small text-white-50 mb-0">
+                <% activity.forEach(function (a) { %>
+                  <li class="mb-2"><%= a.msg || a %></li>
+                <% }) %>
+              </ul>
+            <% } %>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var ctx = document.getElementById('opsChart');
+  if (ctx && window.Chart) {
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Patients', 'Pending', 'Today', 'Ambulance Q'],
+        datasets: [{
+          label: 'Operations',
+          data: [
+            <%= stats.patients || 0 %>,
+            <%= stats.pending_appts || 0 %>,
+            <%= stats.appts_today || 0 %>,
+            <%= pendingAmbulance || 0 %>
+          ],
+          backgroundColor: ['#6366f1aa', '#f59e0baa', '#22d3eeaa', '#f43f5eaa'],
+          borderRadius: 8
+        }]
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.1)' } },
+          y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.1)' }, beginAtZero: true }
+        }
+      }
+    });
+  }
+  document.querySelectorAll('#riskRows tr[data-pid]').forEach(function (row) {
+    var id = row.getAttribute('data-pid');
+    fetch('/api/patient-risk/' + id).then(function (r) { return r.json(); }).then(function (d) {
+      var badge = row.querySelector('.risk-badge');
+      if (!badge || !d.success) return;
+      badge.textContent = d.band + ' (' + d.riskScore + ')';
+      badge.classList.remove('bg-secondary');
+      if (d.riskScore >= 75) { badge.classList.add('bg-danger'); }
+      else if (d.riskScore >= 45) { badge.classList.add('bg-warning', 'text-dark'); }
+      else { badge.classList.add('bg-success'); }
+    }).catch(function () {});
+  });
+});
+</script>

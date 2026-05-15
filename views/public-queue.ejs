@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live OPD Queue - HMS</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    body { background-color: #0f172a; color: #f1f5f9; font-family: 'Poppins', sans-serif; overflow: hidden; }
+    .queue-container { height: 100vh; padding: 40px; display: flex; flex-direction: column; }
+    .header-section { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; border-bottom: 2px solid #334155; padding-bottom: 20px; }
+    .hospital-name { font-weight: 700; color: #38bdf8; font-size: 2.5rem; }
+    .live-clock { font-family: 'Orbitron', sans-serif; font-size: 2rem; color: #94a3b8; }
+    
+    .main-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; flex-grow: 1; }
+    .queue-card { background: #1e293b; border-radius: 20px; padding: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: 1px solid #334155; transition: all 0.5s ease; }
+    .queue-card.new-call { animation: highlight 2s infinite alternate; }
+    
+    @keyframes highlight {
+      from { border-color: #334155; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+      to { border-color: #38bdf8; box-shadow: 0 0 40px rgba(56, 189, 248, 0.4); }
+    }
+    
+    .token-number { font-family: 'Orbitron', sans-serif; font-size: 5rem; color: #f59e0b; font-weight: 700; margin-bottom: 10px; }
+    .patient-name { font-size: 2.2rem; font-weight: 600; color: #fff; }
+    .doctor-name { font-size: 1.5rem; color: #38bdf8; margin-top: 10px; }
+    .room-number { font-size: 1.2rem; color: #94a3b8; margin-top: 5px; }
+    
+    .history-section { background: #1e293b; border-radius: 20px; padding: 20px; width: 400px; border-left: 2px solid #334155; }
+    .history-item { padding: 15px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+    .history-item:last-child { border-bottom: none; }
+    .badge-room { background: #0ea5e9; font-size: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="queue-container">
+    <div class="header-section">
+      <div class="hospital-name"><i class="fas fa-hospital me-3"></i>City General Hospital - Live OPD</div>
+      <div class="live-clock" id="clock">00:00:00</div>
+    </div>
+
+    <div class="row h-100">
+      <div class="col-lg-8">
+        <h4 class="text-muted text-uppercase mb-4 fw-bold"><i class="fas fa-bullhorn text-warning me-2"></i>Now Calling</h4>
+        <div id="currentCalls" class="row g-4">
+          <!-- Live Calls will appear here -->
+          <div class="col-12 text-center py-5 mt-5">
+            <i class="fas fa-users-viewfinder fa-5x text-muted mb-4 opacity-25"></i>
+            <h2 class="text-muted opacity-50">Waiting for next call...</h2>
+          </div>
+        </div>
+      </div>
+      
+      <div class="col-lg-4">
+        <div class="history-section h-100 w-100">
+          <h5 class="text-muted text-uppercase mb-4 fw-bold px-3"><i class="fas fa-history me-2"></i>Recent Calls</h5>
+          <div id="callHistory">
+            <!-- Recent calls here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Audio for notification -->
+  <audio id="callSound" src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg"></audio>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const currentCallsContainer = document.getElementById('currentCalls');
+    const callHistoryContainer = document.getElementById('callHistory');
+    const callSound = document.getElementById('callSound');
+    const activeCalls = new Map();
+
+    // Clock
+    setInterval(() => {
+      document.getElementById('clock').innerText = new Date().toLocaleTimeString();
+    }, 1000);
+
+    socket.on('live-queue-update', (data) => {
+      // data: { doctorId, doctorName, patientId, patientName, tokenNumber }
+      
+      // Play sound
+      callSound.play().catch(e => console.log(e));
+
+      // Add to current calls (limit to last 4)
+      const callId = data.doctorId;
+      
+      // If doctor is already calling someone, replace it
+      const existingCard = document.getElementById(`doc-${callId}`);
+      if (existingCard) {
+        // Move old one to history first
+        const oldToken = existingCard.querySelector('.token-number').innerText;
+        const oldPatient = existingCard.querySelector('.patient-name').innerText;
+        addToHistory(oldToken, oldPatient, data.doctorName);
+        existingCard.remove();
+      }
+
+      const card = document.createElement('div');
+      card.className = 'col-md-6 animate__animated animate__fadeInUp';
+      card.id = `doc-${callId}`;
+      card.innerHTML = `
+        <div class="queue-card new-call">
+          <div class="token-number">${data.tokenNumber}</div>
+          <div class="patient-name">${data.patientName}</div>
+          <div class="doctor-name">Dr. ${data.doctorName}</div>
+          <div class="room-number">Proceed to Room ${Math.floor(Math.random() * 20) + 1}</div>
+        </div>
+      `;
+
+      // Remove "Waiting" text if it exists
+      if (currentCallsContainer.querySelector('.fa-users-viewfinder')) {
+        currentCallsContainer.innerHTML = '';
+      }
+
+      currentCallsContainer.prepend(card);
+
+      // Remove oldest if more than 4
+      if (currentCallsContainer.children.length > 4) {
+        currentCallsContainer.lastElementChild.remove();
+      }
+
+      // Stop highlight after 10 seconds
+      setTimeout(() => {
+        card.querySelector('.queue-card').classList.remove('new-call');
+      }, 10000);
+    });
+
+    function addToHistory(token, patient, doctor) {
+      const item = document.createElement('div');
+      item.className = 'history-item animate__animated animate__fadeIn';
+      item.innerHTML = `
+        <div>
+          <div class="fw-bold text-warning">${token}</div>
+          <small class="text-white">${patient}</small>
+        </div>
+        <span class="badge badge-room">Dr. ${doctor}</span>
+      `;
+      callHistoryContainer.prepend(item);
+      
+      if (callHistoryContainer.children.length > 10) {
+        callHistoryContainer.lastElementChild.remove();
+      }
+    }
+  </script>
+</body>
+</html>

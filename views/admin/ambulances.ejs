@@ -1,0 +1,117 @@
+<% var title = 'Ambulance Monitor - HMS'; %>
+<%- include('../partials/header') %>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<div class="container-fluid bg-gray-50 min-h-screen">
+  <div class="row">
+    <%- include('../partials/admin-sidebar', { active: 'ambulances' }) %>
+
+    <div class="col-md-9 col-lg-10 p-8">
+      <div class="flex justify-between items-end mb-8">
+          <div>
+              <h2 class="text-3xl font-extrabold text-gray-900">Fleet Monitoring</h2>
+              <p class="text-gray-500 mt-1">Real-time status of all hospital ambulances.</p>
+          </div>
+          <div class="flex space-x-3">
+              <div class="bg-white px-4 py-2 rounded-2xl shadow-sm border border-gray-100 flex items-center">
+                  <span class="w-2 h-2 rounded-full bg-green-500 mr-2"></span>
+                  <span class="text-sm font-bold text-gray-700">12 Available</span>
+              </div>
+              <div class="bg-white px-4 py-2 rounded-2xl shadow-sm border border-gray-100 flex items-center">
+                  <span class="w-2 h-2 rounded-full bg-indigo-500 mr-2"></span>
+                  <span class="text-sm font-bold text-gray-700">5 Busy</span>
+              </div>
+          </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <!-- Live Map -->
+          <div class="lg:col-span-2 bg-white rounded-3xl shadow-sm p-4 h-[600px] border border-gray-100">
+              <div id="map" class="h-full w-full rounded-2xl"></div>
+          </div>
+
+          <!-- Live Activity Log -->
+          <div class="bg-white rounded-3xl shadow-sm p-6 border border-gray-100 flex flex-col h-[600px]">
+              <h3 class="text-lg font-bold text-gray-900 mb-6 flex items-center">
+                  <i class="fas fa-history text-indigo-500 mr-3"></i>
+                  Activity Log
+              </h3>
+              <div class="flex-grow overflow-y-auto space-y-4" id="activityLog">
+                  <div class="flex items-start space-x-3 pb-4 border-b border-gray-50">
+                      <div class="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                          <i class="fas fa-check text-xs"></i>
+                      </div>
+                      <div>
+                          <p class="text-sm text-gray-800 font-medium">AMB-101 is now <span class="text-green-600">Available</span></p>
+                          <p class="text-xs text-gray-400 mt-0.5">2 minutes ago</p>
+                      </div>
+                  </div>
+                  <div class="flex items-start space-x-3 pb-4 border-b border-gray-50">
+                      <div class="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                          <i class="fas fa-ambulance text-xs"></i>
+                      </div>
+                      <div>
+                          <p class="text-sm text-gray-800 font-medium">New request from <span class="font-bold">Rohit Sharma</span></p>
+                          <p class="text-xs text-gray-400 mt-0.5">5 minutes ago</p>
+                      </div>
+                  </div>
+              </div>
+              <button class="mt-6 w-full py-3 text-indigo-600 font-bold bg-indigo-50 rounded-2xl hover:bg-indigo-100 transition">
+                  Export Fleet Report
+              </button>
+          </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    let map;
+    let markers = {};
+
+    function initMap() {
+        map = L.map('map').setView([28.6139, 77.2090], 12);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    }
+
+    initMap();
+
+    // Listen for global ambulance updates
+    socket.on('ambulance-location-sync', (data) => {
+        if(!markers[data.driverId]) {
+            const icon = L.icon({
+                iconUrl: 'https://cdn-icons-png.flaticon.com/512/1032/1032988.png',
+                iconSize: [35, 35]
+            });
+            markers[data.driverId] = L.marker([data.lat, data.lng], {icon}).addTo(map);
+            logActivity(`Ambulance updated location`);
+        } else {
+            markers[data.driverId].setLatLng([data.lat, data.lng]);
+        }
+    });
+
+    socket.on('new-ambulance-request', (data) => {
+        logActivity(`New emergency request: ${data.emergency_type} at ${data.pickup_address}`);
+        showToast("Emergency", `New request from ${data.patient_name}`);
+    });
+
+    function logActivity(text) {
+        const log = document.getElementById('activityLog');
+        const div = document.createElement('div');
+        div.className = 'flex items-start space-x-3 pb-4 border-b border-gray-50 animate__animated animate__fadeIn';
+        div.innerHTML = `
+            <div class="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-info text-xs"></i>
+            </div>
+            <div>
+                <p class="text-sm text-gray-800 font-medium">${text}</p>
+                <p class="text-xs text-gray-400 mt-0.5">Just now</p>
+            </div>
+        `;
+        log.prepend(div);
+    }
+</script>
+
+<%- include('../partials/footer') %>

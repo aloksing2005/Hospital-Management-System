@@ -1,0 +1,23 @@
+{
+  "welcome": "HMS में आपका स्वागत है",
+  "dashboard": "डैशबोर्ड",
+  "doctors": "डॉक्टर",
+  "appointments": "अपॉइंटमेंट",
+  "lab_reports": "लैब रिपोर्ट",
+  "ambulance": "एम्बुलेंस",
+  "logout": "लॉगआउट",
+  "login": "लॉगिन",
+  "register": "पंजीकरण",
+  "emergency": "आपातकालीन",
+  "book_now": "अभी बुक करें",
+  "vitals": "स्वास्थ्य विटल्स",
+  "heart_rate": "दिल की धड़कन",
+  "blood_pressure": "रक्तचाप",
+  "oxygen": "ऑक्सीजन स्तर",
+  "temp": "शरीर का तापमान",
+  "reminders": "दवा अनुस्मारक",
+  "add_reminder": "अनुस्मारक जोड़ें",
+  "blood_bank": "ब्लड बैंक",
+  "available": "उपलब्ध",
+  "units": "यूनिट"
+}

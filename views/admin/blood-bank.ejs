@@ -1,0 +1,79 @@
+<% var title = 'Blood Bank Monitor - HMS'; %>
+<%- include('../partials/header') %>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<div class="container-fluid bg-gray-50 min-h-screen">
+  <div class="row">
+    <%- include('../partials/admin-sidebar', { active: 'blood-bank' }) %>
+
+    <div class="col-md-9 col-lg-10 p-8">
+      <div class="max-w-6xl mx-auto">
+        <div class="flex justify-between items-center mb-10">
+            <div>
+                <h2 class="text-4xl font-black text-gray-900 tracking-tight">Blood Bank Inventory</h2>
+                <p class="text-gray-500 mt-2">Monitor life-saving blood reserves in real-time.</p>
+            </div>
+            <div class="bg-red-100 text-red-600 px-6 py-3 rounded-2xl font-bold flex items-center">
+                <i class="fas fa-exclamation-triangle mr-2"></i> Low Stock Alert: O- Negative
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <% const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']; %>
+            <% bloodGroups.forEach(group => { %>
+                <div class="bg-white rounded-[32px] p-8 shadow-sm border border-gray-100 relative overflow-hidden group">
+                    <div class="relative z-10">
+                        <div class="flex justify-between items-center mb-6">
+                            <span class="text-3xl font-black text-red-600"><%= group %></span>
+                            <i class="fas fa-tint text-2xl text-gray-100 group-hover:text-red-500 transition-colors duration-500"></i>
+                        </div>
+                        <div class="mb-6">
+                            <h4 class="text-4xl font-black text-gray-900 mb-1"><%= Math.floor(Math.random() * 50) + 5 %></h4>
+                            <p class="text-gray-400 font-bold text-xs uppercase tracking-widest">Units Available</p>
+                        </div>
+                        <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
+                            <div class="bg-red-500 h-full" style="width: <%= Math.floor(Math.random() * 80) + 20 %>%"></div>
+                        </div>
+                    </div>
+                </div>
+            <% }) %>
+        </div>
+
+        <div class="mt-12 bg-white rounded-[40px] shadow-sm border border-gray-100 p-8">
+            <h3 class="text-2xl font-bold text-gray-900 mb-6">Recent Donations</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="text-left text-gray-400 text-xs font-black uppercase tracking-widest">
+                            <th class="pb-4">Donor Name</th>
+                            <th class="pb-4">Blood Group</th>
+                            <th class="pb-4">Units</th>
+                            <th class="pb-4">Date</th>
+                            <th class="pb-4">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <tr class="border-t border-gray-50">
+                            <td class="py-4 font-bold">Amit Kumar</td>
+                            <td class="py-4 text-red-600 font-bold">A+</td>
+                            <td class="py-4">2 Units</td>
+                            <td class="py-4">Today, 10:30 AM</td>
+                            <td class="py-4"><span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-xs font-bold">Processed</span></td>
+                        </tr>
+                        <tr class="border-t border-gray-50">
+                            <td class="py-4 font-bold">Suresh Raina</td>
+                            <td class="py-4 text-red-600 font-bold">O-</td>
+                            <td class="py-4">1 Unit</td>
+                            <td class="py-4">Yesterday</td>
+                            <td class="py-4"><span class="bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full text-xs font-bold">In Testing</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

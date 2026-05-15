@@ -1,0 +1,15 @@
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      if (typeof window.hmsShowToast === 'function') {
+        <% if (typeof success !== 'undefined' && success && success.length > 0) { %>
+        window.hmsShowToast('Success', <%- JSON.stringify(String(success[0])) %>, 'success');
+        <% } %>
+        <% if (typeof error !== 'undefined' && error && error.length > 0) { %>
+        window.hmsShowToast('Error', <%- JSON.stringify(String(error[0])) %>, 'error');
+        <% } %>
+      }
+    });
+  </script>
+</body>
+</html>

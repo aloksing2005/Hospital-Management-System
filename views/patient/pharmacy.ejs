@@ -1,0 +1,115 @@
+<% var title = 'Virtual Pharmacy - HMS'; %>
+<%- include('../partials/header') %>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<div class="container-fluid bg-gray-50 min-h-screen">
+  <div class="row">
+    <%- include('../partials/patient-sidebar', { active: 'pharmacy' }) %>
+
+    <div class="col-md-9 col-lg-10 p-12">
+      <div class="max-w-6xl mx-auto">
+        <div class="flex justify-between items-center mb-12">
+            <div>
+                <h2 class="text-5xl font-black text-gray-900 tracking-tight">Smart Pharmacy</h2>
+                <p class="text-gray-500 mt-2 text-xl">Order your prescribed medications with one tap.</p>
+            </div>
+            <div class="flex gap-4">
+                <button class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3">
+                    <i class="fas fa-shopping-cart text-indigo-600"></i>
+                    <span class="font-bold">2 Items</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Prescription Integration -->
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-indigo-600 rounded-[40px] p-8 text-white relative overflow-hidden shadow-xl shadow-indigo-100">
+                    <div class="relative z-10">
+                        <h3 class="text-2xl font-bold mb-4">Linked Prescription</h3>
+                        <p class="text-indigo-100 mb-6">Found 3 medications from your last visit with Dr. Sharma.</p>
+                        <div class="space-y-3">
+                            <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl flex justify-between items-center">
+                                <div>
+                                    <p class="font-bold">Metformin 500mg</p>
+                                    <p class="text-xs text-indigo-200">10 Tablets • Morning/Night</p>
+                                </div>
+                                <button class="bg-white text-indigo-600 px-4 py-2 rounded-xl font-bold text-xs">Add to Cart</button>
+                            </div>
+                            <div class="bg-white/10 backdrop-blur-md p-4 rounded-2xl flex justify-between items-center">
+                                <div>
+                                    <p class="font-bold">Vitamin D3</p>
+                                    <p class="text-xs text-indigo-200">30 Capsules • Daily</p>
+                                </div>
+                                <button class="bg-white text-indigo-600 px-4 py-2 rounded-xl font-bold text-xs">Add to Cart</button>
+                            </div>
+                        </div>
+                    </div>
+                    <i class="fas fa-file-prescription absolute -bottom-10 -right-10 text-[200px] text-white/5"></i>
+                </div>
+
+                <div class="bg-white rounded-[40px] shadow-sm border border-gray-100 p-8">
+                    <h3 class="text-xl font-bold text-gray-800 mb-8">Popular Health Products</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="border border-gray-50 rounded-3xl p-6 hover:shadow-lg transition">
+                            <img src="https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?w=300" class="w-full h-32 object-cover rounded-2xl mb-4">
+                            <h4 class="font-bold">Health Monitor Kit</h4>
+                            <p class="text-gray-400 text-sm mb-4">Pulse Oximeter + BP Monitor</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-lg font-black text-gray-900">$45.00</span>
+                                <button class="w-10 h-10 bg-gray-900 text-white rounded-xl flex items-center justify-center"><i class="fas fa-plus"></i></button>
+                            </div>
+                        </div>
+                        <div class="border border-gray-50 rounded-3xl p-6 hover:shadow-lg transition">
+                            <img src="https://images.unsplash.com/photo-1471864190281-ad5fe9bb0724?w=300" class="w-full h-32 object-cover rounded-2xl mb-4">
+                            <h4 class="font-bold">Multi-Vitamin Pack</h4>
+                            <p class="text-gray-400 text-sm mb-4">Organic, 60 Capsules</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-lg font-black text-gray-900">$22.00</span>
+                                <button class="w-10 h-10 bg-gray-900 text-white rounded-xl flex items-center justify-center"><i class="fas fa-plus"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Summary -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-[40px] shadow-sm border border-gray-100 p-8 sticky top-8">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-8">Delivery Details</h3>
+                    <div class="space-y-6 mb-8">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-indigo-600"><i class="fas fa-truck"></i></div>
+                            <div>
+                                <p class="text-xs font-bold text-gray-400 uppercase">Est. Delivery</p>
+                                <p class="text-sm font-bold text-gray-800">Today, by 6:00 PM</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 bg-gray-50 rounded-xl flex items-center justify-center text-green-600"><i class="fas fa-map-marker-alt"></i></div>
+                            <div>
+                                <p class="text-xs font-bold text-gray-400 uppercase">Shipping To</p>
+                                <p class="text-sm font-bold text-gray-800"><%= user.name %>, Home Address</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="border-t border-gray-50 pt-8 space-y-4 mb-8">
+                        <div class="flex justify-between text-gray-500 font-medium"><span>Subtotal</span><span>$67.00</span></div>
+                        <div class="flex justify-between text-gray-500 font-medium"><span>Delivery Fee</span><span class="text-green-500">FREE</span></div>
+                        <div class="flex justify-between text-2xl font-black text-gray-900 pt-4"><span>Total</span><span>$67.00</span></div>
+                    </div>
+
+                    <button class="w-full bg-gray-900 text-white py-5 rounded-[30px] font-black text-lg hover:bg-black transition-all shadow-xl active:scale-95">
+                        Place Order
+                    </button>
+                    <p class="text-center text-gray-400 text-xs mt-6 font-medium">Safe & Secure Payments via Stripe</p>
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

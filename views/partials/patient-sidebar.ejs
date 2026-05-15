@@ -1,0 +1,27 @@
+<div class="col-md-3 col-lg-2 p-0">
+  <div class="sidebar-modern glass">
+    <div class="mb-10 text-center">
+      <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/10">
+        <i class="fas fa-heartbeat text-2xl text-indigo-400"></i>
+      </div>
+      <h5 class="text-white font-black tracking-tight">PATIENT HUB</h5>
+    </div>
+    
+    <nav class="nav flex-column gap-1">
+      <a class="nav-link <%= active === 'dashboard' ? 'active' : '' %>" href="/patient/dashboard"><i class="fas fa-grid-2 me-2"></i>Overview</a>
+      <a class="nav-link <%= active === 'doctors' ? 'active' : '' %>" href="/patient/doctors"><i class="fas fa-user-md me-2"></i>Find Doctors</a>
+      <a class="nav-link <%= active === 'appointments' ? 'active' : '' %>" href="/patient/appointments"><i class="fas fa-calendar-check me-2"></i>My Visits</a>
+      <a class="nav-link <%= active === 'prescriptions' ? 'active' : '' %>" href="/patient/prescriptions"><i class="fas fa-file-prescription me-2"></i>Scripts</a>
+      <a class="nav-link <%= active === 'lab-reports' ? 'active' : '' %>" href="/patient/lab-reports"><i class="fas fa-flask me-2"></i>Lab Tests</a>
+      <a class="nav-link <%= active === 'ambulance' ? 'active' : '' %>" href="/patient/ambulance"><i class="fas fa-ambulance me-2"></i>Emergency</a>
+      <a class="nav-link <%= active === 'vitals' ? 'active' : '' %>" href="/patient/vitals"><i class="fas fa-wave-square me-2"></i>Vitals</a>
+      <a class="nav-link" href="/patient/health-report.pdf" target="_blank" rel="noopener"><i class="fas fa-file-pdf me-2"></i>Health PDF</a>
+      <a class="nav-link <%= active === 'ai-chat' ? 'active' : '' %>" href="/patient/ai-chat"><i class="fas fa-robot me-2"></i>AI Assistant</a>
+      <a class="nav-link <%= active === 'analytics' ? 'active' : '' %>" href="/patient/analytics"><i class="fas fa-chart-line me-2"></i>Insights</a>
+    </nav>
+
+    <div class="mt-auto pt-10">
+        <a href="/logout" class="nav-link text-red-400 hover:bg-red-500/10"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a>
+    </div>
+  </div>
+</div>

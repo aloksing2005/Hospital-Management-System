@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" id="hmsRoot">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' && title ? title : 'HMS Cyber' %></title>
+  
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+  <link rel="stylesheet" href="/css/cyber.css">
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="cyber-bg selection:bg-indigo-500/30">
+  <% if (typeof user !== 'undefined' && user) { %>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top border-b border-white/5 backdrop-blur-3xl py-4 z-[100]">
+      <div class="container-fluid px-4 px-lg-8">
+        <a class="navbar-brand d-flex align-items-center gap-3" href="/">
+          <div class="w-12 h-12 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.5)] animate-pulse">
+            <i class="fas fa-heartbeat text-xl"></i>
+          </div>
+          <span class="text-xl lg:text-2xl font-black tracking-tighter text-white uppercase italic">HMS<span class="gradient-text">CYBER</span></span>
+        </a>
+        <button class="navbar-toggler border-0 text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-6 mt-3 mt-lg-0">
+            <li class="nav-item mb-2 mb-lg-0">
+              <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" id="hmsThemeToggle" title="Toggle light/dark">
+                <i class="fas fa-moon" id="hmsThemeIcon"></i>
+              </button>
+            </li>
+            <li class="nav-item d-none d-lg-block">
+              <div class="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-2xl border border-white/10">
+                <div class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></div>
+                <span class="text-[10px] font-black text-cyan-400 uppercase tracking-[0.2em]">Live</span>
+              </div>
+            </li>
+
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle bg-white/5 hover:bg-white/10 px-4 py-2 rounded-2xl text-white font-bold d-flex align-items-center gap-3 border border-white/10 transition-all" href="#" role="button" data-bs-toggle="dropdown">
+                <img src="https://i.pravatar.cc/100?u=<%= user.id %>" class="w-9 h-9 rounded-xl border-2 border-indigo-500 shadow-lg" alt="">
+                <span class="glow-text text-truncate" style="max-width:140px"><%= user.name %></span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end border border-white/10 shadow-2xl rounded-[30px] p-3 bg-slate-900/95 backdrop-blur-3xl mt-2">
+                <li><a class="dropdown-item rounded-2xl py-2 px-3 text-white hover:bg-indigo-600" href="/<%= user.role %>/dashboard"><i class="fas fa-th-large me-2 text-indigo-400"></i>Dashboard</a></li>
+                <li><hr class="dropdown-divider opacity-10"></li>
+                <li><a class="dropdown-item text-rose-400 rounded-2xl py-2 px-3 hover:bg-rose-500/10" href="/logout"><i class="fas fa-power-off me-2"></i>Logout</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  <% } else { %>
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top border-b border-white/5 backdrop-blur-3xl py-4 z-[100]">
+        <a class="navbar-brand d-flex align-items-center gap-3 mb-0" href="/">
+          <div class="w-11 h-11 bg-indigo-600 text-white rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(99,102,241,0.5)]">
+            <i class="fas fa-heartbeat text-lg"></i>
+          </div>
+          <span class="text-xl font-black tracking-tighter text-white uppercase italic">HMS<span class="gradient-text">CYBER</span></span>
+        </a>
+        <div class="d-flex align-items-center gap-3">
+          <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3" id="hmsThemeToggleGuest" title="Toggle light/dark">
+            <i class="fas fa-moon" id="hmsThemeIconGuest"></i>
+          </button>
+          <a class="text-white/70 small fw-bold text-uppercase text-decoration-none" href="/login">Login</a>
+          <a class="cyber-btn py-2 px-4 small" href="/register">Register</a>
+        </div>
+      </div>
+    </nav>
+  <% } %>
+
+  <div class="toast-container position-fixed top-0 end-0 p-4 p-lg-6 z-[9999]" id="toastContainer"></div>
+
+  <% if (typeof user !== 'undefined' && user && user.role === 'patient') { %>
+  <button type="button" id="hmsSosBtn" class="btn btn-danger rounded-circle shadow-lg position-fixed bottom-0 end-0 m-4 d-flex align-items-center justify-content-center" style="width:56px;height:56px;z-index:1040" title="Emergency SOS">
+    <i class="fas fa-bolt fa-lg"></i>
+  </button>
+  <% } %>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    (function () {
+      const HMS_USER = <%- JSON.stringify(typeof user !== 'undefined' && user ? { id: String(user.id), role: user.role, name: user.name } : null) %>;
+
+      window.hmsShowToast = function (title, message, type) {
+        type = type || 'info';
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+        const colors = {
+          success: 'border-emerald-500/50 bg-emerald-500/10 text-emerald-400',
+          error: 'border-rose-500/50 bg-rose-500/10 text-rose-400',
+          warning: 'border-amber-500/50 bg-amber-500/10 text-amber-300',
+          info: 'border-indigo-500/50 bg-indigo-500/10 text-indigo-400'
+        };
+        const toastEl = document.createElement('div');
+        toastEl.className = 'border backdrop-blur-xl p-4 rounded-3xl shadow-2xl mb-3 animate__animated animate__fadeInRight flex flex-col gap-2 min-w-[260px] max-w-[420px] ' + (colors[type] || colors.info);
+        toastEl.innerHTML = '<div class="d-flex justify-content-between align-items-center"><strong class="text-uppercase small opacity-90">' + title + '</strong><button type="button" class="btn-close btn-close-white btn-sm" aria-label="Close"></button></div><p class="mb-0 small fw-semibold">' + message + '</p>';
+        toastEl.querySelector('.btn-close').addEventListener('click', function () { toastEl.remove(); });
+        container.appendChild(toastEl);
+        setTimeout(function () {
+          toastEl.classList.replace('animate__fadeInRight', 'animate__fadeOutRight');
+          setTimeout(function () { toastEl.remove(); }, 600);
+        }, 5200);
+      };
+
+      if (!window.__HMS_SOCKET__) {
+        window.__HMS_SOCKET__ = io();
+        const s = window.__HMS_SOCKET__;
+        if (HMS_USER) {
+          s.emit('join', { userId: HMS_USER.id, role: HMS_USER.role });
+        }
+        if (!window.__HMS_LISTENERS__) {
+          window.__HMS_LISTENERS__ = true;
+          s.on('new-appointment', function (data) {
+            if (HMS_USER && HMS_USER.role === 'admin') {
+              window.hmsShowToast('New appointment', (data.patientName || 'Patient') + ' booked with Dr. ' + (data.doctorName || ''), 'info');
+            }
+          });
+          s.on('appointment-update', function (data) {
+            if (!HMS_USER || HMS_USER.role !== 'patient') return;
+            if (String(data.patientId || '') !== HMS_USER.id) return;
+            window.hmsShowToast('Appointment update', 'Your appointment is now ' + (data.status || 'updated'), 'success');
+          });
+          s.on('doctor-notification', function (data) {
+            if (!HMS_USER || HMS_USER.role !== 'doctor') return;
+            window.hmsShowToast('Clinical', (data && data.message) ? data.message : 'New notification', 'warning');
+          });
+          s.on('new-prescription', function (data) {
+            if (!HMS_USER || HMS_USER.role !== 'patient') return;
+            if (String(data.patientId || '') !== HMS_USER.id) return;
+            window.hmsShowToast('Prescription', 'Dr. ' + (data.doctorName || '') + ' issued a new prescription', 'success');
+          });
+          s.on('new-lab-report', function (data) {
+            if (!HMS_USER || HMS_USER.role !== 'patient') return;
+            if (String(data.patientId || '') !== HMS_USER.id) return;
+            window.hmsShowToast('Lab report', (data.reportName || 'New report') + ' uploaded', 'info');
+          });
+          s.on('chat-message', function (data) {
+            if (typeof appendChatMessage === 'function') {
+              appendChatMessage(data.message, 'received', data.fromName);
+            }
+          });
+          s.on('admin-appointment-update', function (data) {
+            var row = document.querySelector('tr[data-id="' + data.id + '"]');
+            if (row) {
+              var badge = row.querySelector('.badge');
+              if (badge) {
+                badge.className = 'badge badge-' + data.status;
+                badge.textContent = data.status;
+              }
+            }
+            if (HMS_USER && HMS_USER.role === 'admin') {
+              window.hmsShowToast('Schedule', 'Appointment #' + data.id + ' → ' + data.status, 'info');
+            }
+          });
+          s.on('resource-updated-broadcast', function (data) {
+            var el = document.getElementById('qty-' + data.id);
+            if (el) {
+              el.innerHTML = data.available_quantity + ' <span class="text-muted fs-6">/ ' + data.total_quantity + '</span>';
+            }
+          });
+          s.on('bed-status-broadcast', function (data) {
+            var bed = document.getElementById('bed-' + data.bedId);
+            if (!bed) return;
+            var label = bed.querySelector('.status-label');
+            if (data.status === 'occupied') {
+              bed.classList.remove('bed-vacant');
+              bed.classList.add('bed-occupied');
+              if (label) label.innerText = 'Occupied';
+            } else {
+              bed.classList.remove('bed-occupied');
+              bed.classList.add('bed-vacant');
+              if (label) label.innerText = 'Vacant';
+            }
+          });
+          s.on('sos-alert', function (data) {
+            if (HMS_USER && (HMS_USER.role === 'admin' || HMS_USER.role === 'driver')) {
+              window.hmsShowToast('SOS', (data && data.message) ? data.message : 'Emergency SOS triggered', 'error');
+            }
+          });
+          s.on('admin-ambulance-request', function (data) {
+            if (HMS_USER && HMS_USER.role === 'admin') {
+              window.hmsShowToast('Ambulance', (data.patient_name || 'Patient') + ' — ' + (data.emergency_type || 'Request'), 'warning');
+            }
+          });
+          s.on('emergency-broadcast', function (data) {
+            window.hmsShowToast('Emergency', (data && data.message) ? data.message : 'Hospital-wide alert', 'error');
+          });
+        }
+      }
+
+      window.hmsSocket = function () { return window.__HMS_SOCKET__; };
+
+      function applyTheme(theme) {
+        var root = document.getElementById('hmsRoot');
+        if (!root) return;
+        root.setAttribute('data-theme', theme === 'light' ? 'light' : 'dark');
+        try { localStorage.setItem('hmsTheme', theme === 'light' ? 'light' : 'dark'); } catch (e) {}
+        var icons = [document.getElementById('hmsThemeIcon'), document.getElementById('hmsThemeIconGuest')];
+        icons.forEach(function (ic) {
+          if (!ic) return;
+          ic.className = theme === 'light' ? 'fas fa-sun' : 'fas fa-moon';
+        });
+      }
+      document.addEventListener('DOMContentLoaded', function () {
+        var saved = 'dark';
+        try { saved = localStorage.getItem('hmsTheme') || 'dark'; } catch (e) {}
+        applyTheme(saved === 'light' ? 'light' : 'dark');
+        function toggle() {
+          var cur = document.getElementById('hmsRoot').getAttribute('data-theme');
+          applyTheme(cur === 'light' ? 'dark' : 'light');
+        }
+        var b1 = document.getElementById('hmsThemeToggle');
+        var b2 = document.getElementById('hmsThemeToggleGuest');
+        if (b1) b1.addEventListener('click', toggle);
+        if (b2) b2.addEventListener('click', toggle);
+
+        var sos = document.getElementById('hmsSosBtn');
+        if (sos && window.__HMS_SOCKET__ && HMS_USER && HMS_USER.role === 'patient') {
+          sos.addEventListener('click', function () {
+            if (!confirm('Trigger emergency SOS? Hospital and ambulance teams will be notified.')) return;
+            window.__HMS_SOCKET__.emit('trigger-sos', {
+              patientId: HMS_USER.id,
+              patientName: HMS_USER.name,
+              message: 'SOS from patient portal',
+              ts: Date.now()
+            });
+            window.hmsShowToast('SOS sent', 'Emergency teams have been alerted.', 'warning');
+          });
+        }
+      });
+    })();
+  </script>

@@ -1,0 +1,102 @@
+<% var title = 'Chat - HMS'; %>
+<%- include('../partials/header') %>
+
+<div class="container-fluid">
+  <div class="row">
+    <%- include('../partials/doctor-sidebar', { active: 'chat' }) %>
+
+    <div class="col-md-9 col-lg-10 p-4">
+      <h2 class="fw-bold mb-4"><i class="fas fa-comments me-2"></i>Chat with Patients</h2>
+
+      <div class="row">
+        <div class="col-md-4">
+          <div class="card">
+            <div class="card-header bg-white">
+              <h6 class="fw-bold mb-0">Patients</h6>
+            </div>
+            <div class="list-group list-group-flush" id="patientList">
+              <% appointments.forEach(app => { %>
+                <button class="list-group-item list-group-item-action" onclick="selectPatient('<%= app.patient_id %>', '<%= app.patient_name %>')">
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-user-circle fa-2x text-primary me-3"></i>
+                    <div>
+                      <h6 class="mb-0"><%= app.patient_name %></h6>
+                      <small class="text-muted"><%= app.symptoms || 'No symptoms' %></small>
+                    </div>
+                  </div>
+                </button>
+              <% }) %>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div class="card">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+              <h6 class="fw-bold mb-0" id="chatTitle">Select a patient to chat</h6>
+              <span class="badge bg-success" id="onlineStatus" style="display:none">Online</span>
+            </div>
+            <div class="card-body">
+              <div class="chat-box mb-3" id="chatBox">
+                <div class="text-center text-muted py-5">
+                  <i class="fas fa-comments fa-3x mb-3"></i>
+                  <p>Select a patient from the list to start chatting</p>
+                </div>
+              </div>
+              <div class="input-group" id="chatInput" style="display:none">
+                <input type="text" id="messageInput" class="form-control" placeholder="Type your message...">
+                <button class="btn btn-primary" onclick="sendMessage()">
+                  <i class="fas fa-paper-plane"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentPatientId = null;
+  let currentPatientName = '';
+
+  function selectPatient(id, name) {
+    currentPatientId = id;
+    currentPatientName = name;
+    document.getElementById('chatTitle').textContent = `Chat with ${name}`;
+    document.getElementById('onlineStatus').style.display = 'inline';
+    document.getElementById('chatInput').style.display = 'flex';
+    document.getElementById('chatBox').innerHTML = '';
+    appendChatMessage('Chat started. You can now communicate with the patient.', 'system', 'System');
+  }
+
+  function appendChatMessage(message, type, fromName) {
+    const chatBox = document.getElementById('chatBox');
+    const div = document.createElement('div');
+    div.className = `chat-message ${type}`;
+    div.innerHTML = `<small class="d-block mb-1 ${type === 'sent' ? 'text-light' : 'text-muted'}">${fromName}</small>${message}`;
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+
+  function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const message = input.value.trim();
+    if (!message || !currentPatientId) return;
+
+    appendChatMessage(message, 'sent', 'You');
+    socket.emit('chat-message', {
+      to: currentPatientId,
+      from: '<%= user.id %>',
+      fromName: 'Dr. <%= user.name %>',
+      message
+    });
+    input.value = '';
+  }
+
+  document.getElementById('messageInput').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessage();
+  });
+</script>
+
+<%- include('../partials/footer') %>

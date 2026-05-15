@@ -1,0 +1,129 @@
+<% var title = 'My Profile - HMS'; %>
+<%- include('../partials/header') %>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-3 col-lg-2 sidebar p-0">
+      <div class="p-3 text-white">
+        <h5 class="fw-bold"><i class="fas fa-user-md me-2"></i>Doctor Panel</h5>
+      </div>
+      <nav class="nav flex-column">
+        <a class="nav-link" href="/doctor/dashboard"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+        <a class="nav-link" href="/doctor/appointments"><i class="fas fa-calendar-check me-2"></i>Appointments</a>
+        <a class="nav-link active" href="/doctor/profile"><i class="fas fa-user me-2"></i>Profile</a>
+        <a class="nav-link" href="/doctor/chat"><i class="fas fa-comments me-2"></i>Chat</a>
+      </nav>
+    </div>
+
+    <div class="col-md-9 col-lg-10 p-4">
+      <h2 class="fw-bold mb-4"><i class="fas fa-user me-2"></i>My Profile</h2>
+
+      <div class="row">
+        <div class="col-md-4">
+          <div class="card p-4 text-center">
+            <img src="<%= doctor.photo || '/images/default-doctor.jpg' %>" alt="Profile" class="rounded-circle mb-3" style="width:150px;height:150px;object-fit:cover;border:4px solid var(--primary)">
+            <h4 class="fw-bold">Dr. <%= doctor.name %></h4>
+            <p class="text-muted"><%= doctor.specialization %></p>
+            <p><i class="fas fa-map-marker-alt me-2 text-danger"></i><%= doctor.location || 'Location not set' %></p>
+            <p><i class="fas fa-rupee-sign me-2 text-success"></i>₹<%= doctor.fees %> per consultation</p>
+          </div>
+        </div>
+        <div class="col-md-8">
+          <div class="card p-4">
+            <h5 class="fw-bold mb-3">Edit Profile</h5>
+            <form action="/doctor/profile" method="POST" enctype="multipart/form-data">
+              <div class="mb-3">
+                <label class="form-label">Full Name</label>
+                <input type="text" name="name" class="form-control" value="<%= doctor.name %>" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Specialization</label>
+                <select name="specialization" class="form-select">
+                  <option <%= doctor.specialization === 'General Physician' ? 'selected' : '' %>>General Physician</option>
+                  <option <%= doctor.specialization === 'Cardiologist' ? 'selected' : '' %>>Cardiologist</option>
+                  <option <%= doctor.specialization === 'Dermatologist' ? 'selected' : '' %>>Dermatologist</option>
+                  <option <%= doctor.specialization === 'Neurologist' ? 'selected' : '' %>>Neurologist</option>
+                  <option <%= doctor.specialization === 'Orthopedic' ? 'selected' : '' %>>Orthopedic</option>
+                  <option <%= doctor.specialization === 'ENT' ? 'selected' : '' %>>ENT</option>
+                  <option <%= doctor.specialization === 'Pediatrician' ? 'selected' : '' %>>Pediatrician</option>
+                  <option <%= doctor.specialization === 'Gynecologist' ? 'selected' : '' %>>Gynecologist</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Location/Clinic</label>
+                <input type="text" name="location" class="form-control" value="<%= doctor.location || '' %>">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Consultation Fees (₹)</label>
+                <input type="number" name="fees" class="form-control" value="<%= doctor.fees || 500 %>">
+              </div>
+              <div class="row mb-3">
+                <div class="col-6">
+                  <label class="form-label">Available From</label>
+                  <input type="time" name="available_from" class="form-control" value="<%= doctor.available_from || '09:00' %>">
+                </div>
+                <div class="col-6">
+                  <label class="form-label">Available To</label>
+                  <input type="time" name="available_to" class="form-control" value="<%= doctor.available_to || '17:00' %>">
+                </div>
+              </div>
+              <div class="mb-3">
+                <label class="form-label">Profile Photo</label>
+                <input type="file" name="photo" class="form-control" accept="image/*">
+              </div>
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-2"></i>Save Changes
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Leave Management -->
+    <div class="col-md-9 col-lg-10 offset-md-3 offset-lg-2 p-4 pt-0">
+      <div class="card p-4 mt-4">
+        <h5 class="fw-bold mb-3"><i class="fas fa-calendar-times me-2"></i>Manage Leaves</h5>
+        <form action="/doctor/leaves" method="POST" class="row g-3 mb-4">
+          <div class="col-md-6">
+            <input type="date" name="leave_date" class="form-control" required>
+          </div>
+          <div class="col-md-4">
+            <button type="submit" class="btn btn-warning"><i class="fas fa-plus me-1"></i>Mark as Leave</button>
+          </div>
+        </form>
+
+        <% if (leaves && leaves.length > 0) { %>
+          <div class="table-responsive">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Added On</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% leaves.forEach(l => { %>
+                  <tr>
+                    <td><%= new Date(l.date).toLocaleDateString() %></td>
+                    <td><%= new Date(l.created_at).toLocaleDateString() %></td>
+                    <td>
+                      <form action="/doctor/leaves/delete/<%= l.id %>" method="POST" class="d-inline">
+                        <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                      </form>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        <% } else { %>
+          <p class="text-muted">No upcoming leaves marked.</p>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,83 @@
+<% var title = 'Register - HMS'; %>
+<%- include('../partials/header') %>
+
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card p-4">
+        <div class="text-center mb-4">
+          <i class="fas fa-user-plus fa-3x text-primary mb-3"></i>
+          <h3 class="fw-bold">Create Account</h3>
+          <p class="text-muted">Join our healthcare platform</p>
+        </div>
+
+        <form action="/register" method="POST">
+          <div class="mb-3">
+            <label class="form-label"><i class="fas fa-user me-2"></i>Full Name</label>
+            <input type="text" name="name" class="form-control" required placeholder="Enter your full name">
+          </div>
+          <div class="mb-3">
+            <label class="form-label"><i class="fas fa-envelope me-2"></i>Email</label>
+            <input type="email" name="email" class="form-control" required placeholder="Enter your email">
+          </div>
+          <div class="mb-3">
+            <label class="form-label"><i class="fas fa-phone me-2"></i>Phone</label>
+            <input type="tel" name="phone" class="form-control" placeholder="Enter phone number">
+          </div>
+          <div class="mb-3">
+            <label class="form-label"><i class="fas fa-lock me-2"></i>Password</label>
+            <input type="password" name="password" class="form-control" required placeholder="Create a password">
+          </div>
+          <div class="mb-3">
+            <label class="form-label"><i class="fas fa-user-tag me-2"></i>Role</label>
+            <select name="role" class="form-select" id="roleSelect" onchange="toggleDoctorFields()">
+              <option value="patient">Patient</option>
+              <option value="doctor">Doctor</option>
+            </select>
+          </div>
+
+          <div id="doctorFields" style="display:none">
+            <div class="mb-3">
+              <label class="form-label">Specialization</label>
+              <select name="specialization" class="form-select">
+                <option>General Physician</option>
+                <option>Cardiologist</option>
+                <option>Dermatologist</option>
+                <option>Neurologist</option>
+                <option>Orthopedic</option>
+                <option>ENT</option>
+                <option>Pediatrician</option>
+                <option>Gynecologist</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Location</label>
+              <input type="text" name="location" class="form-control" placeholder="Clinic/Hospital address">
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Consultation Fees (₹)</label>
+              <input type="number" name="fees" class="form-control" value="500">
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 mb-3">
+            <i class="fas fa-user-plus me-2"></i>Register
+          </button>
+        </form>
+
+        <div class="text-center">
+          <p class="mb-0">Already have an account? <a href="/login" class="text-primary fw-bold">Login</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function toggleDoctorFields() {
+    const role = document.getElementById('roleSelect').value;
+    document.getElementById('doctorFields').style.display = role === 'doctor' ? 'block' : 'none';
+  }
+</script>
+
+<%- include('../partials/footer') %>

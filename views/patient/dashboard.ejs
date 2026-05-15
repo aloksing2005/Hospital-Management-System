@@ -1,0 +1,153 @@
+<% var title = 'Patient Command Center - HMS'; %>
+<%- include('../partials/header') %>
+
+<div class="container-fluid mesh-bg min-h-screen">
+  <div class="row">
+    <%- include('../partials/patient-sidebar', { active: 'dashboard' }) %>
+
+    <div class="col-md-9 col-lg-10 p-8">
+      <!-- Welcome Header -->
+      <div class="page-header flex flex-col md:flex-row justify-between items-start md:items-end mb-12">
+          <div>
+              <span class="text-xs font-black uppercase tracking-[0.3em] text-indigo-400 mb-2 block">System Overview</span>
+              <h1 class="text-5xl font-black text-white tracking-tighter">Welcome back, <%= user.name %></h1>
+              <p class="text-slate-400 font-medium mt-2">Here's your health summary for today.</p>
+          </div>
+          <div class="flex gap-3 mt-6 md:mt-0">
+              <div class="glass px-6 py-3 rounded-2xl flex items-center gap-3 border border-white/10">
+                  <div class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></div>
+                  <span class="text-sm font-bold text-slate-300">Server: London-1 (Active)</span>
+              </div>
+          </div>
+      </div>
+
+      <!-- Live Vitals Grid (Real-time Simulation) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <div class="cyber-card p-8 group">
+              <div class="flex justify-between items-start mb-6">
+                  <div class="w-14 h-14 bg-rose-500/10 text-rose-500 rounded-2xl flex items-center justify-center text-xl transition-transform group-hover:scale-110">
+                      <i class="fas fa-heartbeat"></i>
+                  </div>
+                  <span class="text-xs font-black text-rose-500 bg-rose-500/10 px-2 py-1 rounded-lg border border-rose-500/20">LIVE</span>
+              </div>
+              <h3 class="stat-value text-4xl font-black text-white mb-1">72 <span class="text-lg text-slate-400 font-medium">BPM</span></h3>
+              <p class="text-slate-400 text-sm font-bold uppercase tracking-widest">Heart Rate</p>
+          </div>
+
+          <div class="cyber-card p-8 group">
+              <div class="flex justify-between items-start mb-6">
+                  <div class="w-14 h-14 bg-cyan-500/10 text-cyan-500 rounded-2xl flex items-center justify-center text-xl transition-transform group-hover:scale-110">
+                      <i class="fas fa-wind"></i>
+                  </div>
+                  <span class="text-xs font-black text-cyan-500 bg-cyan-500/10 px-2 py-1 rounded-lg border border-cyan-500/20">LIVE</span>
+              </div>
+              <h3 class="stat-value text-4xl font-black text-white mb-1">98 <span class="text-lg text-slate-400 font-medium">%</span></h3>
+              <p class="text-slate-400 text-sm font-bold uppercase tracking-widest">SpO2 Level</p>
+          </div>
+
+          <div class="cyber-card p-8 group">
+              <div class="flex justify-between items-start mb-6">
+                  <div class="w-14 h-14 bg-indigo-500/10 text-indigo-500 rounded-2xl flex items-center justify-center text-xl transition-transform group-hover:scale-110">
+                      <i class="fas fa-tint"></i>
+                  </div>
+                  <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-2 py-1 rounded-lg border border-indigo-500/20">STABLE</span>
+              </div>
+              <h3 class="stat-value text-4xl font-black text-white mb-1">120/80</h3>
+              <p class="text-slate-400 text-sm font-bold uppercase tracking-widest">Blood Pressure</p>
+          </div>
+
+          <div class="cyber-card p-8 group">
+              <div class="flex justify-between items-start mb-6">
+                  <div class="w-14 h-14 bg-amber-500/10 text-amber-500 rounded-2xl flex items-center justify-center text-xl transition-transform group-hover:scale-110">
+                      <i class="fas fa-thermometer-half"></i>
+                  </div>
+                  <span class="text-xs font-black text-amber-500 bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-500/20">NORMAL</span>
+              </div>
+              <h3 class="stat-value text-4xl font-black text-white mb-1">98.6 <span class="text-lg text-slate-400 font-medium">°F</span></h3>
+              <p class="text-slate-400 text-sm font-bold uppercase tracking-widest">Body Temp</p>
+          </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <!-- Main Content Area -->
+          <div class="lg:col-span-2 space-y-8">
+              <div class="cyber-card p-10 overflow-hidden relative">
+                  <div class="relative z-10">
+                      <h3 class="text-2xl font-black text-white mb-8">Recent Consultations</h3>
+                      <div class="space-y-6">
+                          <% if (appointments.length === 0) { %>
+                              <div class="text-center py-10">
+                                  <p class="text-slate-400 font-medium">No recent medical activity found.</p>
+                              </div>
+                          <% } else { %>
+                              <% appointments.forEach(app => { %>
+                                  <div class="flex items-center gap-6 p-6 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 hover:shadow-xl transition-all duration-500">
+                                      <img src="https://i.pravatar.cc/100?u=<%= app.doctor_id %>" class="w-16 h-16 rounded-2xl object-cover shadow-md">
+                                      <div class="flex-grow">
+                                          <h4 class="text-lg font-black text-white"><%= app.doctor_name %></h4>
+                                          <p class="text-xs font-bold text-indigo-400 uppercase tracking-widest"><%= app.specialization %></p>
+                                      </div>
+                                      <div class="text-right">
+                                          <p class="text-sm font-bold text-white"><%= app.date %></p>
+                                          <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400">Completed</span>
+                                      </div>
+                                  </div>
+                              <% }) %>
+                          <% } %>
+                      </div>
+                  </div>
+              </div>
+
+              <!-- AI Health Tip -->
+              <div class="bg-indigo-600 rounded-[40px] p-10 text-white flex items-center gap-8 shadow-2xl shadow-indigo-500/20">
+                  <div class="w-20 h-20 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center text-3xl shrink-0">
+                      <i class="fas fa-robot"></i>
+                  </div>
+                  <div>
+                      <h4 class="text-xl font-bold mb-2">AURA Intelligence Tip</h4>
+                      <p class="text-indigo-100 font-medium leading-relaxed">Your hydration levels seem a bit lower than usual today. Aim for 2 more liters before 8 PM to maintain optimal kidney function.</p>
+                  </div>
+              </div>
+          </div>
+
+          <!-- Right Sidebar Area -->
+          <div class="space-y-8">
+              <div class="cyber-card p-8 bg-slate-900/50 border-white/5">
+                  <h3 class="text-xl font-black text-white mb-8">Upcoming Visit</h3>
+                  <div class="p-6 bg-white/5 rounded-3xl border border-white/10 mb-8">
+                      <div class="flex items-center gap-4 mb-4">
+                          <i class="fas fa-calendar-alt text-indigo-400"></i>
+                          <span class="text-sm font-bold text-white">Tomorrow, 10:30 AM</span>
+                      </div>
+                      <h4 class="text-lg font-black text-white">Dr. Alok Singh</h4>
+                      <p class="text-xs text-slate-400 uppercase tracking-widest font-bold">Cardiologist • Room 402</p>
+                  </div>
+                  <button class="w-full cyber-btn py-4 rounded-2xl text-xs">Check In Early</button>
+              </div>
+
+              <div class="cyber-card p-8">
+                  <h3 class="text-xl font-black text-white mb-8">Lab Status</h3>
+                  <div class="space-y-6">
+                      <div class="flex items-center gap-4">
+                          <div class="w-10 h-10 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center"><i class="fas fa-check"></i></div>
+                          <div class="flex-grow">
+                              <p class="text-sm font-bold text-white">Blood Profile</p>
+                              <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Ready to view</p>
+                          </div>
+                      </div>
+                      <div class="flex items-center gap-4 opacity-50">
+                          <div class="w-10 h-10 bg-white/5 text-slate-400 rounded-xl flex items-center justify-center"><i class="fas fa-spinner animate-spin"></i></div>
+                          <div class="flex-grow">
+                              <p class="text-sm font-bold text-white">X-Ray Analysis</p>
+                              <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Processing...</p>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

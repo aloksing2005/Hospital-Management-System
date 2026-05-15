@@ -1,0 +1,128 @@
+<% var title = 'AI Diet Planner - HMS'; %>
+<%- include('../partials/header') %>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<div class="container-fluid bg-gray-50 min-h-screen">
+  <div class="row">
+    <%- include('../partials/patient-sidebar', { active: 'diet' }) %>
+
+    <div class="col-md-9 col-lg-10 p-12">
+      <div class="max-w-5xl mx-auto">
+        <div class="flex justify-between items-center mb-12">
+            <div>
+                <h2 class="text-5xl font-black text-gray-900 tracking-tight">AI Smart Diet Planner</h2>
+                <p class="text-gray-500 mt-2 text-xl">Personalized nutrition based on your health profile.</p>
+            </div>
+            <div class="w-20 h-20 bg-green-100 text-green-600 rounded-3xl flex items-center justify-center text-3xl">
+                <i class="fas fa-apple-alt"></i>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Diet Inputs -->
+            <div class="lg:col-span-1 space-y-6">
+                <div class="bg-white rounded-[40px] shadow-sm border border-gray-100 p-8">
+                    <h3 class="text-xl font-bold mb-6">Health Profile</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase">Goal</label>
+                            <select id="dietGoal" class="w-full bg-gray-50 border-0 rounded-2xl px-4 py-3 mt-1 outline-none">
+                                <option>Recovery from Fever</option>
+                                <option>Weight Management</option>
+                                <option>Diabetic Friendly</option>
+                                <option>Heart Healthy</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-gray-400 uppercase">Activity Level</label>
+                            <select id="activity" class="w-full bg-gray-50 border-0 rounded-2xl px-4 py-3 mt-1 outline-none">
+                                <option>Sedentary</option>
+                                <option>Moderate</option>
+                                <option>Active</option>
+                            </select>
+                        </div>
+                        <button onclick="generateDiet()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition">Generate Plan</button>
+                    </div>
+                </div>
+
+                <div class="bg-indigo-900 rounded-[40px] p-8 text-white">
+                    <h4 class="font-bold mb-2">Nutrient Ratio</h4>
+                    <div class="space-y-4 mt-6">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span>Protein</span><span>40%</span></div>
+                            <div class="w-full bg-indigo-800 h-1 rounded-full"><div class="bg-white h-full" style="width: 40%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span>Carbs</span><span>35%</span></div>
+                            <div class="w-full bg-indigo-800 h-1 rounded-full"><div class="bg-white h-full" style="width: 35%"></div></div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs mb-1"><span>Fats</span><span>25%</span></div>
+                            <div class="w-full bg-indigo-800 h-1 rounded-full"><div class="bg-white h-full" style="width: 25%"></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Diet Output -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-[40px] shadow-sm border border-gray-100 p-10 h-full">
+                    <div id="dietPlaceholder" class="flex flex-col items-center justify-center h-full text-center">
+                        <i class="fas fa-utensils text-6xl text-gray-100 mb-6"></i>
+                        <h3 class="text-2xl font-bold text-gray-300">Set your goals to see your plan</h3>
+                    </div>
+
+                    <div id="dietResult" class="hidden animate__animated animate__fadeIn">
+                        <h3 class="text-2xl font-black text-gray-900 mb-8 flex items-center">
+                            <i class="fas fa-calendar-day text-indigo-600 mr-4"></i>
+                            Your Daily Meal Plan
+                        </h3>
+                        
+                        <div class="space-y-6">
+                            <div class="flex items-start gap-6 p-6 bg-gray-50 rounded-3xl group hover:bg-indigo-50 transition">
+                                <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-xl text-orange-500 shadow-sm font-bold">08:00</div>
+                                <div>
+                                    <h4 class="font-bold text-gray-800">Breakfast: High Protein Omelette</h4>
+                                    <p class="text-gray-500 text-sm mt-1">3 egg whites, spinach, and whole grain toast. Avoid sugary drinks.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-6 p-6 bg-gray-50 rounded-3xl group hover:bg-indigo-50 transition">
+                                <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-xl text-indigo-500 shadow-sm font-bold">13:00</div>
+                                <div>
+                                    <h4 class="font-bold text-gray-800">Lunch: Grilled Chicken & Quinoa</h4>
+                                    <p class="text-gray-500 text-sm mt-1">Seasoned with lemon and herbs. Large side of steamed broccoli.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start gap-6 p-6 bg-gray-50 rounded-3xl group hover:bg-indigo-50 transition">
+                                <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-xl text-green-500 shadow-sm font-bold">20:00</div>
+                                <div>
+                                    <h4 class="font-bold text-gray-800">Dinner: Baked Salmon with Asparagus</h4>
+                                    <p class="text-gray-500 text-sm mt-1">Rich in Omega-3. Light dinner for better sleep cycle.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-10 p-6 bg-indigo-900 rounded-[32px] text-white flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold uppercase tracking-widest text-indigo-300">Total Calories</p>
+                                <p class="text-2xl font-black">2,240 kcal</p>
+                            </div>
+                            <button class="bg-white text-indigo-900 px-6 py-2 rounded-xl font-bold text-sm">Save to Mobile</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    function generateDiet() {
+        document.getElementById('dietPlaceholder').classList.add('hidden');
+        document.getElementById('dietResult').classList.remove('hidden');
+    }
+</script>
+
+<%- include('../partials/footer') %>

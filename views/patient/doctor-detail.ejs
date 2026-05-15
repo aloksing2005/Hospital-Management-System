@@ -1,0 +1,116 @@
+<% var title = 'Doctor Details - HMS'; %>
+<%- include('../partials/header') %>
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-3 col-lg-2 sidebar p-0">
+      <div class="p-3 text-white">
+        <h5 class="fw-bold"><i class="fas fa-heartbeat me-2"></i>Patient Panel</h5>
+      </div>
+      <nav class="nav flex-column">
+        <a class="nav-link" href="/patient/dashboard"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+        <a class="nav-link active" href="/patient/doctors"><i class="fas fa-user-md me-2"></i>Find Doctors</a>
+        <a class="nav-link" href="/patient/appointments"><i class="fas fa-calendar-check me-2"></i>My Appointments</a>
+        <a class="nav-link" href="/patient/prescriptions"><i class="fas fa-file-prescription me-2"></i>Prescriptions</a>
+        <a class="nav-link" href="/patient/symptom-checker"><i class="fas fa-brain me-2"></i>AI Symptom Checker</a>
+        <a class="nav-link" href="/patient/chat"><i class="fas fa-comments me-2"></i>Chat</a>
+      </nav>
+    </div>
+
+    <div class="col-md-9 col-lg-10 p-4">
+      <a href="/patient/doctors" class="btn btn-outline-primary mb-3">
+        <i class="fas fa-arrow-left me-2"></i>Back to Doctors
+      </a>
+
+      <div class="row">
+        <div class="col-md-4">
+          <div class="card p-4 text-center">
+            <img src="<%= doctor.photo || '/images/default-doctor.jpg' %>" alt="Dr. <%= doctor.name %>" class="rounded-circle mx-auto mb-3" style="width:150px;height:150px;object-fit:cover;border:4px solid var(--primary)">
+            <h4 class="fw-bold">Dr. <%= doctor.name %></h4>
+            <span class="badge bg-info mb-2"><%= doctor.specialization %></span>
+            <p class="text-muted"><i class="fas fa-map-marker-alt me-2 text-danger"></i><%= doctor.location || 'Location not set' %></p>
+            <p class="text-success fw-bold"><i class="fas fa-rupee-sign me-2"></i><%= doctor.fees %> per consultation</p>
+            <p class="text-muted"><i class="fas fa-envelope me-2"></i><%= doctor.email %></p>
+            <p class="text-muted"><i class="fas fa-phone me-2"></i><%= doctor.phone || 'N/A' %></p>
+          </div>
+        </div>
+
+        <div class="col-md-8">
+          <div class="card p-4">
+            <h5 class="fw-bold mb-3"><i class="fas fa-calendar-plus me-2 text-primary"></i>Book Appointment</h5>
+
+            <form action="/patient/book-appointment" method="POST" id="bookingForm">
+              <input type="hidden" name="doctor_id" value="<%= doctor.id %>">
+
+              <div class="mb-3">
+                <label class="form-label">Select Date</label>
+                <input type="date" name="date" id="appointmentDate" class="form-control" required min="<%= new Date().toISOString().split('T')[0] %>">
+                <small id="leaveWarning" class="text-danger d-none">Doctor is on leave on this date.</small>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Select Time Slot</label>
+                <div class="d-flex flex-wrap">
+                  <% slots.forEach(slot => { %>
+                    <button type="button" class="btn btn-outline-primary slot-btn" onclick="selectSlot(this, '<%= slot %>')">
+                      <%= slot %>
+                    </button>
+                  <% }) %>
+                </div>
+                <input type="hidden" name="time_slot" id="selectedSlot" required>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Symptoms</label>
+                <textarea name="symptoms" class="form-control" rows="3" placeholder="Describe your symptoms..."></textarea>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Additional Notes</label>
+                <textarea name="notes" class="form-control" rows="2" placeholder="Any additional information..."></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-lg w-100">
+                <i class="fas fa-calendar-check me-2"></i>Confirm Booking
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function selectSlot(btn, slot) {
+    document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected', 'btn-primary'));
+    document.querySelectorAll('.slot-btn').forEach(b => b.classList.add('btn-outline-primary'));
+    btn.classList.remove('btn-outline-primary');
+    btn.classList.add('selected', 'btn-primary');
+    document.getElementById('selectedSlot').value = slot;
+  }
+
+  const leaveDates = <%- JSON.stringify(leaveDates || []) %>;
+  
+  document.getElementById('appointmentDate').addEventListener('change', function(e) {
+    const selectedDate = e.target.value;
+    const warning = document.getElementById('leaveWarning');
+    const submitBtn = document.querySelector('#bookingForm button[type="submit"]');
+    if (leaveDates.includes(selectedDate)) {
+      warning.classList.remove('d-none');
+      submitBtn.disabled = true;
+    } else {
+      warning.classList.add('d-none');
+      submitBtn.disabled = false;
+    }
+  });
+
+  document.getElementById('bookingForm').addEventListener('submit', (e) => {
+    if (!document.getElementById('selectedSlot').value) {
+      e.preventDefault();
+      showToast('Error', 'Please select a time slot', 'error');
+    }
+  });
+</script>
+
+<%- include('../partials/footer') %>

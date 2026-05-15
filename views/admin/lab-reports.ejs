@@ -1,0 +1,103 @@
+<% var title = 'Manage Lab Reports - HMS'; %>
+<%- include('../partials/header') %>
+
+<div class="container-fluid">
+  <div class="row">
+    <%- include('../partials/admin-sidebar', { active: 'lab-reports' }) %>
+
+    <div class="col-md-9 col-lg-10 p-4">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold"><i class="fas fa-flask text-primary me-2"></i>Patient Lab Reports</h2>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadReportModal">
+          <i class="fas fa-upload me-2"></i>Upload New Report
+        </button>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="bg-light">
+                <tr>
+                  <th>Patient</th>
+                  <th>Report Name</th>
+                  <th>Test Type</th>
+                  <th>Date</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% if (reports.length === 0) { %>
+                  <tr><td colspan="5" class="text-center py-4 text-muted">No reports uploaded yet</td></tr>
+                <% } %>
+                <% reports.forEach(report => { %>
+                  <tr>
+                    <td class="fw-bold"><%= report.patient_name %></td>
+                    <td><%= report.report_name %></td>
+                    <td><span class="badge bg-info text-white"><%= report.test_type %></span></td>
+                    <td><%= new Date(report.created_at).toLocaleDateString() %></td>
+                    <td>
+                      <a href="<%= report.file_path %>" target="_blank" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-eye me-1"></i>View
+                      </a>
+                    </td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Upload Report Modal -->
+<div class="modal fade" id="uploadReportModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title fw-bold">Upload Lab Report</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="/admin/lab-reports/upload" method="POST" enctype="multipart/form-data">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Select Patient</label>
+            <select name="patient_id" class="form-select" required>
+              <option value="">-- Choose Patient --</option>
+              <% patients.forEach(patient => { %>
+                <option value="<%= patient.id %>"><%= patient.name %></option>
+              <% }) %>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Report Name</label>
+            <input type="text" name="report_name" class="form-control" placeholder="e.g. Blood Test Result" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Test Type</label>
+            <select name="test_type" class="form-select" required>
+              <option value="Blood Test">Blood Test</option>
+              <option value="Urine Test">Urine Test</option>
+              <option value="X-Ray">X-Ray</option>
+              <option value="CT Scan">CT Scan</option>
+              <option value="MRI">MRI</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Upload File (PDF/Image)</label>
+            <input type="file" name="report" class="form-control" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Upload & Notify Patient</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
