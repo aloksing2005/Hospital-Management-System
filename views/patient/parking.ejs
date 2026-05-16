@@ -35,7 +35,7 @@
                 <div class="grid grid-cols-6 gap-4">
                     <% for(let i=1; i<=24; i++) { %>
                         <% const isOccupied = [3, 7, 12, 15, 18, 22].includes(i); %>
-                        <button onclick="selectSlot(<%= i %>)" id="slot-<%= i %>" 
+                        <button onclick="selectSlot(`<%= i %>`)" id="slot-<%= i %>" 
                             class="aspect-square rounded-2xl flex flex-col items-center justify-center transition-all duration-300 <%= isOccupied ? 'bg-gray-900 text-white cursor-not-allowed' : 'bg-gray-50 text-gray-400 hover:bg-indigo-50 hover:text-indigo-600 border border-transparent' %>">
                             <i class="fas fa-car-side mb-1"></i>
                             <span class="text-[10px] font-black">P-<%= i %></span>
