@@ -80,8 +80,8 @@
           <% doctors.forEach(doc => { %>
             <div class="col-md-6 col-lg-4">
               <div class="card doctor-card h-100 p-4 text-center">
-                <img src="<%= doc.photo || '/images/default-doctor.jpg' %>" alt="Dr. <%= doc.name %>" class="mx-auto mb-3">
-                <h5 class="fw-bold">Dr. <%= doc.name %></h5>
+                <img src="<%= doc.photo || '/images/default-doctor.jpg' %>" alt="<%= doc.name %>" class="mx-auto mb-3">
+                <h5 class="fw-bold"><%= doc.name.startsWith('Dr.') ? doc.name : 'Dr. ' + doc.name %></h5>
                 <span class="badge bg-info mb-2"><%= doc.specialization %></span>
                 <div class="mb-2">
                   <% if (doc.rating > 0) { %>

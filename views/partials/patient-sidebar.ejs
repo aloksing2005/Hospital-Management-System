@@ -15,6 +15,17 @@
       <a class="nav-link <%= active === 'lab-reports' ? 'active' : '' %>" href="/patient/lab-reports"><i class="fas fa-flask me-2"></i>Lab Tests</a>
       <a class="nav-link <%= active === 'ambulance' ? 'active' : '' %>" href="/patient/ambulance"><i class="fas fa-ambulance me-2"></i>Emergency</a>
       <a class="nav-link <%= active === 'vitals' ? 'active' : '' %>" href="/patient/vitals"><i class="fas fa-wave-square me-2"></i>Vitals</a>
+      <a class="nav-link <%= active === 'notifications' ? 'active' : '' %>" href="/patient/notifications">
+        <i class="fas fa-bell me-2"></i>Notifications
+        <% if (locals.unreadNotifications > 0) { %>
+          <span class="badge bg-danger rounded-pill ms-auto"><%= unreadNotifications %></span>
+        <% } %>
+      </a>
+      <a class="nav-link <%= active === 'bills' ? 'active' : '' %>" href="/patient/bills"><i class="fas fa-file-invoice-dollar me-2"></i>Billing</a>
+      <a class="nav-link <%= active === 'pharmacy' ? 'active' : '' %>" href="/patient/pharmacy"><i class="fas fa-pills me-2"></i>Pharmacy</a>
+      <a class="nav-link <%= active === 'wellbeing' ? 'active' : '' %>" href="/patient/wellbeing"><i class="fas fa-spa me-2"></i>Wellbeing</a>
+      <a class="nav-link <%= active === 'parking' ? 'active' : '' %>" href="/patient/parking"><i class="fas fa-parking me-2"></i>Parking</a>
+      <a class="nav-link <%= active === 'insurance' ? 'active' : '' %>" href="/patient/insurance"><i class="fas fa-shield-alt me-2"></i>Insurance</a>
       <a class="nav-link" href="/patient/health-report.pdf" target="_blank" rel="noopener"><i class="fas fa-file-pdf me-2"></i>Health PDF</a>
       <a class="nav-link <%= active === 'ai-chat' ? 'active' : '' %>" href="/patient/ai-chat"><i class="fas fa-robot me-2"></i>AI Assistant</a>
       <a class="nav-link <%= active === 'analytics' ? 'active' : '' %>" href="/patient/analytics"><i class="fas fa-chart-line me-2"></i>Insights</a>

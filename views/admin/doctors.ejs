@@ -45,7 +45,7 @@
                     <td>
                       <img src="<%= doc.photo || '/images/default-doctor.jpg' %>" alt="<%= doc.name %>" class="rounded-circle" style="width:50px;height:50px;object-fit:cover">
                     </td>
-                    <td class="fw-bold">Dr. <%= doc.name %></td>
+                    <td class="fw-bold"><%= doc.name.startsWith('Dr.') ? doc.name : 'Dr. ' + doc.name %></td>
                     <td><span class="badge bg-info"><%= doc.specialization %></span></td>
                     <td><%= doc.location || 'N/A' %></td>
                     <td>₹<%= doc.fees %></td>

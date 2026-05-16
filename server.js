@@ -193,6 +193,17 @@ io.on("connection", (socket) => {
       vitals.bpDia += Math.floor(Math.random() * 5) - 2;
       vitals.temp = (parseFloat(vitals.temp) + (Math.random() * 0.2 - 0.1)).toFixed(1);
 
+      // Periodically save to DB (every ~10 seconds - 5 ticks)
+      if (!socket.vitalsTick) socket.vitalsTick = 0;
+      socket.vitalsTick++;
+      if (socket.vitalsTick % 5 === 0) {
+        const db = require("./config/db");
+        db.query(
+          "INSERT INTO patient_vitals (patient_id, hr, spo2, bp_sys, bp_dia, temp) VALUES (?, ?, ?, ?, ?, ?)",
+          [patientId, vitals.hr, vitals.spo2, vitals.bpSys, vitals.bpDia, vitals.temp]
+        ).catch(e => console.error("Error saving vitals:", e.message));
+      }
+
       io.to(userRoom(String(patientId))).emit("vitals-update", { patientId, vitals });
     }, 2000);
   });

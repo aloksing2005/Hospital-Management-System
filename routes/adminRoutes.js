@@ -19,6 +19,7 @@ router.get("/lab-reports", isAdmin, adminController.getLabReports);
 router.post("/lab-reports/upload", isAdmin, upload.single("report"), adminController.uploadLabReport);
 router.get("/resources", isAdmin, adminController.getResources);
 router.get("/blood-bank", isAdmin, adminController.getBloodBank);
+router.post("/blood-bank/update", isAdmin, adminController.updateBloodStock);
 router.post("/resources/update", isAdmin, adminController.updateResource);
 
 module.exports = router;

@@ -2,7 +2,11 @@ const doctorModel = require("../models/doctorModel");
 const appointmentModel = require("../models/appointmentModel");
 const prescriptionModel = require("../models/prescriptionModel");
 const labReportModel = require("../models/labReportModel");
+const notificationModel = require("../models/notificationModel");
+const billModel = require("../models/billModel");
+const pharmacyModel = require("../models/pharmacyModel");
 const { findSpecialization, suggestMedicines, generateSlots } = require("../utils/aiEngine");
+const bloodBankModel = require("../models/bloodBankModel");
 const db = require("../config/db");
 const path = require("path");
 const fs = require("fs");
@@ -18,13 +22,30 @@ exports.getDashboard = async (req, res) => {
 
     const appointments = await appointmentModel.getAppointmentsByPatient(req.session.user.id);
     const prescriptions = await prescriptionModel.getPrescriptionsByPatient(req.session.user.id);
+    
+    // Get latest vitals for Health Score
+    const [latestVitals] = await db.query("SELECT * FROM patient_vitals WHERE patient_id = ? ORDER BY created_at DESC LIMIT 1", [req.session.user.id]);
+    
+    // Get unread notifications
+    const unreadNotifications = await notificationModel.getUnreadCount(req.session.user.id);
+    
+    let healthScore = 85; // Default
+    if (latestVitals.length > 0) {
+      const v = latestVitals[0];
+      // Simple algorithm: deduction for out-of-range values
+      if (v.hr > 100 || v.hr < 60) healthScore -= 5;
+      if (v.spo2 < 95) healthScore -= 10;
+      if (v.bp_sys > 140 || v.bp_sys < 90) healthScore -= 5;
+      if (v.temp > 100 || v.temp < 97) healthScore -= 5;
+    }
 
     res.render("patient/dashboard", {
       stats: stats[0],
       appointments: appointments.slice(0, 5),
       prescriptions: prescriptions.slice(0, 5),
+      healthScore,
+      unreadNotifications,
       user: req.session.user,
-  
     });
   } catch (err) {
     req.flash("error", "Dashboard error: " + err.message);
@@ -215,8 +236,20 @@ exports.getLabReports = async (req, res) => {
   }
 };
 
-exports.getAnalytics = (req, res) => {
-  res.render("patient/analytics", { user: req.session.user });
+exports.getAnalytics = async (req, res) => {
+  try {
+    const [vitals] = await db.query(
+      "SELECT * FROM patient_vitals WHERE patient_id = ? ORDER BY created_at ASC LIMIT 50",
+      [req.session.user.id]
+    );
+    res.render("patient/analytics", { 
+      vitalsHistory: vitals,
+      user: req.session.user 
+    });
+  } catch (err) {
+    req.flash("error", err.message);
+    res.redirect("/patient/dashboard");
+  }
 };
 
 exports.getReminders = async (req, res) => {
@@ -272,6 +305,75 @@ exports.downloadHealthReport = async (req, res) => {
     res.download(outPath, "Health_Report.pdf");
   } catch (e) {
     req.flash("error", e.message || "Could not generate report");
+    res.redirect("/patient/dashboard");
+  }
+};
+exports.getDonorRegistry = async (req, res) => {
+  try {
+    const donor = await bloodBankModel.getDonorByPatientId(req.session.user.id);
+    res.render("patient/donor-registry", { user: req.session.user, donor });
+  } catch (err) {
+    req.flash("error", err.message);
+    res.redirect("/patient/dashboard");
+  }
+};
+
+exports.registerAsDonor = async (req, res) => {
+  try {
+    const { blood_group, organ_to_donate } = req.body;
+    await bloodBankModel.registerDonor({
+      patient_id: req.session.user.id,
+      blood_group,
+      organ_to_donate
+    });
+    req.flash("success", "Successfully registered as a donor. Thank you for your contribution!");
+    res.redirect("/patient/donor-registry");
+  } catch (err) {
+    req.flash("error", err.message);
+    res.redirect("/patient/donor-registry");
+  }
+};
+
+exports.getWellbeing = (req, res) => {
+  res.render("patient/wellbeing", { user: req.session.user });
+};
+
+exports.getNotifications = async (req, res) => {
+  try {
+    const notifications = await notificationModel.getByUser(req.session.user.id);
+    res.render("patient/notifications", { title: "My Notifications", notifications, user: req.session.user });
+  } catch (err) {
+    req.flash("error", err.message);
+    res.redirect("/patient/dashboard");
+  }
+};
+
+exports.markNotificationRead = async (req, res) => {
+  try {
+    await notificationModel.markAsRead(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+};
+
+exports.getBills = async (req, res) => {
+  try {
+    const bills = await billModel.getByPatient(req.session.user.id);
+    res.render("patient/bills", { title: "My Bills", bills, user: req.session.user });
+  } catch (err) {
+    req.flash("error", err.message);
+    res.redirect("/patient/dashboard");
+  }
+};
+
+exports.getPharmacy = async (req, res) => {
+  try {
+    const query = req.query.search || "";
+    const medicines = query ? await pharmacyModel.search(query) : await pharmacyModel.getAll();
+    res.render("patient/pharmacy", { title: "Pharmacy Inventory", medicines, query, user: req.session.user });
+  } catch (err) {
+    req.flash("error", err.message);
     res.redirect("/patient/dashboard");
   }
 };

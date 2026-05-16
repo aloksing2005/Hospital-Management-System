@@ -1,0 +1,72 @@
+<% var title = 'Notifications - HMS'; %>
+<%- include('../partials/header') %>
+
+<div class="container-fluid bg-gray-50 min-h-screen">
+  <div class="row">
+    <%- include('../partials/patient-sidebar', { active: 'notifications' }) %>
+
+    <div class="col-md-9 col-lg-10 p-8">
+      <div class="max-w-4xl mx-auto">
+        <div class="flex justify-between items-end mb-10">
+            <div>
+                <h2 class="text-4xl font-black text-gray-900 tracking-tight">Center of Activity</h2>
+                <p class="text-gray-500 mt-2 font-medium">Keep track of your health journey updates.</p>
+            </div>
+            <button class="text-sm font-bold text-indigo-600 hover:text-indigo-800 transition" onclick="markAllRead()">Mark all as read</button>
+        </div>
+
+        <div class="space-y-4">
+            <% if (notifications.length === 0) { %>
+                <div class="bg-white rounded-[40px] p-20 text-center border border-gray-100 shadow-sm">
+                    <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
+                        <i class="fas fa-bell-slash text-3xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-black text-gray-900 mb-2">Silence is Golden</h3>
+                    <p class="text-gray-400 font-medium">You don't have any notifications at the moment.</p>
+                </div>
+            <% } else { %>
+                <% notifications.forEach(note => { %>
+                    <div class="notification-item group bg-white p-6 rounded-[32px] border border-gray-100 shadow-sm hover:shadow-xl hover:scale-[1.01] transition-all duration-300 flex gap-6 items-start <%= note.is_read ? 'opacity-60' : 'border-l-4 border-l-indigo-500' %>" id="note-<%= note.id %>">
+                        <div class="w-14 h-14 rounded-2xl flex-shrink-0 flex items-center justify-center text-xl
+                            <%= note.type === 'success' ? 'bg-emerald-50 text-emerald-500' : 
+                               note.type === 'warning' ? 'bg-amber-50 text-amber-500' :
+                               note.type === 'danger' ? 'bg-rose-50 text-rose-500' : 'bg-indigo-50 text-indigo-500' %>">
+                            <i class="fas <%= note.type === 'success' ? 'fa-check-circle' : 
+                                            note.type === 'warning' ? 'fa-exclamation-triangle' :
+                                            note.type === 'danger' ? 'fa-times-circle' : 'fa-info-circle' %>"></i>
+                        </div>
+                        <div class="flex-grow">
+                            <div class="flex justify-between items-start mb-1">
+                                <h4 class="text-lg font-black text-gray-900"><%= note.title %></h4>
+                                <span class="text-xs font-bold text-gray-400"><%= new Date(note.created_at).toLocaleDateString() %></span>
+                            </div>
+                            <p class="text-gray-500 font-medium leading-relaxed"><%= note.message %></p>
+                            <% if (!note.is_read) { %>
+                                <button onclick="markRead(`<%= note.id %>`)" class="mt-4 text-xs font-black uppercase tracking-widest text-indigo-600 hover:text-indigo-800 transition">Mark as read</button>
+                            <% } %>
+                        </div>
+                    </div>
+                <% }) %>
+            <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+    async function markRead(id) {
+        try {
+            const res = await fetch(`/patient/notifications/read/${id}`, { method: 'POST' });
+            if (res.ok) {
+                document.getElementById(`note-${id}`).classList.add('opacity-60');
+                document.getElementById(`note-${id}`).classList.remove('border-l-4', 'border-l-indigo-500');
+                // Optional: remove mark as read button
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
+</script>
+
+<%- include('../partials/footer') %>

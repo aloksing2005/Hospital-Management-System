@@ -88,7 +88,7 @@
                                     <h3 class="font-bold text-gray-800"><%= req.patient_name %></h3>
                                     <p class="text-sm text-gray-600 mt-1"><i class="fas fa-map-marker-alt text-indigo-500 mr-2"></i><%= req.pickup_address %></p>
                                     <div class="mt-4 flex gap-2">
-                                        <button onclick="acceptRequest(<%= req.id %>)" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-medium hover:bg-indigo-700 transition">Accept</button>
+                                        <button onclick="acceptRequest(`<%= req.id %>`)" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-medium hover:bg-indigo-700 transition">Accept</button>
                                         <button class="px-4 py-2 text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times"></i></button>
                                     </div>
                                 </div>
@@ -132,7 +132,7 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         const socket = io();
-        const driverId = <%= user.id %>;
+        const driverId = `<%= user.id %>`;
         let map, marker, activeRequestId = null;
 
         socket.emit('join', { userId: String(driverId), role: 'driver' });

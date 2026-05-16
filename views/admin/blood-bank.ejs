@@ -19,20 +19,37 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <% const bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']; %>
-            <% bloodGroups.forEach(group => { %>
+            <% inventory.forEach(item => { %>
                 <div class="bg-white rounded-[32px] p-8 shadow-sm border border-gray-100 relative overflow-hidden group">
                     <div class="relative z-10">
                         <div class="flex justify-between items-center mb-6">
-                            <span class="text-3xl font-black text-red-600"><%= group %></span>
+                            <span class="text-3xl font-black text-red-600"><%= item.blood_group %></span>
                             <i class="fas fa-tint text-2xl text-gray-100 group-hover:text-red-500 transition-colors duration-500"></i>
                         </div>
                         <div class="mb-6">
-                            <h4 class="text-4xl font-black text-gray-900 mb-1"><%= Math.floor(Math.random() * 50) + 5 %></h4>
+                            <div class="flex items-center gap-4">
+                                <h4 class="text-4xl font-black text-gray-900 mb-1" id="units-<%= item.blood_group.replace('+', 'pos').replace('-', 'neg') %>"><%= item.units %></h4>
+                                <div class="flex flex-col gap-1">
+                                    <button onclick="updateStock('<%= item.blood_group %>', 1)" class="text-gray-400 hover:text-green-500"><i class="fas fa-chevron-up text-xs"></i></button>
+                                    <button onclick="updateStock('<%= item.blood_group %>', -1)" class="text-gray-400 hover:text-red-500"><i class="fas fa-chevron-down text-xs"></i></button>
+                                </div>
+                            </div>
                             <p class="text-gray-400 font-bold text-xs uppercase tracking-widest">Units Available</p>
                         </div>
                         <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                            <div class="bg-red-500 h-full" style="width: <%= Math.floor(Math.random() * 80) + 20 %>%"></div>
+                            <% 
+                                let percent = (item.units / 100) * 100;
+                                if(percent > 100) percent = 100;
+                                let barColor = 'bg-red-500';
+                                if(item.status === 'optimal') barColor = 'bg-green-500';
+                                if(item.status === 'low') barColor = 'bg-yellow-500';
+                            %>
+                            <div class="<%= barColor %> h-full transition-all duration-500" id="bar-<%= item.blood_group.replace('+', 'pos').replace('-', 'neg') %>" style="width: <%= percent %>%"></div>
+                        </div>
+                        <div class="mt-4">
+                            <span id="status-<%= item.blood_group.replace('+', 'pos').replace('-', 'neg') %>" class="text-[10px] font-black uppercase tracking-tighter px-2 py-1 rounded-md <%= item.status === 'critical' ? 'bg-red-100 text-red-600' : (item.status === 'low' ? 'bg-yellow-100 text-yellow-600' : 'bg-green-100 text-green-600') %>">
+                                <%= item.status %>
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -40,33 +57,34 @@
         </div>
 
         <div class="mt-12 bg-white rounded-[40px] shadow-sm border border-gray-100 p-8">
-            <h3 class="text-2xl font-bold text-gray-900 mb-6">Recent Donations</h3>
+            <h3 class="text-2xl font-bold text-gray-900 mb-6">Registered Donors</h3>
             <div class="overflow-x-auto">
                 <table class="w-full">
                     <thead>
                         <tr class="text-left text-gray-400 text-xs font-black uppercase tracking-widest">
                             <th class="pb-4">Donor Name</th>
                             <th class="pb-4">Blood Group</th>
-                            <th class="pb-4">Units</th>
-                            <th class="pb-4">Date</th>
+                            <th class="pb-4">Organ(s)</th>
+                            <th class="pb-4">Registered Date</th>
                             <th class="pb-4">Status</th>
                         </tr>
                     </thead>
                     <tbody class="text-gray-700">
-                        <tr class="border-t border-gray-50">
-                            <td class="py-4 font-bold">Amit Kumar</td>
-                            <td class="py-4 text-red-600 font-bold">A+</td>
-                            <td class="py-4">2 Units</td>
-                            <td class="py-4">Today, 10:30 AM</td>
-                            <td class="py-4"><span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-xs font-bold">Processed</span></td>
-                        </tr>
-                        <tr class="border-t border-gray-50">
-                            <td class="py-4 font-bold">Suresh Raina</td>
-                            <td class="py-4 text-red-600 font-bold">O-</td>
-                            <td class="py-4">1 Unit</td>
-                            <td class="py-4">Yesterday</td>
-                            <td class="py-4"><span class="bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full text-xs font-bold">In Testing</span></td>
-                        </tr>
+                        <% if (donors && donors.length > 0) { %>
+                            <% donors.forEach(donor => { %>
+                                <tr class="border-t border-gray-50">
+                                    <td class="py-4 font-bold"><%= donor.patient_name %></td>
+                                    <td class="py-4 text-red-600 font-bold"><%= donor.blood_group %></td>
+                                    <td class="py-4"><%= donor.organ_to_donate %></td>
+                                    <td class="py-4"><%= new Date(donor.created_at).toLocaleDateString() %></td>
+                                    <td class="py-4"><span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-xs font-bold"><%= donor.status %></span></td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="5" class="py-8 text-center text-gray-400 font-bold">No donors registered yet.</td>
+                            </tr>
+                        <% } %>
                     </tbody>
                 </table>
             </div>
@@ -75,5 +93,50 @@
     </div>
   </div>
 </div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+
+    function updateStock(group, change) {
+        const id = group.replace('+', 'pos').replace('-', 'neg');
+        const unitsEl = document.getElementById('units-' + id);
+        let currentUnits = parseInt(unitsEl.innerText);
+        let newUnits = currentUnits + change;
+        if(newUnits < 0) newUnits = 0;
+
+        fetch('/admin/blood-bank/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ blood_group: group, units: newUnits })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(!data.success) alert('Update failed: ' + data.error);
+        });
+    }
+
+    socket.on('blood-stock-updated', (data) => {
+        const id = data.blood_group.replace('+', 'pos').replace('-', 'neg');
+        const unitsEl = document.getElementById('units-' + id);
+        const barEl = document.getElementById('bar-' + id);
+        const statusEl = document.getElementById('status-' + id);
+
+        if(unitsEl) {
+            unitsEl.innerText = data.units;
+            let percent = (data.units / 100) * 100;
+            if(percent > 100) percent = 100;
+            barEl.style.width = percent + '%';
+            
+            // Update classes
+            statusEl.innerText = data.status;
+            statusEl.className = 'text-[10px] font-black uppercase tracking-tighter px-2 py-1 rounded-md ' + 
+                (data.status === 'critical' ? 'bg-red-100 text-red-600' : (data.status === 'low' ? 'bg-yellow-100 text-yellow-600' : 'bg-green-100 text-green-600'));
+            
+            barEl.className = 'h-full transition-all duration-500 ' + 
+                (data.status === 'critical' ? 'bg-red-500' : (data.status === 'low' ? 'bg-yellow-500' : 'bg-green-500'));
+        }
+    });
+</script>
 
 <%- include('../partials/footer') %>

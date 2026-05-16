@@ -1,0 +1,83 @@
+<% var title = 'Billing & Invoices - HMS'; %>
+<%- include('../partials/header') %>
+
+<div class="container-fluid bg-gray-50 min-h-screen">
+  <div class="row">
+    <%- include('../partials/patient-sidebar', { active: 'bills' }) %>
+
+    <div class="col-md-9 col-lg-10 p-8">
+      <div class="max-w-6xl mx-auto">
+        <div class="flex justify-between items-end mb-10">
+            <div>
+                <h2 class="text-4xl font-black text-gray-900 tracking-tight">Finances & Billing</h2>
+                <p class="text-gray-500 mt-2 font-medium">Clear overview of your medical expenses and invoices.</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div class="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm">
+                <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Total Outstanding</p>
+                <h3 class="text-3xl font-black text-rose-500">₹<%= bills.filter(b => b.payment_status === 'pending').reduce((sum, b) => sum + parseFloat(b.total_amount), 0).toFixed(2) %></h3>
+            </div>
+            <div class="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm">
+                <p class="text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Total Paid</p>
+                <h3 class="text-3xl font-black text-emerald-500">₹<%= bills.filter(b => b.payment_status === 'paid').reduce((sum, b) => sum + parseFloat(b.total_amount), 0).toFixed(2) %></h3>
+            </div>
+            <div class="bg-indigo-600 p-8 rounded-[40px] shadow-xl text-white">
+                <p class="text-xs font-black text-indigo-200 uppercase tracking-widest mb-2">Last Payment</p>
+                <h3 class="text-3xl font-black">Success</h3>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-[40px] border border-gray-100 shadow-sm overflow-hidden">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="border-b border-gray-50 text-xs font-black text-gray-400 uppercase tracking-widest">
+                        <th class="px-8 py-6">Invoice #</th>
+                        <th class="px-8 py-6">Doctor / Service</th>
+                        <th class="px-8 py-6">Date</th>
+                        <th class="px-8 py-6">Amount</th>
+                        <th class="px-8 py-6">Status</th>
+                        <th class="px-8 py-6 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    <% if (bills.length === 0) { %>
+                        <tr>
+                            <td colspan="6" class="px-8 py-20 text-center text-gray-400 font-medium">No billing history found.</td>
+                        </tr>
+                    <% } else { %>
+                        <% bills.forEach(bill => { %>
+                            <tr class="group hover:bg-gray-50/50 transition">
+                                <td class="px-8 py-6 font-black text-gray-900"><%= bill.bill_number %></td>
+                                <td class="px-8 py-6">
+                                    <p class="font-bold text-gray-900"><%= bill.doctor_name || 'General Service' %></p>
+                                    <p class="text-xs text-gray-400 font-medium">Medical Consultation</p>
+                                </td>
+                                <td class="px-8 py-6 text-gray-500 font-medium"><%= new Date(bill.created_at).toLocaleDateString() %></td>
+                                <td class="px-8 py-6 font-black text-gray-900">₹<%= bill.total_amount %></td>
+                                <td class="px-8 py-6">
+                                    <span class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest
+                                        <%= bill.payment_status === 'paid' ? 'bg-emerald-50 text-emerald-500' : 'bg-rose-50 text-rose-500' %>">
+                                        <%= bill.payment_status %>
+                                    </span>
+                                </td>
+                                <td class="px-8 py-6 text-right">
+                                    <% if (bill.payment_status === 'pending') { %>
+                                        <button class="bg-indigo-600 text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-indigo-700 transition shadow-lg shadow-indigo-200">Pay Now</button>
+                                    <% } else { %>
+                                        <button class="text-gray-400 hover:text-indigo-600 transition"><i class="fas fa-download"></i></button>
+                                    <% } %>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

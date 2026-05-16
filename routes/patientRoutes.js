@@ -43,9 +43,7 @@ router.get("/diet-planner", isPatient, (req, res) => {
   res.render("patient/diet-planner", { user: req.session.user });
 });
 
-router.get("/wellbeing", isPatient, (req, res) => {
-  res.render("patient/wellbeing", { user: req.session.user });
-});
+router.get("/wellbeing", isPatient, patientController.getWellbeing);
 
 router.get("/navigator", isPatient, (req, res) => {
   res.render("patient/navigator", { user: req.session.user });
@@ -59,17 +57,17 @@ router.get("/heroes", isPatient, (req, res) => {
   res.render("patient/heroes", { user: req.session.user });
 });
 
-router.get("/pharmacy", isPatient, (req, res) => {
-  res.render("patient/pharmacy", { user: req.session.user });
-});
+router.get("/pharmacy", isPatient, patientController.getPharmacy);
+router.get("/notifications", isPatient, patientController.getNotifications);
+router.post("/notifications/read/:id", isPatient, patientController.markNotificationRead);
+router.get("/bills", isPatient, patientController.getBills);
 
 router.get("/insurance", isPatient, (req, res) => {
   res.render("patient/insurance", { user: req.session.user });
 });
 
-router.get("/donor-registry", isPatient, (req, res) => {
-  res.render("patient/donor-registry", { user: req.session.user });
-});
+router.get("/donor-registry", isPatient, patientController.getDonorRegistry);
+router.post("/donor-registry/register", isPatient, patientController.registerAsDonor);
 
 router.post("/review", isPatient, reviewController.submitReview);
 

@@ -2,6 +2,8 @@ const userModel = require("../models/userModel");
 const doctorModel = require("../models/doctorModel");
 const appointmentModel = require("../models/appointmentModel");
 const labReportModel = require("../models/labReportModel");
+const bloodBankModel = require("../models/bloodBankModel");
+const ambulanceModel = require("../models/ambulanceModel");
 const db = require("../config/db");
 
 exports.getDashboard = async (req, res) => {
@@ -189,8 +191,19 @@ exports.getReports = async (req, res) => {
   }
 };
 
-exports.getAmbulances = (req, res) => {
-  res.render("admin/ambulances", { user: req.session.user });
+exports.getAmbulances = async (req, res) => {
+  try {
+    const ambulances = await ambulanceModel.getAllAmbulances();
+    const requests = await ambulanceModel.getPendingRequests();
+    res.render("admin/ambulances", { 
+      ambulances, 
+      requests,
+      user: req.session.user 
+    });
+  } catch (err) {
+    req.flash("error", err.message);
+    res.redirect("/admin/dashboard");
+  }
 };
 
 exports.getResources = async (req, res) => {
@@ -278,8 +291,34 @@ exports.uploadLabReport = async (req, res) => {
     res.redirect("/admin/lab-reports");
   }
 };
-exports.getBloodBank = (req, res) => {
-  res.render("admin/blood-bank", { user: req.session.user });
+exports.getBloodBank = async (req, res) => {
+  try {
+    const inventory = await bloodBankModel.getBloodInventory();
+    const donors = await bloodBankModel.getDonors();
+    res.render("admin/blood-bank", { 
+      inventory, 
+      donors,
+      user: req.session.user 
+    });
+  } catch (err) {
+    req.flash("error", err.message);
+    res.redirect("/admin/dashboard");
+  }
+};
+
+exports.updateBloodStock = async (req, res) => {
+  try {
+    const { blood_group, units } = req.body;
+    const updated = await bloodBankModel.updateBloodStock(blood_group, units);
+    
+    // Emit real-time update
+    const io = req.app.get("io");
+    io.emit("blood-stock-updated", updated);
+
+    res.json({ success: true, updated });
+  } catch (err) {
+    res.json({ success: false, error: err.message });
+  }
 };
 
 exports.getCommandCenter = async (req, res) => {

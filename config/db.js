@@ -219,6 +219,46 @@ async function initDB() {
       )
     `);
 
+    // Blood Bank table
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS blood_bank (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        blood_group VARCHAR(10) UNIQUE NOT NULL,
+        units INT DEFAULT 0,
+        status ENUM('low', 'optimal', 'critical') DEFAULT 'optimal',
+        last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Donors table
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS donors (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        patient_id INT,
+        blood_group VARCHAR(10),
+        organ_to_donate VARCHAR(100),
+        status ENUM('active', 'inactive') DEFAULT 'active',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Seed initial blood_bank data if empty
+    const [bloodRows] = await db.query("SELECT COUNT(*) as count FROM blood_bank");
+    if (bloodRows[0].count === 0) {
+      await db.query(`
+        INSERT INTO blood_bank (blood_group, units, status) VALUES 
+        ('A+', 45, 'optimal'),
+        ('A-', 12, 'low'),
+        ('B+', 38, 'optimal'),
+        ('B-', 8, 'low'),
+        ('AB+', 15, 'optimal'),
+        ('AB-', 4, 'critical'),
+        ('O+', 60, 'optimal'),
+        ('O-', 12, 'low')
+      `);
+    }
+
     // Hospital Resources table
     await db.query(`
       CREATE TABLE IF NOT EXISTS hospital_resources (
@@ -230,6 +270,79 @@ async function initDB() {
       )
     `);
 
+    // Patient Vitals table
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS patient_vitals (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        patient_id INT,
+        hr INT,
+        spo2 INT,
+        bp_sys INT,
+        bp_dia INT,
+        temp DECIMAL(4, 1),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (patient_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Notifications table
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT,
+        title VARCHAR(255),
+        message TEXT,
+        type ENUM('info', 'warning', 'success', 'danger') DEFAULT 'info',
+        is_read BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Pharmacy Inventory table
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS pharmacy_inventory (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        medicine_name VARCHAR(255) UNIQUE NOT NULL,
+        category VARCHAR(100),
+        stock_quantity INT DEFAULT 0,
+        price DECIMAL(10, 2),
+        expiry_date DATE,
+        last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      )
+    `);
+
+    // Bills table
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS bills (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        patient_id INT,
+        appointment_id INT,
+        bill_number VARCHAR(50) UNIQUE,
+        consultation_fee DECIMAL(10, 2) DEFAULT 0,
+        medicine_charges DECIMAL(10, 2) DEFAULT 0,
+        lab_charges DECIMAL(10, 2) DEFAULT 0,
+        tax DECIMAL(10, 2) DEFAULT 0,
+        total_amount DECIMAL(10, 2),
+        payment_status ENUM('pending', 'paid') DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (patient_id) REFERENCES users(id),
+        FOREIGN KEY (appointment_id) REFERENCES appointments(id)
+      )
+    `);
+
+    // Seed initial pharmacy data if empty
+    const [pharmacyRows] = await db.query("SELECT COUNT(*) as count FROM pharmacy_inventory");
+    if (pharmacyRows[0].count === 0) {
+      await db.query(`
+        INSERT INTO pharmacy_inventory (medicine_name, category, stock_quantity, price, expiry_date) VALUES 
+        ('Paracetamol 500mg', 'Painkiller', 1000, 2.50, '2026-12-01'),
+        ('Amoxicillin 250mg', 'Antibiotic', 500, 15.00, '2025-06-15'),
+        ('Cetirizine 10mg', 'Antihistamine', 800, 5.00, '2026-08-20'),
+        ('Metformin 500mg', 'Diabetes', 1200, 8.50, '2027-01-10'),
+        ('Atorvastatin 10mg', 'Cholesterol', 600, 25.00, '2025-11-30')
+      `);
+    }
     // Insert default resources
     const [resourceRows] = await db.query("SELECT COUNT(*) as count FROM hospital_resources");
     if (resourceRows[0].count === 0) {
@@ -237,11 +350,10 @@ async function initDB() {
         INSERT INTO hospital_resources (resource_name, total_quantity, available_quantity) VALUES 
         ('ICU Beds', 50, 15),
         ('General Ward Beds', 200, 80),
-        ('Oxygen Cylinders', 500, 320),
-        ('A+ Blood (Units)', 100, 45),
-        ('O- Blood (Units)', 50, 12)
+        ('Oxygen Cylinders', 500, 320)
       `);
     }
+
 
     // Insert default admin
     const bcrypt = require("bcryptjs");
