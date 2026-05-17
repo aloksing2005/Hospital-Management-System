@@ -1,73 +1,103 @@
-const db = require("../config/db");
+const { Appointment, Doctor, User } = require("../config/db");
 
 exports.createAppointment = async ({ patient_id, doctor_id, date, time_slot, symptoms, notes }) => {
-  const [result] = await db.query(
-    `INSERT INTO appointments (patient_id, doctor_id, date, time_slot, symptoms, notes) 
-     VALUES (?, ?, ?, ?, ?, ?)`,
-    [patient_id, doctor_id, date, time_slot, symptoms, notes]
-  );
-  return result.insertId;
+  const appt = await Appointment.create({ patient_id, doctor_id, date, time_slot, symptoms, notes });
+  return appt._id;
 };
 
 exports.getAppointmentsByPatient = async (patientId) => {
-  const [rows] = await db.query(`
-    SELECT a.*, d.name as doctor_name, d.specialization, d.photo 
-    FROM appointments a 
-    JOIN doctors d ON a.doctor_id = d.id 
-    WHERE a.patient_id = ? 
-    ORDER BY a.date DESC, a.time_slot ASC
-  `, [patientId]);
-  return rows;
+  const rows = await Appointment.find({ patient_id: patientId })
+    .populate({ path: "doctor_id", select: "name specialization photo" })
+    .sort({ date: -1, time_slot: 1 })
+    .lean();
+
+  return rows.map(a => ({
+    ...a,
+    id: a._id,
+    doctor_name: a.doctor_id ? a.doctor_id.name : "",
+    specialization: a.doctor_id ? a.doctor_id.specialization : "",
+    photo: a.doctor_id ? a.doctor_id.photo : "",
+    doctor_id: a.doctor_id ? a.doctor_id._id : null
+  }));
 };
 
 exports.getAppointmentsByDoctor = async (doctorId) => {
-  const [rows] = await db.query(`
-    SELECT a.*, u.name as patient_name, u.phone as patient_phone 
-    FROM appointments a 
-    JOIN users u ON a.patient_id = u.id 
-    WHERE a.doctor_id = ? 
-    ORDER BY a.date DESC, a.time_slot ASC
-  `, [doctorId]);
-  return rows;
+  const rows = await Appointment.find({ doctor_id: doctorId })
+    .populate({ path: "patient_id", select: "name phone" })
+    .sort({ date: -1, time_slot: 1 })
+    .lean();
+
+  return rows.map(a => ({
+    ...a,
+    id: a._id,
+    patient_name: a.patient_id ? a.patient_id.name : "",
+    patient_phone: a.patient_id ? a.patient_id.phone : "",
+    patient_id: a.patient_id ? a.patient_id._id : null
+  }));
 };
 
 exports.getAllAppointments = async () => {
-  const [rows] = await db.query(`
-    SELECT a.*, u.name as patient_name, d.name as doctor_name 
-    FROM appointments a 
-    JOIN users u ON a.patient_id = u.id 
-    JOIN doctors d ON a.doctor_id = d.id 
-    ORDER BY a.date DESC
-  `);
-  return rows;
+  const rows = await Appointment.find()
+    .populate({ path: "patient_id", select: "name" })
+    .populate({ path: "doctor_id", select: "name" })
+    .sort({ date: -1 })
+    .lean();
+
+  return rows.map(a => ({
+    ...a,
+    id: a._id,
+    patient_name: a.patient_id ? a.patient_id.name : "",
+    doctor_name: a.doctor_id ? a.doctor_id.name : "",
+    patient_id: a.patient_id ? a.patient_id._id : null,
+    doctor_id: a.doctor_id ? a.doctor_id._id : null
+  }));
 };
 
 exports.updateStatus = async (id, status) => {
-  await db.query("UPDATE appointments SET status = ? WHERE id = ?", [status, id]);
+  await Appointment.findByIdAndUpdate(id, { status });
 };
 
 exports.getAppointmentById = async (id) => {
-  const [rows] = await db.query(`
-    SELECT a.*, u.name as patient_name, u.email as patient_email, d.name as doctor_name 
-    FROM appointments a 
-    JOIN users u ON a.patient_id = u.id 
-    JOIN doctors d ON a.doctor_id = d.id 
-    WHERE a.id = ?
-  `, [id]);
-  return rows[0];
+  const a = await Appointment.findById(id)
+    .populate({ path: "patient_id", select: "name email" })
+    .populate({ path: "doctor_id", select: "name" })
+    .lean();
+
+  if (!a) return null;
+  return {
+    ...a,
+    id: a._id,
+    patient_name: a.patient_id ? a.patient_id.name : "",
+    patient_email: a.patient_id ? a.patient_id.email : "",
+    doctor_name: a.doctor_id ? a.doctor_id.name : "",
+    patient_id: a.patient_id ? a.patient_id._id : null,
+    doctor_id: a.doctor_id ? a.doctor_id._id : null
+  };
 };
 
 exports.getTodayAppointments = async (doctorId) => {
-  const [rows] = await db.query(`
-    SELECT a.*, u.name as patient_name 
-    FROM appointments a 
-    JOIN users u ON a.patient_id = u.id 
-    WHERE a.doctor_id = ? AND a.date = CURDATE() AND a.status != 'cancelled'
-    ORDER BY a.time_slot ASC
-  `, [doctorId]);
-  return rows;
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date();
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const rows = await Appointment.find({
+    doctor_id: doctorId,
+    date: { $gte: startOfDay, $lte: endOfDay },
+    status: { $ne: "cancelled" }
+  })
+    .populate({ path: "patient_id", select: "name" })
+    .sort({ time_slot: 1 })
+    .lean();
+
+  return rows.map(a => ({
+    ...a,
+    id: a._id,
+    patient_name: a.patient_id ? a.patient_id.name : "",
+    patient_id: a.patient_id ? a.patient_id._id : null
+  }));
 };
 
 exports.cancelAppointment = async (id) => {
-  await db.query("UPDATE appointments SET status = 'cancelled' WHERE id = ?", [id]);
+  await Appointment.findByIdAndUpdate(id, { status: "cancelled" });
 };

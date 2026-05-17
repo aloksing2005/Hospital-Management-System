@@ -1,154 +1,151 @@
-const db = require("../config/db");
+const { Doctor, Review, DoctorLeave } = require("../config/db");
 
 exports.getAllDoctors = async () => {
-  const [rows] = await db.query(`
-    SELECT d.*, u.email, COALESCE(AVG(r.rating), 0) as rating, COUNT(r.id) as review_count
-    FROM doctors d 
-    JOIN users u ON d.user_id = u.id 
-    LEFT JOIN reviews r ON d.id = r.doctor_id
-    WHERE d.status = 'active'
-    GROUP BY d.id
-  `);
-  return rows;
+  const doctors = await Doctor.find({ status: "active" }).populate("user_id", "email").lean();
+  // Attach rating info
+  for (let doc of doctors) {
+    const reviews = await Review.find({ doctor_id: doc._id });
+    doc.email = doc.user_id ? doc.user_id.email : "";
+    doc.user_id = doc.user_id ? doc.user_id._id : null;
+    doc.review_count = reviews.length;
+    doc.rating = reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
+    // Provide 'id' alias for template compatibility
+    doc.id = doc._id;
+  }
+  return doctors;
 };
 
 exports.getDoctorById = async (id) => {
-  const [rows] = await db.query(`
-    SELECT d.*, u.email, COALESCE(AVG(r.rating), 0) as rating, COUNT(r.id) as review_count
-    FROM doctors d 
-    JOIN users u ON d.user_id = u.id 
-    LEFT JOIN reviews r ON d.id = r.doctor_id
-    WHERE d.id = ?
-    GROUP BY d.id
-  `, [id]);
-  return rows[0];
+  const doc = await Doctor.findById(id).populate("user_id", "email").lean();
+  if (!doc) return null;
+  const reviews = await Review.find({ doctor_id: doc._id });
+  doc.email = doc.user_id ? doc.user_id.email : "";
+  doc.user_id = doc.user_id ? doc.user_id._id : null;
+  doc.review_count = reviews.length;
+  doc.rating = reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
+  doc.id = doc._id;
+  return doc;
 };
 
 exports.findByUserId = async (userId) => {
-  const [rows] = await db.query("SELECT * FROM doctors WHERE user_id = ?", [userId]);
-  return rows[0];
+  const doc = await Doctor.findOne({ user_id: userId }).lean();
+  if (doc) doc.id = doc._id;
+  return doc;
 };
 
 exports.addDoctor = async ({ user_id, name, specialization, location, photo, fees, available_from, available_to }) => {
-  const [result] = await db.query(
-    `INSERT INTO doctors (user_id, name, specialization, location, photo, fees, available_from, available_to) 
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    [user_id, name, specialization, location, photo, fees, available_from, available_to]
-  );
-  return result.insertId;
+  const doc = await Doctor.create({ user_id, name, specialization, location, photo, fees, available_from, available_to });
+  return doc._id;
 };
 
 exports.updateDoctor = async (id, { name, specialization, location, photo, fees, available_from, available_to }) => {
-  await db.query(
-    `UPDATE doctors SET name=?, specialization=?, location=?, photo=?, fees=?, available_from=?, available_to=? 
-     WHERE id=?`,
-    [name, specialization, location, photo, fees, available_from, available_to, id]
-  );
+  await Doctor.findByIdAndUpdate(id, { name, specialization, location, photo, fees, available_from, available_to });
 };
 
 exports.updateDoctorProfile = async (user_id, data) => {
   const { name, specialization, location, photo, available_from, available_to } = data;
-  await db.query(
-    `UPDATE doctors SET name=?, specialization=?, location=?, photo=?, available_from=?, available_to=? 
-     WHERE user_id=?`,
-    [name, specialization, location, photo, available_from, available_to, user_id]
-  );
+  const updateData = { name, specialization, location, available_from, available_to };
+  if (photo) updateData.photo = photo;
+  await Doctor.findOneAndUpdate({ user_id }, updateData);
 };
 
 exports.deleteDoctor = async (id) => {
-  await db.query("DELETE FROM doctors WHERE id = ?", [id]);
+  await Doctor.findByIdAndDelete(id);
 };
 
 exports.searchDoctors = async (keyword) => {
-  const [rows] = await db.query(
-    `SELECT d.*, u.email, COALESCE(AVG(r.rating), 0) as rating, COUNT(r.id) as review_count 
-     FROM doctors d 
-     JOIN users u ON d.user_id = u.id 
-     LEFT JOIN reviews r ON d.id = r.doctor_id
-     WHERE d.name LIKE ? OR d.specialization LIKE ?
-     GROUP BY d.id`,
-    [`%${keyword}%`, `%${keyword}%`]
-  );
-  return rows;
+  const regex = new RegExp(keyword, "i");
+  const doctors = await Doctor.find({
+    $or: [{ name: regex }, { specialization: regex }]
+  }).populate("user_id", "email").lean();
+
+  for (let doc of doctors) {
+    const reviews = await Review.find({ doctor_id: doc._id });
+    doc.email = doc.user_id ? doc.user_id.email : "";
+    doc.user_id = doc.user_id ? doc.user_id._id : null;
+    doc.review_count = reviews.length;
+    doc.rating = reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
+    doc.id = doc._id;
+  }
+  return doctors;
 };
 
 exports.searchBySpecialization = async (specialization) => {
-  const [rows] = await db.query(
-    `SELECT d.*, u.email, COALESCE(AVG(r.rating), 0) as rating, COUNT(r.id) as review_count 
-     FROM doctors d 
-     JOIN users u ON d.user_id = u.id 
-     LEFT JOIN reviews r ON d.id = r.doctor_id
-     WHERE d.specialization LIKE ? AND d.status = 'active'
-     GROUP BY d.id`,
-    [`%${specialization}%`]
-  );
-  return rows;
+  const regex = new RegExp(specialization, "i");
+  const doctors = await Doctor.find({ specialization: regex, status: "active" }).populate("user_id", "email").lean();
+
+  for (let doc of doctors) {
+    const reviews = await Review.find({ doctor_id: doc._id });
+    doc.email = doc.user_id ? doc.user_id.email : "";
+    doc.user_id = doc.user_id ? doc.user_id._id : null;
+    doc.review_count = reviews.length;
+    doc.rating = reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
+    doc.id = doc._id;
+  }
+  return doctors;
 };
 
 exports.searchDoctorsAdvanced = async ({ search, specialization, maxFees, minRating, sort }) => {
-  let query = `
-    SELECT d.*, u.email, COALESCE(AVG(r.rating), 0) as rating, COUNT(r.id) as review_count 
-    FROM doctors d 
-    JOIN users u ON d.user_id = u.id 
-    LEFT JOIN reviews r ON d.id = r.doctor_id
-    WHERE d.status = 'active'
-  `;
-  const params = [];
+  const filter = { status: "active" };
 
   if (search) {
-    query += ` AND (d.name LIKE ? OR d.specialization LIKE ?)`;
-    params.push(`%${search}%`, `%${search}%`);
+    const regex = new RegExp(search, "i");
+    filter.$or = [{ name: regex }, { specialization: regex }];
   }
   if (specialization) {
-    query += ` AND d.specialization = ?`;
-    params.push(specialization);
+    filter.specialization = specialization;
   }
   if (maxFees) {
-    query += ` AND d.fees <= ?`;
-    params.push(maxFees);
+    filter.fees = { $lte: maxFees };
   }
 
-  query += ` GROUP BY d.id`;
+  let sortObj = { name: 1 };
+  if (sort === "lowest_fees") sortObj = { fees: 1 };
 
+  let doctors = await Doctor.find(filter).populate("user_id", "email").sort(sortObj).lean();
+
+  // Attach ratings
+  for (let doc of doctors) {
+    const reviews = await Review.find({ doctor_id: doc._id });
+    doc.email = doc.user_id ? doc.user_id.email : "";
+    doc.user_id = doc.user_id ? doc.user_id._id : null;
+    doc.review_count = reviews.length;
+    doc.rating = reviews.length > 0 ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length : 0;
+    doc.id = doc._id;
+  }
+
+  // Post-filter by minRating (can't do in Mongo query since rating is computed)
   if (minRating) {
-    query += ` HAVING rating >= ?`;
-    params.push(minRating);
+    doctors = doctors.filter(d => d.rating >= minRating);
   }
 
+  // Sort by top_rated after computing ratings
   if (sort === "top_rated") {
-    query += ` ORDER BY rating DESC`;
-  } else if (sort === "lowest_fees") {
-    query += ` ORDER BY fees ASC`;
-  } else {
-    query += ` ORDER BY d.name ASC`;
+    doctors.sort((a, b) => b.rating - a.rating);
   }
 
-  const [rows] = await db.query(query, params);
-  return rows;
+  return doctors;
 };
 
 exports.getDoctorStats = async (doctorId) => {
-  const [rows] = await db.query(`
-    SELECT 
-      COUNT(*) as total_appointments,
-      SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
-      SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) as confirmed,
-      SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed
-    FROM appointments WHERE doctor_id = ?
-  `, [doctorId]);
-  return rows[0];
+  const { Appointment } = require("../config/db");
+  const total_appointments = await Appointment.countDocuments({ doctor_id: doctorId });
+  const pending = await Appointment.countDocuments({ doctor_id: doctorId, status: "pending" });
+  const confirmed = await Appointment.countDocuments({ doctor_id: doctorId, status: "confirmed" });
+  const completed = await Appointment.countDocuments({ doctor_id: doctorId, status: "completed" });
+  return { total_appointments, pending, confirmed, completed };
 };
 
 exports.getLeaves = async (doctorId) => {
-  const [rows] = await db.query("SELECT * FROM doctor_leaves WHERE doctor_id = ? ORDER BY date DESC", [doctorId]);
-  return rows;
+  const leaves = await DoctorLeave.find({ doctor_id: doctorId }).sort({ date: -1 }).lean();
+  return leaves.map(l => ({ ...l, id: l._id }));
 };
 
 exports.addLeave = async (doctorId, date) => {
-  const [result] = await db.query("INSERT INTO doctor_leaves (doctor_id, date) VALUES (?, ?)", [doctorId, date]);
-  return result.insertId;
+  const leave = await DoctorLeave.create({ doctor_id: doctorId, date });
+  return leave._id;
 };
 
 exports.removeLeave = async (leaveId) => {
-  await db.query("DELETE FROM doctor_leaves WHERE id = ?", [leaveId]);
+  await DoctorLeave.findByIdAndDelete(leaveId);
 };

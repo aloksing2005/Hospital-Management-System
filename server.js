@@ -197,11 +197,15 @@ io.on("connection", (socket) => {
       if (!socket.vitalsTick) socket.vitalsTick = 0;
       socket.vitalsTick++;
       if (socket.vitalsTick % 5 === 0) {
-        const db = require("./config/db");
-        db.query(
-          "INSERT INTO patient_vitals (patient_id, hr, spo2, bp_sys, bp_dia, temp) VALUES (?, ?, ?, ?, ?, ?)",
-          [patientId, vitals.hr, vitals.spo2, vitals.bpSys, vitals.bpDia, vitals.temp]
-        ).catch(e => console.error("Error saving vitals:", e.message));
+        const { PatientVitals } = require("./config/db");
+        PatientVitals.create({
+          patient_id: patientId,
+          hr: vitals.hr,
+          spo2: vitals.spo2,
+          bp_sys: vitals.bpSys,
+          bp_dia: vitals.bpDia,
+          temp: vitals.temp
+        }).catch(e => console.error("Error saving vitals:", e.message));
       }
 
       io.to(userRoom(String(patientId))).emit("vitals-update", { patientId, vitals });

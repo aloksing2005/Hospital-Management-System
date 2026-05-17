@@ -1,95 +1,121 @@
-const db = require('../config/db');
+const { Ambulance, AmbulanceRequest, User } = require("../config/db");
 
 class AmbulanceModel {
   static async getAllAmbulances() {
-    const [rows] = await db.query(`
-      SELECT a.*, u.name as driver_name, u.phone as driver_phone 
-      FROM ambulances a
-      JOIN users u ON a.driver_id = u.id
-    `);
-    return rows;
+    const rows = await Ambulance.find()
+      .populate({ path: "driver_id", select: "name phone" })
+      .lean();
+
+    return rows.map(a => ({
+      ...a,
+      id: a._id,
+      driver_name: a.driver_id ? a.driver_id.name : "",
+      driver_phone: a.driver_id ? a.driver_id.phone : "",
+      driver_id: a.driver_id ? a.driver_id._id : null
+    }));
   }
 
   static async getAmbulanceByDriver(driverId) {
-    const [rows] = await db.query('SELECT * FROM ambulances WHERE driver_id = ?', [driverId]);
-    return rows[0];
+    const amb = await Ambulance.findOne({ driver_id: driverId }).lean();
+    if (amb) amb.id = amb._id;
+    return amb;
   }
 
   static async updateStatus(driverId, status) {
-    await db.query('UPDATE ambulances SET status = ? WHERE driver_id = ?', [status, driverId]);
+    await Ambulance.findOneAndUpdate({ driver_id: driverId }, { status });
   }
 
   static async updateLocation(driverId, lat, lng) {
-    await db.query('UPDATE ambulances SET current_lat = ?, current_lng = ? WHERE driver_id = ?', [lat, lng, driverId]);
+    await Ambulance.findOneAndUpdate({ driver_id: driverId }, { current_lat: lat, current_lng: lng });
   }
 
   static async createRequest(data) {
     const { patient_id, pickup_address, emergency_type, pickup_lat, pickup_lng } = data;
-    const [result] = await db.query(
-      'INSERT INTO ambulance_requests (patient_id, pickup_address, emergency_type, pickup_lat, pickup_lng, status) VALUES (?, ?, ?, ?, ?, ?)',
-      [patient_id, pickup_address, emergency_type, pickup_lat, pickup_lng, 'pending']
-    );
-    return result.insertId;
+    const req = await AmbulanceRequest.create({
+      patient_id, pickup_address, emergency_type, pickup_lat, pickup_lng, status: "pending"
+    });
+    return req._id;
   }
 
   static async acceptRequest(requestId, driverId, vehicleId) {
-    await db.query(
-      'UPDATE ambulance_requests SET driver_id = ?, vehicle_id = ?, status = ? WHERE id = ?',
-      [driverId, vehicleId, 'accepted', requestId]
-    );
-    await db.query('UPDATE ambulances SET status = ? WHERE id = ?', ['busy', vehicleId]);
+    await AmbulanceRequest.findByIdAndUpdate(requestId, {
+      driver_id: driverId, vehicle_id: vehicleId, status: "accepted"
+    });
+    await Ambulance.findByIdAndUpdate(vehicleId, { status: "busy" });
   }
 
   static async getRequestById(id) {
-    const [rows] = await db.query(`
-      SELECT ar.*, p.name as patient_name, p.phone as patient_phone, 
-             d.name as driver_name, d.phone as driver_phone, a.vehicle_no,
-             a.current_lat, a.current_lng
-      FROM ambulance_requests ar
-      JOIN users p ON ar.patient_id = p.id
-      LEFT JOIN users d ON ar.driver_id = d.id
-      LEFT JOIN ambulances a ON ar.vehicle_id = a.id
-      WHERE ar.id = ?
-    `, [id]);
-    return rows[0];
+    const req = await AmbulanceRequest.findById(id)
+      .populate({ path: "patient_id", select: "name phone" })
+      .populate({ path: "driver_id", select: "name phone" })
+      .populate({ path: "vehicle_id", select: "vehicle_no current_lat current_lng" })
+      .lean();
+
+    if (!req) return null;
+    return {
+      ...req,
+      id: req._id,
+      patient_name: req.patient_id ? req.patient_id.name : "",
+      patient_phone: req.patient_id ? req.patient_id.phone : "",
+      driver_name: req.driver_id ? req.driver_id.name : "",
+      driver_phone: req.driver_id ? req.driver_id.phone : "",
+      vehicle_no: req.vehicle_id ? req.vehicle_id.vehicle_no : "",
+      current_lat: req.vehicle_id ? req.vehicle_id.current_lat : null,
+      current_lng: req.vehicle_id ? req.vehicle_id.current_lng : null,
+      patient_id: req.patient_id ? req.patient_id._id : null,
+      driver_id: req.driver_id ? req.driver_id._id : null,
+      vehicle_id: req.vehicle_id ? req.vehicle_id._id : null
+    };
   }
 
   static async getActiveRequestForDriver(driverId) {
-    const [rows] = await db.query(
-      `SELECT * FROM ambulance_requests WHERE driver_id = ? AND status = 'accepted' ORDER BY id DESC LIMIT 1`,
-      [driverId]
-    );
-    return rows[0];
+    const req = await AmbulanceRequest.findOne({ driver_id: driverId, status: "accepted" })
+      .sort({ _id: -1 })
+      .lean();
+    if (req) req.id = req._id;
+    return req;
   }
 
   static async listAvailableWithCoords() {
-    const [rows] = await db.query(`
-      SELECT a.*, u.name AS driver_name, u.phone AS driver_phone
-      FROM ambulances a
-      JOIN users u ON a.driver_id = u.id
-      WHERE a.status = 'available' AND a.current_lat IS NOT NULL AND a.current_lng IS NOT NULL
-    `);
-    return rows;
+    const rows = await Ambulance.find({
+      status: "available",
+      current_lat: { $ne: null },
+      current_lng: { $ne: null }
+    })
+      .populate({ path: "driver_id", select: "name phone" })
+      .lean();
+
+    return rows.map(a => ({
+      ...a,
+      id: a._id,
+      driver_name: a.driver_id ? a.driver_id.name : "",
+      driver_phone: a.driver_id ? a.driver_id.phone : "",
+      driver_id: a.driver_id ? a.driver_id._id : null
+    }));
   }
 
   static async updateRequestStatus(requestId, status) {
-    await db.query('UPDATE ambulance_requests SET status = ? WHERE id = ?', [status, requestId]);
-    if (status === 'completed' || status === 'cancelled') {
-      const [req] = await db.query('SELECT vehicle_id FROM ambulance_requests WHERE id = ?', [requestId]);
-      if (req[0].vehicle_id) {
-        await db.query('UPDATE ambulances SET status = ? WHERE id = ?', ['available', req[0].vehicle_id]);
+    await AmbulanceRequest.findByIdAndUpdate(requestId, { status });
+    if (status === "completed" || status === "cancelled") {
+      const req = await AmbulanceRequest.findById(requestId).lean();
+      if (req && req.vehicle_id) {
+        await Ambulance.findByIdAndUpdate(req.vehicle_id, { status: "available" });
       }
     }
   }
 
   static async getPendingRequests() {
-    const [rows] = await db.query(`
-      SELECT ar.*, p.name as patient_name, p.phone as patient_phone
-      FROM ambulance_requests ar
-      JOIN users p ON ar.patient_id = p.id
-      WHERE ar.status = 'pending'
-    `);
-    return rows;
+    const rows = await AmbulanceRequest.find({ status: "pending" })
+      .populate({ path: "patient_id", select: "name phone" })
+      .lean();
+
+    return rows.map(r => ({
+      ...r,
+      id: r._id,
+      patient_name: r.patient_id ? r.patient_id.name : "",
+      patient_phone: r.patient_id ? r.patient_id.phone : "",
+      patient_id: r.patient_id ? r.patient_id._id : null
+    }));
   }
 }
 

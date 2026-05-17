@@ -1,32 +1,25 @@
-const db = require('../config/db');
+const { Notification } = require("../config/db");
 
 class NotificationModel {
-    static async create(userId, title, message, type = 'info') {
-        const [result] = await db.query(
-            'INSERT INTO notifications (user_id, title, message, type) VALUES (?, ?, ?, ?)',
-            [userId, title, message, type]
-        );
-        return result.insertId;
+    static async create(userId, title, message, type = "info") {
+        const notif = await Notification.create({ user_id: userId, title, message, type });
+        return notif._id;
     }
 
     static async getByUser(userId) {
-        const [rows] = await db.query(
-            'SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 20',
-            [userId]
-        );
-        return rows;
+        const rows = await Notification.find({ user_id: userId })
+            .sort({ created_at: -1 })
+            .limit(20)
+            .lean();
+        return rows.map(r => ({ ...r, id: r._id }));
     }
 
     static async markAsRead(id) {
-        await db.query('UPDATE notifications SET is_read = TRUE WHERE id = ?', [id]);
+        await Notification.findByIdAndUpdate(id, { is_read: true });
     }
 
     static async getUnreadCount(userId) {
-        const [rows] = await db.query(
-            'SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = FALSE',
-            [userId]
-        );
-        return rows[0].count;
+        return await Notification.countDocuments({ user_id: userId, is_read: false });
     }
 }
 

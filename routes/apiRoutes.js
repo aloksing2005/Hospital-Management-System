@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../config/db");
+const { Appointment, Prescription } = require("../config/db");
 const AmbulanceModel = require("../models/ambulanceModel");
 const { isLoggedIn } = require("../middleware/auth");
 
@@ -65,26 +65,33 @@ router.post("/emergency-priority", express.json(), (req, res) => {
 /** AI-style patient risk (aggregate from appointments — demo model) */
 router.get("/patient-risk/:patientId", isLoggedIn, async (req, res) => {
   try {
-    const pid = parseInt(req.params.patientId, 10);
-    if (req.session.user.role !== "admin" && req.session.user.id !== pid) {
+    const pid = req.params.patientId;
+    if (req.session.user.role !== "admin" && String(req.session.user.id) !== String(pid)) {
       return res.status(403).json({ success: false, message: "Forbidden" });
     }
-    const [apps] = await db.query(
-      `SELECT status, COUNT(*) c FROM appointments WHERE patient_id = ? GROUP BY status`,
-      [pid]
-    );
-    const [rx] = await db.query(`SELECT COUNT(*) n FROM prescriptions WHERE patient_id = ?`, [pid]);
-    const pending = apps.find((a) => a.status === "pending")?.c || 0;
-    const cancelled = apps.find((a) => a.status === "cancelled")?.c || 0;
-    const completed = apps.find((a) => a.status === "completed")?.c || 0;
+
+    // Aggregate appointment counts by status
+    const statusCounts = await Appointment.aggregate([
+      { $match: { patient_id: require("mongoose").Types.ObjectId.createFromHexString(pid) } },
+      { $group: { _id: "$status", c: { $sum: 1 } } }
+    ]);
+
+    const rxCount = await Prescription.countDocuments({ patient_id: pid });
+
+    const pending = statusCounts.find((a) => a._id === "pending")?.c || 0;
+    const cancelled = statusCounts.find((a) => a._id === "cancelled")?.c || 0;
+    const completed = statusCounts.find((a) => a._id === "completed")?.c || 0;
+
     let risk = 15 + pending * 4 + cancelled * 6 - Math.min(20, completed * 2);
-    risk += Math.min(25, (rx[0]?.n || 0) * 3);
+    risk += Math.min(25, rxCount * 3);
     risk = Math.max(5, Math.min(98, Math.round(risk)));
+
     const factors = [
       { label: "Pending visits", weight: pending * 4 },
       { label: "Cancellations", weight: cancelled * 6 },
-      { label: "Care episodes (rx)", weight: Math.min(25, (rx[0]?.n || 0) * 3) }
+      { label: "Care episodes (rx)", weight: Math.min(25, rxCount * 3) }
     ];
+
     res.json({
       success: true,
       patientId: pid,

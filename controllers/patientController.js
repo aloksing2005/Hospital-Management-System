@@ -7,40 +7,37 @@ const billModel = require("../models/billModel");
 const pharmacyModel = require("../models/pharmacyModel");
 const { findSpecialization, suggestMedicines, generateSlots } = require("../utils/aiEngine");
 const bloodBankModel = require("../models/bloodBankModel");
-const db = require("../config/db");
+const { User, Appointment, Prescription, PatientVitals, MedicineReminder } = require("../config/db");
 const path = require("path");
 const fs = require("fs");
 const { writeHealthReportPdf } = require("../utils/healthReportPdf");
 
 exports.getDashboard = async (req, res) => {
   try {
-    const [stats] = await db.query(`
-      SELECT 
-        (SELECT COUNT(*) FROM appointments WHERE patient_id = ?) as total_appointments,
-        (SELECT COUNT(*) FROM prescriptions WHERE patient_id = ?) as total_prescriptions
-    `, [req.session.user.id, req.session.user.id]);
+    const userId = req.session.user.id;
+    const total_appointments = await Appointment.countDocuments({ patient_id: userId });
+    const total_prescriptions = await Prescription.countDocuments({ patient_id: userId });
+    const stats = { total_appointments, total_prescriptions };
 
-    const appointments = await appointmentModel.getAppointmentsByPatient(req.session.user.id);
-    const prescriptions = await prescriptionModel.getPrescriptionsByPatient(req.session.user.id);
-    
+    const appointments = await appointmentModel.getAppointmentsByPatient(userId);
+    const prescriptions = await prescriptionModel.getPrescriptionsByPatient(userId);
+
     // Get latest vitals for Health Score
-    const [latestVitals] = await db.query("SELECT * FROM patient_vitals WHERE patient_id = ? ORDER BY created_at DESC LIMIT 1", [req.session.user.id]);
-    
+    const latestVitals = await PatientVitals.findOne({ patient_id: userId }).sort({ created_at: -1 }).lean();
+
     // Get unread notifications
-    const unreadNotifications = await notificationModel.getUnreadCount(req.session.user.id);
-    
+    const unreadNotifications = await notificationModel.getUnreadCount(userId);
+
     let healthScore = 85; // Default
-    if (latestVitals.length > 0) {
-      const v = latestVitals[0];
-      // Simple algorithm: deduction for out-of-range values
-      if (v.hr > 100 || v.hr < 60) healthScore -= 5;
-      if (v.spo2 < 95) healthScore -= 10;
-      if (v.bp_sys > 140 || v.bp_sys < 90) healthScore -= 5;
-      if (v.temp > 100 || v.temp < 97) healthScore -= 5;
+    if (latestVitals) {
+      if (latestVitals.hr > 100 || latestVitals.hr < 60) healthScore -= 5;
+      if (latestVitals.spo2 < 95) healthScore -= 10;
+      if (latestVitals.bp_sys > 140 || latestVitals.bp_sys < 90) healthScore -= 5;
+      if (latestVitals.temp > 100 || latestVitals.temp < 97) healthScore -= 5;
     }
 
     res.render("patient/dashboard", {
-      stats: stats[0],
+      stats,
       appointments: appointments.slice(0, 5),
       prescriptions: prescriptions.slice(0, 5),
       healthScore,
@@ -56,8 +53,7 @@ exports.getDashboard = async (req, res) => {
 exports.getDoctors = async (req, res) => {
   try {
     const { search, specialization, maxFees, minRating, sort } = req.query;
-    
-    // Always use the advanced search which handles empty params gracefully
+
     const doctors = await doctorModel.searchDoctorsAdvanced({
       search,
       specialization,
@@ -66,10 +62,10 @@ exports.getDoctors = async (req, res) => {
       sort
     });
 
-    res.render("patient/doctors", { 
-      doctors, 
-      user: req.session.user, 
-      search, 
+    res.render("patient/doctors", {
+      doctors,
+      user: req.session.user,
+      search,
       specialization,
       maxFees,
       minRating,
@@ -90,9 +86,9 @@ exports.getDoctorDetail = async (req, res) => {
     }
 
     const slots = generateSlots(doctor.available_from, doctor.available_to, 30);
-    const leaves = await doctorModel.getLeaves(doctor.id);
+    const leaves = await doctorModel.getLeaves(doctor._id || doctor.id);
     const leaveDates = leaves.map(l => new Date(l.date).toISOString().split('T')[0]);
-    
+
     res.render("patient/doctor-detail", { doctor, slots, leaveDates, user: req.session.user });
   } catch (err) {
     req.flash("error", err.message);
@@ -180,8 +176,8 @@ exports.postAISymptomChecker = (req, res) => {
         symptoms,
         specialization,
         medicines,
-        recommendation: specialization 
-          ? `We recommend consulting a ${specialization}.` 
+        recommendation: specialization
+          ? `We recommend consulting a ${specialization}.`
           : "Please consult a General Physician for proper diagnosis."
       }
     });
@@ -226,6 +222,7 @@ exports.getHistory = async (req, res) => {
 exports.getAmbulance = (req, res) => {
   res.render("patient/ambulance", { user: req.session.user });
 };
+
 exports.getLabReports = async (req, res) => {
   try {
     const reports = await labReportModel.getReportsByPatient(req.session.user.id);
@@ -238,13 +235,14 @@ exports.getLabReports = async (req, res) => {
 
 exports.getAnalytics = async (req, res) => {
   try {
-    const [vitals] = await db.query(
-      "SELECT * FROM patient_vitals WHERE patient_id = ? ORDER BY created_at ASC LIMIT 50",
-      [req.session.user.id]
-    );
-    res.render("patient/analytics", { 
+    const vitals = await PatientVitals.find({ patient_id: req.session.user.id })
+      .sort({ created_at: 1 })
+      .limit(50)
+      .lean();
+
+    res.render("patient/analytics", {
       vitalsHistory: vitals,
-      user: req.session.user 
+      user: req.session.user
     });
   } catch (err) {
     req.flash("error", err.message);
@@ -254,8 +252,11 @@ exports.getAnalytics = async (req, res) => {
 
 exports.getReminders = async (req, res) => {
   try {
-    const [reminders] = await db.query("SELECT * FROM medicine_reminders WHERE patient_id = ? ORDER BY time ASC", [req.session.user.id]);
-    res.render("patient/reminders", { user: req.session.user, reminders });
+    const reminders = await MedicineReminder.find({ patient_id: req.session.user.id })
+      .sort({ time: 1 })
+      .lean();
+    const mapped = reminders.map(r => ({ ...r, id: r._id }));
+    res.render("patient/reminders", { user: req.session.user, reminders: mapped });
   } catch (err) {
     req.flash("error", err.message);
     res.redirect("/patient/dashboard");
@@ -265,7 +266,7 @@ exports.getReminders = async (req, res) => {
 exports.postReminder = async (req, res) => {
   try {
     const { medicine_name, dosage, time } = req.body;
-    await db.query("INSERT INTO medicine_reminders (patient_id, medicine_name, dosage, time) VALUES (?, ?, ?, ?)", [req.session.user.id, medicine_name, dosage, time]);
+    await MedicineReminder.create({ patient_id: req.session.user.id, medicine_name, dosage, time });
     req.flash("success", "Reminder added successfully");
     res.redirect("/patient/reminders");
   } catch (err) {
@@ -281,8 +282,7 @@ exports.getVitals = (req, res) => {
 exports.downloadHealthReport = async (req, res) => {
   try {
     const uid = req.session.user.id;
-    const [rows] = await db.query("SELECT name, email FROM users WHERE id = ?", [uid]);
-    const patient = rows[0];
+    const patient = await User.findById(uid, "name email").lean();
     if (!patient) {
       req.flash("error", "Patient not found");
       return res.redirect("/patient/dashboard");
@@ -308,6 +308,7 @@ exports.downloadHealthReport = async (req, res) => {
     res.redirect("/patient/dashboard");
   }
 };
+
 exports.getDonorRegistry = async (req, res) => {
   try {
     const donor = await bloodBankModel.getDonorByPatientId(req.session.user.id);

@@ -1,35 +1,29 @@
-const db = require("../config/db");
+const { User } = require("../config/db");
 const bcrypt = require("bcryptjs");
 
 exports.findByEmail = async (email) => {
-  const [rows] = await db.query("SELECT * FROM users WHERE email = ?", [email]);
-  return rows[0];
+  return await User.findOne({ email });
 };
 
 exports.findById = async (id) => {
-  const [rows] = await db.query("SELECT * FROM users WHERE id = ?", [id]);
-  return rows[0];
+  return await User.findById(id);
 };
 
 exports.createUser = async ({ name, email, password, phone, role = "patient" }) => {
   const hashed = bcrypt.hashSync(password, 10);
-  const [result] = await db.query(
-    "INSERT INTO users (name, email, password, phone, role) VALUES (?, ?, ?, ?, ?)",
-    [name, email, hashed, phone, role]
-  );
-  return result.insertId;
+  const user = await User.create({ name, email, password: hashed, phone, role });
+  return user._id;
 };
 
 exports.updatePassword = async (id, newPassword) => {
   const hashed = bcrypt.hashSync(newPassword, 10);
-  await db.query("UPDATE users SET password = ? WHERE id = ?", [hashed, id]);
+  await User.findByIdAndUpdate(id, { password: hashed });
 };
 
 exports.getAllUsers = async () => {
-  const [rows] = await db.query("SELECT id, name, email, phone, role, created_at FROM users");
-  return rows;
+  return await User.find({}, "name email phone role created_at");
 };
 
 exports.deleteUser = async (id) => {
-  await db.query("DELETE FROM users WHERE id = ?", [id]);
+  await User.findByIdAndDelete(id);
 };

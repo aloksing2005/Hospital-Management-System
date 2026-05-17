@@ -1,5 +1,5 @@
 const cron = require('node-cron');
-const db = require('../config/db');
+const { Appointment, Doctor, User } = require('../config/db');
 const mailer = require('./mailer');
 const sms = require('./sms');
 
@@ -8,17 +8,19 @@ const startReminderCron = () => {
   cron.schedule('*/15 * * * *', async () => {
     console.log("Running reminder cron job...");
     try {
-      // Find appointments that are exactly 1 hour away.
-      // E.g., if current time is 10:00, we look for appointments at 11:00.
-      // Since time_slot is string like "10:00 - 10:30", we need to parse it.
-      
-      const [appointments] = await db.query(`
-        SELECT a.*, u.name as patient_name, u.email as patient_email, u.phone as patient_phone, d.name as doctor_name 
-        FROM appointments a 
-        JOIN users u ON a.patient_id = u.id 
-        JOIN doctors d ON a.doctor_id = d.id 
-        WHERE a.status = 'confirmed' AND a.date = CURDATE()
-      `);
+      const startOfDay = new Date();
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date();
+      endOfDay.setHours(23, 59, 59, 999);
+
+      // Find confirmed appointments for today
+      const appointments = await Appointment.find({
+        status: "confirmed",
+        date: { $gte: startOfDay, $lte: endOfDay }
+      })
+        .populate({ path: "patient_id", select: "name email phone" })
+        .populate({ path: "doctor_id", select: "name" })
+        .lean();
 
       const now = new Date();
       const currentHour = now.getHours();
@@ -35,16 +37,21 @@ const startReminderCron = () => {
         const diffMins = appTotalMins - currentTotalMins;
 
         if (diffMins > 45 && diffMins <= 60) {
-          console.log(`Sending reminder for appointment ${app.id} to ${app.patient_name}`);
-          
-          const subject = "Appointment Reminder";
-          const text = `Hi ${app.patient_name}, this is a reminder for your appointment with Dr. ${app.doctor_name} today at ${app.time_slot}.`;
+          const patientName = app.patient_id ? app.patient_id.name : "Patient";
+          const patientEmail = app.patient_id ? app.patient_id.email : null;
+          const patientPhone = app.patient_id ? app.patient_id.phone : null;
+          const doctorName = app.doctor_id ? app.doctor_id.name : "Doctor";
 
-          if (app.patient_email) {
-            mailer.sendMail(app.patient_email, subject, text).catch(err => console.error("Email fail:", err));
+          console.log(`Sending reminder for appointment ${app._id} to ${patientName}`);
+
+          const subject = "Appointment Reminder";
+          const text = `Hi ${patientName}, this is a reminder for your appointment with Dr. ${doctorName} today at ${app.time_slot}.`;
+
+          if (patientEmail) {
+            mailer.sendMail(patientEmail, subject, text).catch(err => console.error("Email fail:", err));
           }
-          if (app.patient_phone) {
-            sms.sendSMS(app.patient_phone, text).catch(err => console.error("SMS fail:", err));
+          if (patientPhone) {
+            sms.sendSMS(patientPhone, text).catch(err => console.error("SMS fail:", err));
           }
         }
       }

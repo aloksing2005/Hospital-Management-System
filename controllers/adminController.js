@@ -4,17 +4,16 @@ const appointmentModel = require("../models/appointmentModel");
 const labReportModel = require("../models/labReportModel");
 const bloodBankModel = require("../models/bloodBankModel");
 const ambulanceModel = require("../models/ambulanceModel");
-const db = require("../config/db");
+const { User, Doctor, Appointment, Prescription, HospitalResource, AmbulanceRequest } = require("../config/db");
 
 exports.getDashboard = async (req, res) => {
   try {
-    const [stats] = await db.query(`
-      SELECT 
-        (SELECT COUNT(*) FROM users WHERE role = 'patient') as total_patients,
-        (SELECT COUNT(*) FROM doctors) as total_doctors,
-        (SELECT COUNT(*) FROM appointments) as total_appointments,
-        (SELECT COUNT(*) FROM appointments WHERE status = 'pending') as pending_appointments
-    `);
+    const total_patients = await User.countDocuments({ role: "patient" });
+    const total_doctors = await Doctor.countDocuments();
+    const total_appointments = await Appointment.countDocuments();
+    const pending_appointments = await Appointment.countDocuments({ status: "pending" });
+
+    const stats = { total_patients, total_doctors, total_appointments, pending_appointments };
 
     const recentAppointments = await appointmentModel.getAllAppointments();
     const doctors = await doctorModel.getAllDoctors();
@@ -22,7 +21,7 @@ exports.getDashboard = async (req, res) => {
 
     res.render("admin/dashboard", {
       title: "Admin Dashboard - HMS",
-      stats: stats[0],
+      stats,
       recentAppointments: recentAppointments.slice(0, 10),
       doctors,
       users: users.filter(u => u.role !== "admin"),
@@ -38,10 +37,10 @@ exports.getDashboard = async (req, res) => {
 exports.getDoctors = async (req, res) => {
   try {
     const doctors = await doctorModel.getAllDoctors();
-    res.render("admin/doctors", { 
+    res.render("admin/doctors", {
       title: "Manage Doctors - HMS",
-      doctors, 
-      user: req.session.user 
+      doctors,
+      user: req.session.user
     });
   } catch (err) {
     console.error("Doctors error:", err);
@@ -52,11 +51,12 @@ exports.getDoctors = async (req, res) => {
 
 exports.getPatients = async (req, res) => {
   try {
-    const [patients] = await db.query("SELECT id, name, email, phone, role, created_at FROM users WHERE role = 'patient'");
-    res.render("admin/patients", { 
+    const patients = await User.find({ role: "patient" }, "name email phone role created_at").lean();
+    const mapped = patients.map(p => ({ ...p, id: p._id }));
+    res.render("admin/patients", {
       title: "Patients - HMS",
-      patients, 
-      user: req.session.user 
+      patients: mapped,
+      user: req.session.user
     });
   } catch (err) {
     console.error("Patients error:", err);
@@ -68,10 +68,10 @@ exports.getPatients = async (req, res) => {
 exports.getAppointments = async (req, res) => {
   try {
     const appointments = await appointmentModel.getAllAppointments();
-    res.render("admin/appointments", { 
+    res.render("admin/appointments", {
       title: "Appointments - HMS",
-      appointments, 
-      user: req.session.user 
+      appointments,
+      user: req.session.user
     });
   } catch (err) {
     console.error("Appointments error:", err);
@@ -149,33 +149,42 @@ exports.updateAppointmentStatus = async (req, res) => {
 
 exports.getReports = async (req, res) => {
   try {
-    const [monthlyStats] = await db.query(`
-      SELECT 
-        DATE_FORMAT(created_at, '%Y-%m') as month,
-        COUNT(*) as count
-      FROM appointments 
-      GROUP BY DATE_FORMAT(created_at, '%Y-%m')
-      ORDER BY month DESC
-      LIMIT 12
-    `);
+    // Monthly appointment stats using MongoDB aggregation
+    const monthlyStats = await Appointment.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m", date: "$created_at" } },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: -1 } },
+      { $limit: 12 },
+      { $project: { month: "$_id", count: 1, _id: 0 } }
+    ]);
 
-    const [specializationStats] = await db.query(`
-      SELECT d.specialization, COUNT(a.id) as appointments
-      FROM doctors d
-      LEFT JOIN appointments a ON d.id = a.doctor_id
-      GROUP BY d.specialization
-    `);
+    // Specialization stats
+    const doctors = await Doctor.find().lean();
+    const specializationMap = {};
+    for (const doc of doctors) {
+      const spec = doc.specialization || "Other";
+      const apptCount = await Appointment.countDocuments({ doctor_id: doc._id });
+      specializationMap[spec] = (specializationMap[spec] || 0) + apptCount;
+    }
+    const specializationStats = Object.entries(specializationMap).map(([specialization, appointments]) => ({
+      specialization, appointments
+    }));
 
-    const [revenueStats] = await db.query(`
-      SELECT 
-        d.name as doctor_name, 
-        COUNT(a.id) as completed_appointments, 
-        (COUNT(a.id) * d.fees) as revenue
-      FROM doctors d
-      LEFT JOIN appointments a ON d.id = a.doctor_id AND a.status = 'completed'
-      GROUP BY d.id
-      ORDER BY revenue DESC
-    `);
+    // Revenue stats
+    const revenueStats = [];
+    for (const doc of doctors) {
+      const completedCount = await Appointment.countDocuments({ doctor_id: doc._id, status: "completed" });
+      revenueStats.push({
+        doctor_name: doc.name,
+        completed_appointments: completedCount,
+        revenue: completedCount * (doc.fees || 0)
+      });
+    }
+    revenueStats.sort((a, b) => b.revenue - a.revenue);
 
     res.render("admin/reports", {
       title: "Reports & Revenue - HMS",
@@ -195,10 +204,10 @@ exports.getAmbulances = async (req, res) => {
   try {
     const ambulances = await ambulanceModel.getAllAmbulances();
     const requests = await ambulanceModel.getPendingRequests();
-    res.render("admin/ambulances", { 
-      ambulances, 
+    res.render("admin/ambulances", {
+      ambulances,
       requests,
-      user: req.session.user 
+      user: req.session.user
     });
   } catch (err) {
     req.flash("error", err.message);
@@ -208,8 +217,9 @@ exports.getAmbulances = async (req, res) => {
 
 exports.getResources = async (req, res) => {
   try {
-    const [resources] = await db.query("SELECT * FROM hospital_resources");
-    res.render("admin/resources", { resources, user: req.session.user });
+    const resources = await HospitalResource.find().lean();
+    const mapped = resources.map(r => ({ ...r, id: r._id }));
+    res.render("admin/resources", { resources: mapped, user: req.session.user });
   } catch (err) {
     req.flash("error", err.message);
     res.redirect("/admin/dashboard");
@@ -219,30 +229,31 @@ exports.getResources = async (req, res) => {
 exports.updateResource = async (req, res) => {
   try {
     const { id, change } = req.body;
-    // Get current
-    const [current] = await db.query("SELECT * FROM hospital_resources WHERE id = ?", [id]);
-    if (current.length === 0) return res.json({ success: false });
+    const current = await HospitalResource.findById(id);
+    if (!current) return res.json({ success: false });
 
-    let newQty = current[0].available_quantity + change;
+    let newQty = current.available_quantity + change;
     if (newQty < 0) newQty = 0;
-    if (newQty > current[0].total_quantity) newQty = current[0].total_quantity;
+    if (newQty > current.total_quantity) newQty = current.total_quantity;
 
-    await db.query("UPDATE hospital_resources SET available_quantity = ? WHERE id = ?", [newQty, id]);
-    
+    current.available_quantity = newQty;
+    current.last_updated = new Date();
+    await current.save();
+
     // Emit real-time update
     const io = req.app.get("io");
-    io.emit("resource-updated-broadcast", { 
-      id, 
-      available_quantity: newQty, 
-      total_quantity: current[0].total_quantity,
-      resource_name: current[0].resource_name 
+    io.emit("resource-updated-broadcast", {
+      id,
+      available_quantity: newQty,
+      total_quantity: current.total_quantity,
+      resource_name: current.resource_name
     });
 
-    res.json({ 
-      success: true, 
-      new_quantity: newQty, 
-      total_quantity: current[0].total_quantity,
-      resource_name: current[0].resource_name
+    res.json({
+      success: true,
+      new_quantity: newQty,
+      total_quantity: current.total_quantity,
+      resource_name: current.resource_name
     });
   } catch (err) {
     res.json({ success: false, error: err.message });
@@ -252,8 +263,9 @@ exports.updateResource = async (req, res) => {
 exports.getLabReports = async (req, res) => {
   try {
     const reports = await labReportModel.getAllReports();
-    const [patients] = await db.query("SELECT id, name FROM users WHERE role = 'patient'");
-    res.render("admin/lab-reports", { title: "Manage Lab Reports", reports, patients, user: req.session.user });
+    const patients = await User.find({ role: "patient" }, "name").lean();
+    const mapped = patients.map(p => ({ ...p, id: p._id }));
+    res.render("admin/lab-reports", { title: "Manage Lab Reports", reports, patients: mapped, user: req.session.user });
   } catch (err) {
     req.flash("error", err.message);
     res.redirect("/admin/dashboard");
@@ -270,12 +282,7 @@ exports.uploadLabReport = async (req, res) => {
       return res.redirect("/admin/lab-reports");
     }
 
-    await labReportModel.createReport({
-      patient_id,
-      report_name,
-      test_type,
-      file_path
-    });
+    await labReportModel.createReport({ patient_id, report_name, test_type, file_path });
 
     const io = req.app.get("io");
     io.to(`user_${patient_id}`).emit("new-lab-report", {
@@ -291,14 +298,15 @@ exports.uploadLabReport = async (req, res) => {
     res.redirect("/admin/lab-reports");
   }
 };
+
 exports.getBloodBank = async (req, res) => {
   try {
     const inventory = await bloodBankModel.getBloodInventory();
     const donors = await bloodBankModel.getDonors();
-    res.render("admin/blood-bank", { 
-      inventory, 
+    res.render("admin/blood-bank", {
+      inventory,
       donors,
-      user: req.session.user 
+      user: req.session.user
     });
   } catch (err) {
     req.flash("error", err.message);
@@ -310,7 +318,7 @@ exports.updateBloodStock = async (req, res) => {
   try {
     const { blood_group, units } = req.body;
     const updated = await bloodBankModel.updateBloodStock(blood_group, units);
-    
+
     // Emit real-time update
     const io = req.app.get("io");
     io.emit("blood-stock-updated", updated);
@@ -323,26 +331,56 @@ exports.updateBloodStock = async (req, res) => {
 
 exports.getCommandCenter = async (req, res) => {
   try {
-    const [pendingAmb] = await db.query(
-      "SELECT COUNT(*) AS c FROM ambulance_requests WHERE status = 'pending'"
-    );
-    const [stats] = await db.query(`
-      SELECT 
-        (SELECT COUNT(*) FROM users WHERE role = 'patient') AS patients,
-        (SELECT COUNT(*) FROM appointments WHERE status = 'pending') AS pending_appts,
-        (SELECT COUNT(*) FROM appointments WHERE DATE(created_at) = CURDATE()) AS appts_today
-    `);
-    const [patientsTop] = await db.query(`
-      SELECT u.id, u.name, u.email,
-        (SELECT COUNT(*) FROM appointments a WHERE a.patient_id = u.id) AS appt_n,
-        (SELECT COUNT(*) FROM prescriptions p WHERE p.patient_id = u.id) AS rx_n
-      FROM users u WHERE u.role = 'patient' ORDER BY appt_n DESC LIMIT 14
-    `);
+    const pendingAmbulance = await AmbulanceRequest.countDocuments({ status: "pending" });
+
+    const patients = await User.countDocuments({ role: "patient" });
+    const pending_appts = await Appointment.countDocuments({ status: "pending" });
+
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+    const appts_today = await Appointment.countDocuments({ created_at: { $gte: startOfDay, $lte: endOfDay } });
+
+    const stats = { patients, pending_appts, appts_today };
+
+    // Top patients by appointment count
+    const patientsTop = await User.aggregate([
+      { $match: { role: "patient" } },
+      {
+        $lookup: {
+          from: "appointments",
+          localField: "_id",
+          foreignField: "patient_id",
+          as: "appts"
+        }
+      },
+      {
+        $lookup: {
+          from: "prescriptions",
+          localField: "_id",
+          foreignField: "patient_id",
+          as: "rxs"
+        }
+      },
+      {
+        $project: {
+          name: 1,
+          email: 1,
+          id: "$_id",
+          appt_n: { $size: "$appts" },
+          rx_n: { $size: "$rxs" }
+        }
+      },
+      { $sort: { appt_n: -1 } },
+      { $limit: 14 }
+    ]);
+
     res.render("admin/command-center", {
       title: "Command Center - HMS",
       user: req.session.user,
-      stats: stats[0],
-      pendingAmbulance: pendingAmb[0].c,
+      stats,
+      pendingAmbulance,
       patientsTop,
       activity: global.__HMS_ACTIVITY_LOG__ || []
     });

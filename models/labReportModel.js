@@ -1,31 +1,31 @@
-const db = require('../config/db');
+const { LabReport, User } = require("../config/db");
 
 class LabReportModel {
   static async createReport(data) {
     const { patient_id, report_name, file_path, test_type } = data;
-    const [result] = await db.query(
-      'INSERT INTO lab_reports (patient_id, report_name, file_path, test_type) VALUES (?, ?, ?, ?)',
-      [patient_id, report_name, file_path, test_type]
-    );
-    return result.insertId;
+    const report = await LabReport.create({ patient_id, report_name, file_path, test_type });
+    return report._id;
   }
 
   static async getReportsByPatient(patientId) {
-    const [reports] = await db.query(
-      'SELECT * FROM lab_reports WHERE patient_id = ? ORDER BY created_at DESC',
-      [patientId]
-    );
-    return reports;
+    const reports = await LabReport.find({ patient_id: patientId })
+      .sort({ created_at: -1 })
+      .lean();
+    return reports.map(r => ({ ...r, id: r._id }));
   }
 
   static async getAllReports() {
-    const [reports] = await db.query(`
-      SELECT lr.*, u.name as patient_name 
-      FROM lab_reports lr
-      JOIN users u ON lr.patient_id = u.id
-      ORDER BY lr.created_at DESC
-    `);
-    return reports;
+    const reports = await LabReport.find()
+      .populate({ path: "patient_id", select: "name" })
+      .sort({ created_at: -1 })
+      .lean();
+
+    return reports.map(r => ({
+      ...r,
+      id: r._id,
+      patient_name: r.patient_id ? r.patient_id.name : "",
+      patient_id: r.patient_id ? r.patient_id._id : null
+    }));
   }
 }
 
