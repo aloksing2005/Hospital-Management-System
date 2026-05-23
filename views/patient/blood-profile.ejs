@@ -1,0 +1,42 @@
+<% var title = 'Blood Profile - HMS'; %>
+<%- include('../partials/header') %>
+
+<div class="flex h-screen">
+  <%- include('../partials/patient-sidebar', { active: 'lab-reports' }) %>
+  <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+    <div class="mb-8 animate-fade-in">
+      <a href="/patient/dashboard" class="text-indigo-400 text-sm font-bold hover:underline mb-2 inline-block"><i class="fas fa-arrow-left mr-1"></i> Back to Dashboard</a>
+      <h1 class="text-3xl font-black text-white mb-2">Blood Profile</h1>
+      <p class="text-gray-400">Complete blood work results and analysis reports</p>
+    </div>
+
+    <% if (!hasBloodReport) { %>
+      <div class="hms-card text-center py-16">
+        <i class="fas fa-tint text-5xl text-rose-400 mb-4"></i>
+        <h3 class="text-xl font-bold text-white mb-2">No Blood Profile Yet</h3>
+        <p class="text-gray-400 mb-6">Your blood test results will appear here once the lab uploads them.</p>
+        <a href="/patient/lab-reports" class="hms-btn hms-btn-primary">View All Lab Reports</a>
+      </div>
+    <% } else { %>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <% reports.forEach(report => { %>
+          <div class="hms-card">
+            <div class="flex justify-between mb-4">
+              <span class="hms-badge hms-badge-danger">Blood</span>
+              <span class="text-xs text-gray-400"><%= new Date(report.created_at).toLocaleDateString() %></span>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2"><%= report.report_name %></h3>
+            <p class="text-gray-400 text-sm mb-4">Type: <%= report.test_type || 'Blood Test' %></p>
+            <% if (report.file_path) { %>
+              <a href="<%= report.file_path %>" target="_blank" class="hms-btn hms-btn-primary w-full text-sm">
+                <i class="fas fa-download mr-2"></i>View Report
+              </a>
+            <% } %>
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

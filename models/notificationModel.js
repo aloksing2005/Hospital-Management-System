@@ -21,6 +21,10 @@ class NotificationModel {
     static async getUnreadCount(userId) {
         return await Notification.countDocuments({ user_id: userId, is_read: false });
     }
+
+    static async markAllAsRead(userId) {
+        await Notification.updateMany({ user_id: userId, is_read: false }, { is_read: true });
+    }
 }
 
 module.exports = NotificationModel;

@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <title>Video Consultation - HMS</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     body { background-color: #111; color: white; margin: 0; padding: 0; overflow: hidden; }
@@ -16,7 +15,11 @@
     .btn-end { background-color: #dc3545; color: white; }
     .btn-toggle { background-color: #444; color: white; }
     .btn-toggle.muted { background-color: #ffc107; color: black; }
-    .status-overlay { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.5); padding: 10px 15px; border-radius: 10px; z-index: 10; }
+    .status-overlay { position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.7); padding: 15px 20px; border-radius: 12px; z-index: 10; backdrop-filter: blur(10px); }
+    .status-connected { color: #4ade80; }
+    .status-waiting { color: #fbbf24; }
+    .status-error { color: #f87171; }
+    .status-connecting { color: #60a5fa; }
   </style>
 </head>
 <body>
@@ -34,7 +37,10 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
-    const socket = io();
+    const socket = window.hmsSocket ? window.hmsSocket() : (typeof io !== 'undefined' ? io() : null);
+    if (socket) {
+      socket.emit('join-consultation', '<%= appointmentId %>');
+    }
     const appointmentId = "<%= appointmentId %>";
     const localVideo = document.getElementById('localVideo');
     const remoteVideo = document.getElementById('remoteVideo');
@@ -55,13 +61,15 @@
 
     async function startMedia() {
       try {
+        statusText.innerHTML = '<span class="status-connecting">📡 Connecting to camera/microphone...</span>';
         localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
         localVideo.srcObject = localStream;
+        statusText.innerHTML = '<span class="status-waiting">⏳ Waiting for other person to join...</span>';
         socket.emit("join-consultation", appointmentId);
       } catch (err) {
         console.error("Error accessing media devices.", err);
-        statusText.innerText = "Error accessing camera/microphone. Please allow permissions.";
-        statusText.style.color = "#ffcccc";
+        statusText.innerHTML = '<span class="status-error">❌ Error accessing camera/microphone. Please allow permissions and refresh.</span>';
+        alert("Could not access camera/microphone. Please allow permissions and try again.");
       }
     }
 
@@ -76,7 +84,7 @@
 
       peerConnection.ontrack = event => {
         remoteVideo.srcObject = event.streams[0];
-        statusText.innerText = "Connected";
+        statusText.innerHTML = '<span class="status-connected">✅ Connected</span>';
       };
 
       localStream.getTracks().forEach(track => {

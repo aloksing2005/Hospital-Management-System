@@ -82,6 +82,19 @@
 </div>
 
 <script>
+  const socket = window.hmsSocket ? window.hmsSocket() : null;
+  if (socket) {
+    socket.on('doctor-online-status', (data) => {
+      if (data.doctorId === '<%= doctor.id %>') {
+        const statusEl = document.getElementById('doctorStatus');
+        if (statusEl) {
+          statusEl.textContent = data.isOnline ? 'Online' : 'Offline';
+          statusEl.className = data.isOnline ? 'text-emerald-400 font-bold' : 'text-gray-400 font-bold';
+        }
+      }
+    });
+  }
+
   function selectSlot(btn, slot) {
     document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected', 'btn-primary'));
     document.querySelectorAll('.slot-btn').forEach(b => b.classList.add('btn-outline-primary'));
@@ -90,7 +103,7 @@
     document.getElementById('selectedSlot').value = slot;
   }
 
-  const leaveDates = <%- JSON.stringify(leaveDates || []) %>;
+  const leaveDates = JSON.parse('<%- JSON.stringify(leaveDates || []) %>');
   
   document.getElementById('appointmentDate').addEventListener('change', function(e) {
     const selectedDate = e.target.value;
@@ -108,7 +121,11 @@
   document.getElementById('bookingForm').addEventListener('submit', (e) => {
     if (!document.getElementById('selectedSlot').value) {
       e.preventDefault();
-      showToast('Error', 'Please select a time slot', 'error');
+      if (typeof window.hmsShowToast === 'function') {
+        window.hmsShowToast('Warning', 'Please select a time slot', 'warning');
+      } else {
+        alert('Please select a time slot');
+      }
     }
   });
 </script>

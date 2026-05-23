@@ -1,26 +1,64 @@
-<div class="col-md-3 col-lg-2 p-0">
-  <div class="sidebar-modern glass">
-    <div class="mb-10 text-center">
-      <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/10">
-        <i class="fas fa-shield-alt text-2xl text-indigo-400"></i>
+<div class="w-64 lg:w-72 flex-shrink-0">
+  <div class="hms-sidebar h-full flex flex-col">
+    <!-- Logo Section -->
+    <div class="mb-8 text-center px-4">
+      <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-500/30">
+        <i class="fas fa-shield-alt text-2xl text-white"></i>
       </div>
-      <h5 class="text-white font-black tracking-tight">ADMIN COMMAND</h5>
+      <h5 class="text-white font-black tracking-tight text-lg">Admin Panel</h5>
+      <p class="text-gray-500 text-xs font-medium mt-1">System Control</p>
     </div>
     
-    <nav class="nav flex-column gap-1">
-      <a class="nav-link <%= active === 'dashboard' ? 'active' : '' %>" href="/admin/dashboard"><i class="fas fa-grid-2 me-2"></i>Overview</a>
-      <a class="nav-link <%= active === 'command' ? 'active' : '' %>" href="/admin/command-center"><i class="fas fa-brain me-2"></i>Command</a>
-      <a class="nav-link <%= active === 'doctors' ? 'active' : '' %>" href="/admin/doctors"><i class="fas fa-user-md me-2"></i>Staff</a>
-      <a class="nav-link <%= active === 'patients' ? 'active' : '' %>" href="/admin/patients"><i class="fas fa-users me-2"></i>Users</a>
-      <a class="nav-link <%= active === 'appointments' ? 'active' : '' %>" href="/admin/appointments"><i class="fas fa-calendar-check me-2"></i>Visits</a>
-      <a class="nav-link <%= active === 'lab-reports' ? 'active' : '' %>" href="/admin/lab-reports"><i class="fas fa-flask me-2"></i>Reports</a>
-      <a class="nav-link <%= active === 'ambulances' ? 'active' : '' %>" href="/admin/ambulances"><i class="fas fa-ambulance me-2"></i>Fleet</a>
-      <a class="nav-link <%= active === 'resources' ? 'active' : '' %>" href="/admin/resources"><i class="fas fa-bed me-2"></i>ICU Map</a>
-      <a class="nav-link <%= active === 'blood-bank' ? 'active' : '' %>" href="/admin/blood-bank"><i class="fas fa-tint me-2"></i>Blood Bank</a>
+    <!-- Navigation -->
+    <nav class="space-y-1 flex-1 px-3">
+      <a class="hms-nav-link <%= active === 'dashboard' ? 'active' : '' %>" href="/admin/dashboard">
+        <i class="fas fa-th-large"></i>
+        <span>Dashboard</span>
+      </a>
+      <a class="hms-nav-link <%= active === 'command' ? 'active' : '' %>" href="/admin/command-center">
+        <i class="fas fa-brain"></i>
+        <span>Command Center</span>
+      </a>
+      <a class="hms-nav-link <%= active === 'doctors' ? 'active' : '' %>" href="/admin/doctors">
+        <i class="fas fa-user-md"></i>
+        <span>Doctors</span>
+      </a>
+      <a class="hms-nav-link <%= active === 'patients' ? 'active' : '' %>" href="/admin/patients">
+        <i class="fas fa-users"></i>
+        <span>Patients</span>
+      </a>
+      <a class="hms-nav-link <%= active === 'appointments' ? 'active' : '' %>" href="/admin/appointments">
+        <i class="fas fa-calendar-check"></i>
+        <span>Appointments</span>
+      </a>
+      <a class="hms-nav-link <%= active === 'lab-reports' ? 'active' : '' %>" href="/admin/lab-reports">
+        <i class="fas fa-flask"></i>
+        <span>Lab Reports</span>
+      </a>
+      <a class="hms-nav-link <%= active === 'ambulances' ? 'active' : '' %>" href="/admin/ambulances">
+        <i class="fas fa-ambulance"></i>
+        <span>Ambulance Fleet</span>
+      </a>
+      <a class="hms-nav-link <%= active === 'resources' ? 'active' : '' %>" href="/admin/resources">
+        <i class="fas fa-bed"></i>
+        <span>Resources</span>
+      </a>
+      <a class="hms-nav-link <%= active === 'blood-bank' ? 'active' : '' %>" href="/admin/blood-bank">
+        <i class="fas fa-tint"></i>
+        <span>Blood Bank</span>
+      </a>
+      <a class="hms-nav-link <%= active === 'reports' ? 'active' : '' %>" href="/admin/reports">
+        <i class="fas fa-chart-bar"></i>
+        <span>Reports</span>
+      </a>
     </nav>
 
-    <div class="mt-auto pt-10">
-        <a href="/logout" class="nav-link text-red-400 hover:bg-red-500/10"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a>
+    <!-- Logout -->
+    <div class="mt-auto pt-8 border-t border-gray-700 px-3">
+      <a href="/logout" class="hms-nav-link text-rose-400 hover:bg-rose-500/10 hover:text-rose-300">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Logout</span>
+      </a>
     </div>
   </div>
 </div>

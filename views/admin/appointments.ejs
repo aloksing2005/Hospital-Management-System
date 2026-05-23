@@ -1,82 +1,78 @@
 <% var title = 'Appointments - HMS'; %>
 <%- include('../partials/header') %>
 
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-md-3 col-lg-2 sidebar p-0">
-      <div class="p-3 text-white">
-        <h5 class="fw-bold"><i class="fas fa-shield-alt me-2"></i>Admin Panel</h5>
-      </div>
-      <nav class="nav flex-column">
-        <a class="nav-link" href="/admin/dashboard"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
-        <a class="nav-link" href="/admin/doctors"><i class="fas fa-user-md me-2"></i>Doctors</a>
-        <a class="nav-link" href="/admin/patients"><i class="fas fa-users me-2"></i>Patients</a>
-        <a class="nav-link active" href="/admin/appointments"><i class="fas fa-calendar-check me-2"></i>Appointments</a>
-        <a class="nav-link" href="/admin/reports"><i class="fas fa-chart-bar me-2"></i>Reports</a>
-      </nav>
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <%- include('../partials/admin-sidebar', { active: 'appointments' }) %>
+  <!-- Main Content -->
+  <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+    <!-- Page Header -->
+    <div class="mb-8 animate-fade-in">
+      <h1 class="text-3xl font-black text-white mb-2">All Appointments</h1>
+      <p class="text-gray-400 font-medium">Manage hospital appointment schedule</p>
     </div>
 
-    <div class="col-md-9 col-lg-10 p-4">
-      <h2 class="fw-bold mb-4"><i class="fas fa-calendar-check me-2"></i>All Appointments</h2>
-
-      <div class="card">
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-hover mb-0">
-              <thead class="bg-light">
-                <tr>
-                  <th>ID</th>
-                  <th>Patient</th>
-                  <th>Doctor</th>
-                  <th>Date</th>
-                  <th>Time</th>
-                  <th>Status</th>
-                  <th>Symptoms</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody id="appointmentsTable">
-                <% appointments.forEach(app => { %>
-                  <tr data-id="<%= app.id %>">
-                    <td>#<%= app.id %></td>
-                    <td class="fw-bold"><%= app.patient_name %></td>
-                    <td>Dr. <%= app.doctor_name %></td>
-                    <td><%= new Date(app.date).toLocaleDateString() %></td>
-                    <td><%= app.time_slot %></td>
-                    <td>
-                      <span class="badge badge-<%= app.status %>"><%= app.status %></span>
-                    </td>
-                    <td><small class="text-muted"><%= app.symptoms || 'N/A' %></small></td>
-                    <td>
-                      <form action="/admin/appointments/update/<%= app.id %>" method="POST" class="d-inline">
-                        <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
-                          <option value="pending" <%= app.status === 'pending' ? 'selected' : '' %>>Pending</option>
-                          <option value="confirmed" <%= app.status === 'confirmed' ? 'selected' : '' %>>Confirmed</option>
-                          <option value="completed" <%= app.status === 'completed' ? 'selected' : '' %>>Completed</option>
-                          <option value="cancelled" <%= app.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
-                        </select>
-                      </form>
-                    </td>
-                  </tr>
-                <% }) %>
-              </tbody>
-            </table>
-          </div>
-        </div>
+    <!-- Appointments Table -->
+    <div class="hms-card animate-scale-in">
+      <div class="hms-table-container">
+        <table class="hms-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Patient</th>
+              <th>Doctor</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Status</th>
+              <th>Symptoms</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="appointmentsTable">
+            <% appointments.forEach(app => { %>
+              <tr data-id="<%= app.id %>">
+                <td>#<%= app.id %></td>
+                <td class="font-bold text-white"><%= app.patient_name %></td>
+                <td>Dr. <%= app.doctor_name %></td>
+                <td><%= new Date(app.date).toLocaleDateString() %></td>
+                <td><%= app.time_slot %></td>
+                <td>
+                  <span class="hms-badge hms-badge-<%= app.status %>"><%= app.status %></span>
+                </td>
+                <td><small class="text-gray-400"><%= app.symptoms || 'N/A' %></small></td>
+                <td>
+                  <form action="/admin/appointments/update/<%= app.id %>" method="POST" class="inline">
+                    <select name="status" class="bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-indigo-500" onchange="this.form.submit()">
+                      <option value="pending" <%= app.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                      <option value="confirmed" <%= app.status === 'confirmed' ? 'selected' : '' %>>Confirmed</option>
+                      <option value="completed" <%= app.status === 'completed' ? 'selected' : '' %>>Completed</option>
+                      <option value="cancelled" <%= app.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+                    </select>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-  socket.on('admin-appointment-update', (data) => {
-    const row = document.querySelector(`tr[data-id="${data.id}"]`);
-    if (row) {
-      const badge = row.querySelector('.badge');
-      badge.className = `badge badge-${data.status}`;
-      badge.textContent = data.status;
-    }
-  });
+  const socket = window.hmsSocket ? window.hmsSocket() : null;
+  if (socket) {
+    socket.on('admin-appointment-update', (data) => {
+      const row = document.querySelector(`tr[data-id="${data.id}"]`);
+      if (row) {
+        const badge = row.querySelector('.hms-badge');
+        if (badge) {
+          badge.className = `hms-badge hms-badge-${data.status === 'pending' ? 'warning' : data.status === 'confirmed' ? 'success' : data.status === 'completed' ? 'info' : 'danger'}`;
+          badge.textContent = data.status;
+        }
+      }
+    });
+  }
 </script>
 
 <%- include('../partials/footer') %>

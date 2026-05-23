@@ -5,6 +5,8 @@ const path = require("path");
 const http = require("http");
 const { Server } = require("socket.io");
 require("dotenv").config();
+const { createSessionStore } = require("./utils/sessionStore");
+const attachPatientLocals = require("./middleware/patientLocals");
 
 const app = express();
 const server = http.createServer(app);
@@ -19,23 +21,37 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use(session({
-  secret: process.env.SESSION_SECRET || "hms_secret_key",
+  secret: process.env.SESSION_SECRET || "hms_secret_key_premium_2024",
   resave: false,
   saveUninitialized: false,
   cookie: { 
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
-    secure: false, // Set to true only if using HTTPS
-    httpOnly: true
-  }
+    secure: process.env.NODE_ENV === 'production', // HTTPS only in production
+    httpOnly: true,
+    sameSite: 'lax',
+    domain: process.env.NODE_ENV === 'production' ? process.env.DOMAIN : undefined
+  },
+  name: 'hms.sid',
+  rolling: true, // Reset session cookie on each request
+  store: createSessionStore()
 }));
 
 app.use(flash());
 
 // Flash messages to all views
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error");
   res.locals.user = req.session.user || null;
+  res.locals.unreadNotifications = 0;
+  if (req.session?.user && req.session.user.id) {
+    try {
+      const notificationModel = require("./models/notificationModel");
+      res.locals.unreadNotifications = await notificationModel.getUnreadCount(req.session.user.id);
+    } catch (e) {
+      console.error("Global unread count error:", e.message);
+    }
+  }
   next();
 });
 
@@ -99,6 +115,24 @@ io.on("connection", (socket) => {
     if (data && data.to) io.to(userRoom(data.to)).emit("chat-message", data);
   });
 
+  // Typing indicators
+  socket.on("typing-start", (data) => {
+    if (data && data.to) io.to(userRoom(data.to)).emit("typing-start", { from: data.from, fromName: data.fromName });
+  });
+
+  socket.on("typing-stop", (data) => {
+    if (data && data.to) io.to(userRoom(data.to)).emit("typing-stop", { from: data.from });
+  });
+
+  // Online status
+  socket.on("user-online", (userId) => {
+    socket.broadcast.emit("user-came-online", { userId });
+  });
+
+  socket.on("user-offline", (userId) => {
+    socket.broadcast.emit("user-went-offline", { userId });
+  });
+
   // WebRTC Signaling
   socket.on("join-consultation", (appointmentId) => {
     socket.join(`consultation_${appointmentId}`);
@@ -117,9 +151,68 @@ io.on("connection", (socket) => {
     socket.to(`consultation_${data.appointmentId}`).emit("webrtc-ice-candidate", data.candidate);
   });
 
-  socket.on("trigger-sos", (data) => {
-    io.to("admins").emit("sos-alert", data);
-    io.to("drivers").emit("sos-alert", data);
+  // Incoming call system
+  socket.on("initiate-call", (data) => {
+    const { appointmentId, callerId, callerName, receiverId } = data;
+    io.to(`user_${receiverId}`).emit("incoming-call", {
+      appointmentId,
+      callerId,
+      callerName
+    });
+  });
+
+  socket.on("accept-call", (data) => {
+    const { appointmentId, callerId } = data;
+    io.to(`user_${callerId}`).emit("call-accepted", { appointmentId });
+  });
+
+  socket.on("reject-call", (data) => {
+    const { appointmentId, callerId } = data;
+    io.to(`user_${callerId}`).emit("call-rejected", { appointmentId });
+  });
+
+  socket.on("end-call", (data) => {
+    const { appointmentId } = data;
+    socket.to(`consultation_${appointmentId}`).emit("call-ended", { appointmentId });
+  });
+
+  // Real-time clinical telemetry synchronization channel
+  socket.on("telemetry-update", (data) => {
+    if (socket.userId) {
+      socket.broadcast.emit("patient-telemetry-sync", {
+        patientId: socket.userId,
+        vitals: data
+      });
+    }
+  });
+
+  socket.on("trigger-sos", async (data) => {
+    const payload = { ...data, ts: data.ts || Date.now() };
+    io.to("admins").emit("sos-alert", payload);
+    io.to("drivers").emit("sos-alert", payload);
+    io.to("doctors").emit("sos-alert", payload);
+    if (data && data.patientId) {
+      try {
+        const { EmergencyAlert } = require("./config/db");
+        const exists = await EmergencyAlert.findOne({
+          patient_id: data.patientId,
+          status: "active",
+          created_at: { $gte: new Date(Date.now() - 60000) }
+        });
+        if (!exists) {
+          await EmergencyAlert.create({
+            patient_id: data.patientId,
+            patient_name: data.patientName || "Patient",
+            lat: data.lat || null,
+            lng: data.lng || null,
+            message: data.message || "Emergency SOS",
+            status: "active"
+          });
+        }
+      } catch (e) {
+        console.error("SOS persist error:", e.message);
+      }
+    }
   });
 
   socket.on("request-ambulance", (data) => {
@@ -268,7 +361,7 @@ app.use("/", require("./routes/authRoutes"));
 app.use(require("./middleware/localization"));
 app.use("/admin", require("./routes/adminRoutes"));
 app.use("/doctor", require("./routes/doctorRoutes"));
-app.use("/patient", require("./routes/patientRoutes"));
+app.use("/patient", attachPatientLocals, require("./routes/patientRoutes"));
 app.use("/driver", require("./routes/driverRoutes"));
 app.use("/payment", require("./routes/paymentRoutes"));
 app.use("/consultation", require("./routes/consultationRoutes"));
@@ -279,18 +372,84 @@ app.get("/", (req, res) => {
   res.render("home", { title: "Hospital Management System" });
 });
 
+// Global Error Handling Middleware
+const { formatErrorResponse } = require("./middleware/validation");
+app.use((err, req, res, next) => {
+  console.error("Error:", err.message);
+  if (process.env.NODE_ENV === "development") console.error(err.stack);
+
+  const statusCode = err.statusCode || 500;
+  const wantsJson =
+    req.path.startsWith("/api") ||
+    req.xhr ||
+    (req.headers.accept && req.headers.accept.includes("application/json"));
+
+  if (wantsJson) {
+    return res.status(statusCode).json({
+      ...formatErrorResponse(err, req),
+      ...(process.env.NODE_ENV === "development" && { stack: err.stack })
+    });
+  }
+
+  req.flash("error", err.message || "Something went wrong");
+  if (req.session?.user) {
+    const role = req.session.user.role;
+    if (role === "patient") return res.redirect("/patient/dashboard");
+    if (role === "doctor") return res.redirect("/doctor/dashboard");
+    if (role === "admin") return res.redirect("/admin/dashboard");
+    if (role === "driver") return res.redirect("/driver/dashboard");
+  }
+  res.status(statusCode).redirect("/login");
+});
+
 // 404
 app.use((req, res) => {
   res.status(404).render("404", { title: "404 - Page Not Found" });
 });
 
 const startReminderCron = require("./utils/reminderCron");
+const mongoose = require("mongoose");
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`HMS Server running on http://localhost:${PORT}`);
-  console.log(`Socket.IO ready for real-time updates`);
-  
-  // Start automated reminders
-  startReminderCron();
-});
+const BASE_PORT = parseInt(process.env.PORT, 10) || 3000;
+
+function listenWithFallback(port, attemptsLeft) {
+  const onListening = () => {
+    server.off("error", onError);
+    console.log(`HMS Server running on http://localhost:${port}`);
+    console.log("Socket.IO ready for real-time updates");
+    try {
+      startReminderCron();
+    } catch (e) {
+      console.warn("Reminder cron skipped:", e.message);
+    }
+  };
+
+  const onError = (err) => {
+    server.off("listening", onListening);
+    if (err.code === "EADDRINUSE" && attemptsLeft > 0) {
+      console.warn(`Port ${port} in use, trying ${port + 1}...`);
+      listenWithFallback(port + 1, attemptsLeft - 1);
+      return;
+    }
+    console.error("Server failed to start:", err.message);
+    process.exit(1);
+  };
+
+  server.once("listening", onListening);
+  server.once("error", onError);
+  server.listen(port);
+}
+
+let serverStarted = false;
+function boot() {
+  if (serverStarted) return;
+  serverStarted = true;
+  listenWithFallback(BASE_PORT, 10);
+}
+
+if (mongoose.connection.readyState === 1) {
+  boot();
+} else {
+  mongoose.connection.once("open", boot);
+  setTimeout(boot, 6000);
+}

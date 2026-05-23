@@ -1,127 +1,121 @@
 <% var title = 'My Profile - HMS'; %>
 <%- include('../partials/header') %>
 
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-md-3 col-lg-2 sidebar p-0">
-      <div class="p-3 text-white">
-        <h5 class="fw-bold"><i class="fas fa-user-md me-2"></i>Doctor Panel</h5>
-      </div>
-      <nav class="nav flex-column">
-        <a class="nav-link" href="/doctor/dashboard"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
-        <a class="nav-link" href="/doctor/appointments"><i class="fas fa-calendar-check me-2"></i>Appointments</a>
-        <a class="nav-link active" href="/doctor/profile"><i class="fas fa-user me-2"></i>Profile</a>
-        <a class="nav-link" href="/doctor/chat"><i class="fas fa-comments me-2"></i>Chat</a>
-      </nav>
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <%- include('../partials/doctor-sidebar', { active: 'profile' }) %>
+
+  <!-- Main Content -->
+  <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+    <!-- Page Header -->
+    <div class="mb-8 animate-fade-in">
+      <h1 class="text-3xl font-black text-white mb-2">My Profile</h1>
+      <p class="text-gray-400">Manage your professional information</p>
     </div>
 
-    <div class="col-md-9 col-lg-10 p-4">
-      <h2 class="fw-bold mb-4"><i class="fas fa-user me-2"></i>My Profile</h2>
+    <!-- Profile Content -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <!-- Profile Card -->
+      <div class="hms-card animate-scale-in text-center">
+        <img src="<%= doctor.photo || '/images/default-doctor.jpg' %>" alt="Profile" class="w-32 h-32 rounded-2xl mx-auto mb-4 object-cover border-4 border-indigo-500/30">
+        <h3 class="text-xl font-bold text-white mb-1">Dr. <%= doctor.name %></h3>
+        <p class="text-gray-400 mb-4"><%= doctor.specialization %></p>
+        <div class="space-y-2 text-sm">
+          <p class="text-gray-400"><i class="fas fa-map-marker-alt text-rose-400 mr-2"></i><%= doctor.location || 'Location not set' %></p>
+          <p class="text-gray-400"><i class="fas fa-rupee-sign text-emerald-400 mr-2"></i>₹<%= doctor.fees %> per consultation</p>
+        </div>
+      </div>
 
-      <div class="row">
-        <div class="col-md-4">
-          <div class="card p-4 text-center">
-            <img src="<%= doctor.photo || '/images/default-doctor.jpg' %>" alt="Profile" class="rounded-circle mb-3" style="width:150px;height:150px;object-fit:cover;border:4px solid var(--primary)">
-            <h4 class="fw-bold">Dr. <%= doctor.name %></h4>
-            <p class="text-muted"><%= doctor.specialization %></p>
-            <p><i class="fas fa-map-marker-alt me-2 text-danger"></i><%= doctor.location || 'Location not set' %></p>
-            <p><i class="fas fa-rupee-sign me-2 text-success"></i>₹<%= doctor.fees %> per consultation</p>
+      <!-- Edit Profile Form -->
+      <div class="lg:col-span-2 hms-card animate-fade-in">
+        <h3 class="text-xl font-bold text-white mb-6">Edit Profile</h3>
+        <form action="/doctor/profile" method="POST" enctype="multipart/form-data" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="hms-label">Full Name</label>
+              <input type="text" name="name" class="hms-input" value="<%= doctor.name %>" required>
+            </div>
+            <div>
+              <label class="hms-label">Specialization</label>
+              <select name="specialization" class="hms-input">
+                <option <%= doctor.specialization === 'General Physician' ? 'selected' : '' %>>General Physician</option>
+                <option <%= doctor.specialization === 'Cardiologist' ? 'selected' : '' %>>Cardiologist</option>
+                <option <%= doctor.specialization === 'Dermatologist' ? 'selected' : '' %>>Dermatologist</option>
+                <option <%= doctor.specialization === 'Neurologist' ? 'selected' : '' %>>Neurologist</option>
+                <option <%= doctor.specialization === 'Orthopedic' ? 'selected' : '' %>>Orthopedic</option>
+                <option <%= doctor.specialization === 'ENT' ? 'selected' : '' %>>ENT</option>
+                <option <%= doctor.specialization === 'Pediatrician' ? 'selected' : '' %>>Pediatrician</option>
+                <option <%= doctor.specialization === 'Gynecologist' ? 'selected' : '' %>>Gynecologist</option>
+              </select>
+            </div>
           </div>
-        </div>
-        <div class="col-md-8">
-          <div class="card p-4">
-            <h5 class="fw-bold mb-3">Edit Profile</h5>
-            <form action="/doctor/profile" method="POST" enctype="multipart/form-data">
-              <div class="mb-3">
-                <label class="form-label">Full Name</label>
-                <input type="text" name="name" class="form-control" value="<%= doctor.name %>" required>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Specialization</label>
-                <select name="specialization" class="form-select">
-                  <option <%= doctor.specialization === 'General Physician' ? 'selected' : '' %>>General Physician</option>
-                  <option <%= doctor.specialization === 'Cardiologist' ? 'selected' : '' %>>Cardiologist</option>
-                  <option <%= doctor.specialization === 'Dermatologist' ? 'selected' : '' %>>Dermatologist</option>
-                  <option <%= doctor.specialization === 'Neurologist' ? 'selected' : '' %>>Neurologist</option>
-                  <option <%= doctor.specialization === 'Orthopedic' ? 'selected' : '' %>>Orthopedic</option>
-                  <option <%= doctor.specialization === 'ENT' ? 'selected' : '' %>>ENT</option>
-                  <option <%= doctor.specialization === 'Pediatrician' ? 'selected' : '' %>>Pediatrician</option>
-                  <option <%= doctor.specialization === 'Gynecologist' ? 'selected' : '' %>>Gynecologist</option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Location/Clinic</label>
-                <input type="text" name="location" class="form-control" value="<%= doctor.location || '' %>">
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Consultation Fees (₹)</label>
-                <input type="number" name="fees" class="form-control" value="<%= doctor.fees || 500 %>">
-              </div>
-              <div class="row mb-3">
-                <div class="col-6">
-                  <label class="form-label">Available From</label>
-                  <input type="time" name="available_from" class="form-control" value="<%= doctor.available_from || '09:00' %>">
-                </div>
-                <div class="col-6">
-                  <label class="form-label">Available To</label>
-                  <input type="time" name="available_to" class="form-control" value="<%= doctor.available_to || '17:00' %>">
-                </div>
-              </div>
-              <div class="mb-3">
-                <label class="form-label">Profile Photo</label>
-                <input type="file" name="photo" class="form-control" accept="image/*">
-              </div>
-              <button type="submit" class="btn btn-primary">
-                <i class="fas fa-save me-2"></i>Save Changes
-              </button>
-            </form>
+          <div>
+            <label class="hms-label">Location/Clinic</label>
+            <input type="text" name="location" class="hms-input" value="<%= doctor.location || '' %>">
           </div>
-        </div>
+          <div>
+            <label class="hms-label">Consultation Fees (₹)</label>
+            <input type="number" name="fees" class="hms-input" value="<%= doctor.fees || 500 %>">
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="hms-label">Available From</label>
+              <input type="time" name="available_from" class="hms-input" value="<%= doctor.available_from || '09:00' %>">
+            </div>
+            <div>
+              <label class="hms-label">Available To</label>
+              <input type="time" name="available_to" class="hms-input" value="<%= doctor.available_to || '17:00' %>">
+            </div>
+          </div>
+          <div>
+            <label class="hms-label">Profile Photo</label>
+            <input type="file" name="photo" class="hms-input" accept="image/*">
+          </div>
+          <button type="submit" class="hms-btn hms-btn-primary">
+            <i class="fas fa-save mr-2"></i>Save Changes
+          </button>
+        </form>
       </div>
     </div>
 
     <!-- Leave Management -->
-    <div class="col-md-9 col-lg-10 offset-md-3 offset-lg-2 p-4 pt-0">
-      <div class="card p-4 mt-4">
-        <h5 class="fw-bold mb-3"><i class="fas fa-calendar-times me-2"></i>Manage Leaves</h5>
-        <form action="/doctor/leaves" method="POST" class="row g-3 mb-4">
-          <div class="col-md-6">
-            <input type="date" name="leave_date" class="form-control" required>
-          </div>
-          <div class="col-md-4">
-            <button type="submit" class="btn btn-warning"><i class="fas fa-plus me-1"></i>Mark as Leave</button>
-          </div>
-        </form>
+    <div class="hms-card animate-fade-in">
+      <h3 class="text-xl font-bold text-white mb-6"><i class="fas fa-calendar-times text-rose-400 mr-2"></i>Manage Leaves</h3>
+      <form action="/doctor/leaves" method="POST" class="flex gap-4 mb-6">
+        <input type="date" name="leave_date" class="hms-input flex-1" required>
+        <button type="submit" class="hms-btn hms-btn-warning">
+          <i class="fas fa-plus mr-2"></i>Mark as Leave
+        </button>
+      </form>
 
-        <% if (leaves && leaves.length > 0) { %>
-          <div class="table-responsive">
-            <table class="table table-sm">
-              <thead>
+      <% if (leaves && leaves.length > 0) { %>
+        <div class="hms-table-container">
+          <table class="hms-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Added On</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% leaves.forEach(l => { %>
                 <tr>
-                  <th>Date</th>
-                  <th>Added On</th>
-                  <th>Action</th>
+                  <td class="text-white"><%= new Date(l.date).toLocaleDateString() %></td>
+                  <td class="text-gray-400"><%= new Date(l.created_at).toLocaleDateString() %></td>
+                  <td>
+                    <form action="/doctor/leaves/delete/<%= l.id %>" method="POST" class="inline">
+                      <button class="hms-btn hms-btn-danger hms-btn-sm"><i class="fas fa-trash"></i></button>
+                    </form>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                <% leaves.forEach(l => { %>
-                  <tr>
-                    <td><%= new Date(l.date).toLocaleDateString() %></td>
-                    <td><%= new Date(l.created_at).toLocaleDateString() %></td>
-                    <td>
-                      <form action="/doctor/leaves/delete/<%= l.id %>" method="POST" class="d-inline">
-                        <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
-                      </form>
-                    </td>
-                  </tr>
-                <% }) %>
-              </tbody>
-            </table>
-          </div>
-        <% } else { %>
-          <p class="text-muted">No upcoming leaves marked.</p>
-        <% } %>
-      </div>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <p class="text-gray-400 text-center py-8">No upcoming leaves marked</p>
+      <% } %>
     </div>
   </div>
 </div>

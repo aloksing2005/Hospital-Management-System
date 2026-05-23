@@ -1,142 +1,98 @@
-<% var title = 'Blood Bank Monitor - HMS'; %>
+<% var title = 'Blood Bank - HMS Premium'; %>
 <%- include('../partials/header') %>
-<script src="https://cdn.tailwindcss.com"></script>
 
-<div class="container-fluid bg-gray-50 min-h-screen">
-  <div class="row">
-    <%- include('../partials/admin-sidebar', { active: 'blood-bank' }) %>
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <%- include('../partials/admin-sidebar', { active: 'blood-bank' }) %>
 
-    <div class="col-md-9 col-lg-10 p-8">
-      <div class="max-w-6xl mx-auto">
-        <div class="flex justify-between items-center mb-10">
-            <div>
-                <h2 class="text-4xl font-black text-gray-900 tracking-tight">Blood Bank Inventory</h2>
-                <p class="text-gray-500 mt-2">Monitor life-saving blood reserves in real-time.</p>
-            </div>
-            <div class="bg-red-100 text-red-600 px-6 py-3 rounded-2xl font-bold flex items-center">
-                <i class="fas fa-exclamation-triangle mr-2"></i> Low Stock Alert: O- Negative
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            <% inventory.forEach(item => { %>
-                <div class="bg-white rounded-[32px] p-8 shadow-sm border border-gray-100 relative overflow-hidden group">
-                    <div class="relative z-10">
-                        <div class="flex justify-between items-center mb-6">
-                            <span class="text-3xl font-black text-red-600"><%= item.blood_group %></span>
-                            <i class="fas fa-tint text-2xl text-gray-100 group-hover:text-red-500 transition-colors duration-500"></i>
-                        </div>
-                        <div class="mb-6">
-                            <div class="flex items-center gap-4">
-                                <h4 class="text-4xl font-black text-gray-900 mb-1" id="units-<%= item.blood_group.replace('+', 'pos').replace('-', 'neg') %>"><%= item.units %></h4>
-                                <div class="flex flex-col gap-1">
-                                    <button onclick="updateStock('<%= item.blood_group %>', 1)" class="text-gray-400 hover:text-green-500"><i class="fas fa-chevron-up text-xs"></i></button>
-                                    <button onclick="updateStock('<%= item.blood_group %>', -1)" class="text-gray-400 hover:text-red-500"><i class="fas fa-chevron-down text-xs"></i></button>
-                                </div>
-                            </div>
-                            <p class="text-gray-400 font-bold text-xs uppercase tracking-widest">Units Available</p>
-                        </div>
-                        <div class="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                            <% 
-                                let percent = (item.units / 100) * 100;
-                                if(percent > 100) percent = 100;
-                                let barColor = 'bg-red-500';
-                                if(item.status === 'optimal') barColor = 'bg-green-500';
-                                if(item.status === 'low') barColor = 'bg-yellow-500';
-                            %>
-                            <div class="<%= barColor %> h-full transition-all duration-500" id="bar-<%= item.blood_group.replace('+', 'pos').replace('-', 'neg') %>" style="width: <%= percent %>%"></div>
-                        </div>
-                        <div class="mt-4">
-                            <span id="status-<%= item.blood_group.replace('+', 'pos').replace('-', 'neg') %>" class="text-[10px] font-black uppercase tracking-tighter px-2 py-1 rounded-md <%= item.status === 'critical' ? 'bg-red-100 text-red-600' : (item.status === 'low' ? 'bg-yellow-100 text-yellow-600' : 'bg-green-100 text-green-600') %>">
-                                <%= item.status %>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            <% }) %>
-        </div>
-
-        <div class="mt-12 bg-white rounded-[40px] shadow-sm border border-gray-100 p-8">
-            <h3 class="text-2xl font-bold text-gray-900 mb-6">Registered Donors</h3>
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead>
-                        <tr class="text-left text-gray-400 text-xs font-black uppercase tracking-widest">
-                            <th class="pb-4">Donor Name</th>
-                            <th class="pb-4">Blood Group</th>
-                            <th class="pb-4">Organ(s)</th>
-                            <th class="pb-4">Registered Date</th>
-                            <th class="pb-4">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody class="text-gray-700">
-                        <% if (donors && donors.length > 0) { %>
-                            <% donors.forEach(donor => { %>
-                                <tr class="border-t border-gray-50">
-                                    <td class="py-4 font-bold"><%= donor.patient_name %></td>
-                                    <td class="py-4 text-red-600 font-bold"><%= donor.blood_group %></td>
-                                    <td class="py-4"><%= donor.organ_to_donate %></td>
-                                    <td class="py-4"><%= new Date(donor.created_at).toLocaleDateString() %></td>
-                                    <td class="py-4"><span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-xs font-bold"><%= donor.status %></span></td>
-                                </tr>
-                            <% }) %>
-                        <% } else { %>
-                            <tr>
-                                <td colspan="5" class="py-8 text-center text-gray-400 font-bold">No donors registered yet.</td>
-                            </tr>
-                        <% } %>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+  <!-- Main Content -->
+  <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+    <!-- Page Header -->
+    <div class="flex items-center justify-between mb-8 animate-fade-in">
+      <div>
+        <h1 class="text-3xl font-black text-white mb-2">Blood Bank Inventory</h1>
+        <p class="text-gray-400">Monitor blood reserves in real-time</p>
       </div>
+    </div>
+
+    <!-- Blood Inventory Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <% inventory.forEach(item => { %>
+        <div class="hms-card animate-scale-in">
+          <div class="flex justify-between items-center mb-4">
+            <span class="text-2xl font-black text-rose-500"><%= item.blood_group %></span>
+            <i class="fas fa-tint text-gray-600"></i>
+          </div>
+          <div class="text-4xl font-black text-white mb-2" id="units-<%= item.blood_group.replace('+', 'pos').replace('-', 'neg') %>"><%= item.units %></div>
+          <div class="w-full bg-gray-700 h-2 rounded-full mb-4">
+            <% let percent = (item.units / 100) * 100; if(percent > 100) percent = 100; %>
+            <div class="h-full transition-all <%= item.status === 'critical' ? 'bg-rose-500' : (item.status === 'low' ? 'bg-amber-500' : 'bg-emerald-500') %>" id="bar-<%= item.blood_group.replace('+', 'pos').replace('-', 'neg') %>" style="width: <%= percent %>%"></div>
+          </div>
+          <span id="status-<%= item.blood_group.replace('+', 'pos').replace('-', 'neg') %>" class="hms-badge hms-badge-<%= item.status === 'critical' ? 'danger' : (item.status === 'low' ? 'warning' : 'success') %>"><%= item.status %></span>
+        </div>
+      <% }) %>
     </div>
   </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
-    const socket = io();
-
-    function updateStock(group, change) {
-        const id = group.replace('+', 'pos').replace('-', 'neg');
-        const unitsEl = document.getElementById('units-' + id);
-        let currentUnits = parseInt(unitsEl.innerText);
-        let newUnits = currentUnits + change;
-        if(newUnits < 0) newUnits = 0;
-
-        fetch('/admin/blood-bank/update', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ blood_group: group, units: newUnits })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if(!data.success) alert('Update failed: ' + data.error);
-        });
-    }
-
-    socket.on('blood-stock-updated', (data) => {
-        const id = data.blood_group.replace('+', 'pos').replace('-', 'neg');
-        const unitsEl = document.getElementById('units-' + id);
-        const barEl = document.getElementById('bar-' + id);
+  const socket = window.hmsSocket ? window.hmsSocket() : null;
+  async function updateStock(group, change) {
+    const id = group.replace('+', 'pos').replace('-', 'neg');
+    const unitsEl = document.getElementById('units-' + id);
+    let currentUnits = parseInt(unitsEl.innerText);
+    let newUnits = currentUnits + change;
+    if(newUnits < 0) newUnits = 0;
+    try {
+      const res = await fetch('/admin/blood-bank/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ blood_group: group, units: newUnits })
+      });
+      const data = await res.json();
+      if (data.success) {
+        unitsEl.innerText = newUnits;
         const statusEl = document.getElementById('status-' + id);
-
-        if(unitsEl) {
-            unitsEl.innerText = data.units;
-            let percent = (data.units / 100) * 100;
-            if(percent > 100) percent = 100;
-            barEl.style.width = percent + '%';
-            
-            // Update classes
-            statusEl.innerText = data.status;
-            statusEl.className = 'text-[10px] font-black uppercase tracking-tighter px-2 py-1 rounded-md ' + 
-                (data.status === 'critical' ? 'bg-red-100 text-red-600' : (data.status === 'low' ? 'bg-yellow-100 text-yellow-600' : 'bg-green-100 text-green-600'));
-            
-            barEl.className = 'h-full transition-all duration-500 ' + 
-                (data.status === 'critical' ? 'bg-red-500' : (data.status === 'low' ? 'bg-yellow-500' : 'bg-green-500'));
+        if (newUnits < 10) {
+          statusEl.className = 'hms-badge hms-badge-danger';
+          statusEl.innerText = 'critical';
+        } else if (newUnits < 25) {
+          statusEl.className = 'hms-badge hms-badge-warning';
+          statusEl.innerText = 'low';
+        } else {
+          statusEl.className = 'hms-badge hms-badge-success';
+          statusEl.innerText = 'available';
         }
-    });
+        if (typeof window.hmsShowToast === 'function') {
+          window.hmsShowToast('Success', 'Stock updated', 'success');
+        }
+      } else {
+        if (typeof window.hmsShowToast === 'function') {
+          window.hmsShowToast('Error', data.message || 'Failed to update stock', 'error');
+        }
+      }
+    } catch (err) {
+      console.error('Error updating stock:', err);
+      if (typeof window.hmsShowToast === 'function') {
+        window.hmsShowToast('Error', 'Failed to update stock', 'error');
+      }
+    }
+  }
+  socket.on('blood-stock-updated', (data) => {
+    const id = data.blood_group.replace('+', 'pos').replace('-', 'neg');
+    const unitsEl = document.getElementById('units-' + id);
+    const barEl = document.getElementById('bar-' + id);
+    const statusEl = document.getElementById('status-' + id);
+    if(unitsEl) {
+      unitsEl.innerText = data.units;
+      let percent = (data.units / 100) * 100;
+      if(percent > 100) percent = 100;
+      barEl.style.width = percent + '%';
+      statusEl.innerText = data.status;
+      statusEl.className = 'hms-badge hms-badge-' + (data.status === 'critical' ? 'danger' : (data.status === 'low' ? 'warning' : 'success'));
+      barEl.className = 'h-full transition-all ' + (data.status === 'critical' ? 'bg-rose-500' : (data.status === 'low' ? 'bg-amber-500' : 'bg-emerald-500'));
+    }
+  });
 </script>
-
 <%- include('../partials/footer') %>

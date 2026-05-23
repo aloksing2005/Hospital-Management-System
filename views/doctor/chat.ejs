@@ -1,53 +1,57 @@
 <% var title = 'Chat - HMS'; %>
 <%- include('../partials/header') %>
 
-<div class="container-fluid">
-  <div class="row">
-    <%- include('../partials/doctor-sidebar', { active: 'chat' }) %>
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <%- include('../partials/doctor-sidebar', { active: 'chat' }) %>
 
-    <div class="col-md-9 col-lg-10 p-4">
-      <h2 class="fw-bold mb-4"><i class="fas fa-comments me-2"></i>Chat with Patients</h2>
+  <!-- Main Content -->
+  <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+    <!-- Page Header -->
+    <div class="mb-8 animate-fade-in">
+      <h1 class="text-3xl font-black text-white mb-2">Chat with Patients</h1>
+      <p class="text-gray-400 font-medium">Secure messaging with your patients</p>
+    </div>
 
-      <div class="row">
-        <div class="col-md-4">
-          <div class="card">
-            <div class="card-header bg-white">
-              <h6 class="fw-bold mb-0">Patients</h6>
-            </div>
-            <div class="list-group list-group-flush" id="patientList">
-              <% appointments.forEach(app => { %>
-                <button class="list-group-item list-group-item-action" onclick="selectPatient('<%= app.patient_id %>', '<%= app.patient_name %>')">
-                  <div class="d-flex align-items-center">
-                    <i class="fas fa-user-circle fa-2x text-primary me-3"></i>
-                    <div>
-                      <h6 class="mb-0"><%= app.patient_name %></h6>
-                      <small class="text-muted"><%= app.symptoms || 'No symptoms' %></small>
-                    </div>
-                  </div>
-                </button>
-              <% }) %>
-            </div>
+    <!-- Chat Interface -->
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <!-- Patient List -->
+      <div class="lg:col-span-1">
+        <div class="hms-card">
+          <h3 class="text-lg font-bold text-white mb-4">Patients</h3>
+          <div class="space-y-2" id="patientList">
+            <% appointments.forEach(app => { %>
+              <button class="w-full flex items-center gap-3 p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-all text-left" onclick="selectPatient('<%= app.patient_id %>', '<%= app.patient_name %>')">
+                <i class="fas fa-user-circle text-2xl text-indigo-400"></i>
+                <div>
+                  <h4 class="text-sm font-bold text-white"><%= app.patient_name %></h4>
+                  <p class="text-xs text-gray-400"><%= app.symptoms || 'No symptoms' %></p>
+                </div>
+              </button>
+            <% }) %>
           </div>
         </div>
-        <div class="col-md-8">
-          <div class="card">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-              <h6 class="fw-bold mb-0" id="chatTitle">Select a patient to chat</h6>
-              <span class="badge bg-success" id="onlineStatus" style="display:none">Online</span>
+      </div>
+
+      <!-- Chat Box -->
+      <div class="lg:col-span-3">
+        <div class="hms-card h-[600px] flex flex-col">
+          <div class="flex items-center justify-between p-4 border-b border-white/10">
+            <h3 class="text-lg font-bold text-white" id="chatTitle">Select a patient to chat</h3>
+            <span class="hms-badge hms-badge-success" id="onlineStatus" style="display:none">Online</span>
+          </div>
+          <div class="flex-1 overflow-y-auto p-4" id="chatBox">
+            <div class="text-center text-gray-400 py-16">
+              <i class="fas fa-comments text-4xl mb-4"></i>
+              <p>Select a patient from the list to start chatting</p>
             </div>
-            <div class="card-body">
-              <div class="chat-box mb-3" id="chatBox">
-                <div class="text-center text-muted py-5">
-                  <i class="fas fa-comments fa-3x mb-3"></i>
-                  <p>Select a patient from the list to start chatting</p>
-                </div>
-              </div>
-              <div class="input-group" id="chatInput" style="display:none">
-                <input type="text" id="messageInput" class="form-control" placeholder="Type your message...">
-                <button class="btn btn-primary" onclick="sendMessage()">
-                  <i class="fas fa-paper-plane"></i>
-                </button>
-              </div>
+          </div>
+          <div class="p-4 border-t border-white/10" id="chatInput" style="display:none">
+            <div class="flex gap-3">
+              <input type="text" id="messageInput" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-indigo-500" placeholder="Type your message...">
+              <button onclick="sendMessage()" class="hms-btn hms-btn-primary px-6">
+                <i class="fas fa-paper-plane"></i>
+              </button>
             </div>
           </div>
         </div>
@@ -67,7 +71,36 @@
     document.getElementById('onlineStatus').style.display = 'inline';
     document.getElementById('chatInput').style.display = 'flex';
     document.getElementById('chatBox').innerHTML = '';
-    appendChatMessage('Chat started. You can now communicate with the patient.', 'system', 'System');
+    
+    loadChatHistory(id);
+    markAsRead(id);
+  }
+
+  async function loadChatHistory(patientId) {
+    try {
+      const res = await fetch(`/doctor/chat/history/${patientId}`);
+      const data = await res.json();
+      if (data.success) {
+        data.messages.forEach(msg => {
+          const type = msg.sender_id === '<%= user.id %>' ? 'sent' : 'received';
+          appendChatMessage(msg.message, type, type === 'sent' ? 'You' : currentPatientName);
+        });
+      }
+    } catch (err) {
+      console.error('Error loading chat history:', err);
+    }
+  }
+
+  async function markAsRead(senderId) {
+    try {
+      await fetch('/doctor/chat/mark-read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sender_id: senderId })
+      });
+    } catch (err) {
+      console.error('Error marking as read:', err);
+    }
   }
 
   function appendChatMessage(message, type, fromName) {
@@ -79,23 +112,96 @@
     chatBox.scrollTop = chatBox.scrollHeight;
   }
 
-  function sendMessage() {
+  async function sendMessage() {
     const input = document.getElementById('messageInput');
     const message = input.value.trim();
     if (!message || !currentPatientId) return;
 
     appendChatMessage(message, 'sent', 'You');
-    socket.emit('chat-message', {
-      to: currentPatientId,
-      from: '<%= user.id %>',
-      fromName: 'Dr. <%= user.name %>',
-      message
-    });
     input.value = '';
+
+    try {
+      const res = await fetch('/doctor/chat/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ receiver_id: currentPatientId, message })
+      });
+      const data = await res.json();
+      if (!data.success) {
+        if (typeof window.hmsShowToast === 'function') {
+          window.hmsShowToast('Error', 'Failed to send message', 'error');
+        } else {
+          alert('Failed to send message');
+        }
+      }
+    } catch (err) {
+      console.error('Error sending message:', err);
+      if (typeof window.hmsShowToast === 'function') {
+        window.hmsShowToast('Error', 'Error sending message', 'error');
+      } else {
+        alert('Error sending message');
+      }
+    }
   }
 
   document.getElementById('messageInput').addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendMessage();
+  });
+
+  // Socket.IO setup
+  const socket = window.hmsSocket ? window.hmsSocket() : null;
+  if (socket) {
+    socket.emit('user-online', '<%= user.id %>');
+    socket.on('new-message', (data) => {
+      if (data.sender_id === currentPatientId) {
+        appendChatMessage(data.message, 'received', currentPatientName);
+        markAsRead(data.sender_id);
+      }
+    });
+
+    socket.on('typing-start', (data) => {
+      if (data.from === currentPatientId) {
+        document.getElementById('chatTitle').textContent = `${currentPatientName} is typing...`;
+      }
+    });
+
+    socket.on('typing-stop', (data) => {
+      if (data.from === currentPatientId) {
+        document.getElementById('chatTitle').textContent = `Chat with ${currentPatientName}`;
+      }
+    });
+
+    socket.on('user-came-online', (data) => {
+      if (data.userId === currentPatientId) {
+        document.getElementById('onlineStatus').classList.remove('bg-secondary');
+        document.getElementById('onlineStatus').classList.add('bg-success');
+      }
+    });
+
+    socket.on('user-went-offline', (data) => {
+      if (data.userId === currentPatientId) {
+        document.getElementById('onlineStatus').classList.remove('bg-success');
+        document.getElementById('onlineStatus').classList.add('bg-secondary');
+      }
+    });
+  }
+
+  // Typing indicator
+  let typingTimeout;
+  document.getElementById('messageInput').addEventListener('input', () => {
+    if (currentPatientId && socket) {
+      socket.emit('typing-start', { to: currentPatientId, from: '<%= user.id %>', fromName: 'Dr. <%= user.name %>' });
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        socket.emit('typing-stop', { to: currentPatientId, from: '<%= user.id %>' });
+      }, 1000);
+    }
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (socket) {
+      socket.emit('user-offline', '<%= user.id %>');
+    }
   });
 </script>
 

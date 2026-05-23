@@ -54,7 +54,7 @@
                     </div>
                     <div class="bg-white p-6 rounded-2xl shadow-sm">
                         <p class="text-sm text-gray-500 mb-1">Vehicle</p>
-                        <p class="text-2xl font-bold text-indigo-600"><%= ambulance.vehicle_no %></p>
+                        <p class="text-2xl font-bold text-indigo-600"><%= ambulance ? ambulance.vehicle_no : 'AMB-101' %></p>
                     </div>
                     <div class="bg-white p-6 rounded-2xl shadow-sm">
                         <p class="text-sm text-gray-500 mb-1">Rating</p>
@@ -89,7 +89,7 @@
                                     <p class="text-sm text-gray-600 mt-1"><i class="fas fa-map-marker-alt text-indigo-500 mr-2"></i><%= req.pickup_address %></p>
                                     <div class="mt-4 flex gap-2">
                                         <button onclick="acceptRequest(`<%= req.id %>`)" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-medium hover:bg-indigo-700 transition">Accept</button>
-                                        <button class="px-4 py-2 text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times"></i></button>
+                                        <button onclick="rejectRequest(`<%= req.id %>`)" class="px-4 py-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"><i class="fas fa-times"></i></button>
                                     </div>
                                 </div>
                             <% }) %>
@@ -109,6 +109,7 @@
                 </div>
                 <h3 class="text-2xl font-bold text-gray-800">Trip in Progress</h3>
                 <p class="text-gray-500" id="activePatient">Patient: John Doe</p>
+                <p class="text-sm text-indigo-600 font-medium mt-1" id="tripStatus">Status: Accepted</p>
             </div>
             
             <div class="space-y-4 mb-8">
@@ -120,23 +121,38 @@
                     <i class="fas fa-map-marked-alt text-indigo-500 mr-4"></i>
                     <span id="activeAddress">123 Street Name, City</span>
                 </div>
+                <div class="flex items-center p-4 bg-indigo-50 rounded-2xl">
+                    <i class="fas fa-clock text-indigo-500 mr-4"></i>
+                    <span id="etaDisplay">ETA: Calculating...</span>
+                </div>
+            </div>
+
+            <!-- Status Update Buttons -->
+            <div id="statusButtons" class="space-y-3 mb-6">
+                <button onclick="updateTripStatus('on_the_way')" class="w-full bg-blue-600 text-white py-3 rounded-2xl font-bold hover:bg-blue-700 transition">
+                    <i class="fas fa-truck mr-2"></i> On The Way
+                </button>
+                <button onclick="updateTripStatus('arrived')" class="w-full bg-amber-600 text-white py-3 rounded-2xl font-bold hover:bg-amber-700 transition">
+                    <i class="fas fa-map-pin mr-2"></i> Arrived at Location
+                </button>
             </div>
 
             <button onclick="completeTrip()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-green-700 shadow-lg shadow-green-200 transition">
-                Complete Trip
+                <i class="fas fa-check-circle mr-2"></i> Complete Trip
             </button>
         </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const socket = io();
+        const socket = window.hmsSocket ? window.hmsSocket() : null;
         const driverId = `<%= user.id %>`;
         let map, marker, activeRequestId = null;
 
-        socket.emit('join', { userId: String(driverId), role: 'driver' });
-        socket.emit('driver-online', { driverId });
+        if (socket) {
+            socket.emit('join', { userId: String(driverId), role: 'driver' });
+            socket.emit('driver-online', { driverId });
+        }
 
         // Init Map
         function initMap() {
@@ -147,18 +163,22 @@
 
         // Get Location
         if ("geolocation" in navigator) {
-            navigator.geolocation.watchPosition(pos => {
+            navigator.geolocation.watchPosition(async (pos) => {
                 const { latitude, longitude } = pos.coords;
                 marker.setLatLng([latitude, longitude]);
                 map.setView([latitude, longitude], 15);
                 document.getElementById('coords').innerText = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
 
                 // Update server/DB
-                fetch('/driver/update-location', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ lat: latitude, lng: longitude })
-                });
+                try {
+                    await fetch('/driver/update-location', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ lat: latitude, lng: longitude })
+                    });
+                } catch (err) {
+                    console.error('Error updating location:', err);
+                }
             });
         }
 
@@ -196,17 +216,21 @@
         });
 
         // Accept Request
-        function acceptRequest(requestId) {
-            fetch('/driver/accept-request', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ requestId })
-            }).then(res => res.json()).then(data => {
+        async function acceptRequest(requestId) {
+            try {
+                const res = await fetch('/driver/accept-request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ requestId })
+                });
+                const data = await res.json();
                 if(data.success) {
                     activeRequestId = requestId;
                     document.getElementById('activePatient').innerText = `Patient: ${data.request.patient_name}`;
                     document.getElementById('activePhone').innerText = data.request.patient_phone;
                     document.getElementById('activeAddress').innerText = data.request.pickup_address;
+                    document.getElementById('tripStatus').innerText = 'Status: Accepted';
+                    document.getElementById('etaDisplay').innerText = 'ETA: Calculating...';
                     document.getElementById('tripModal').classList.remove('hidden');
                     
                     // Remove other cards
@@ -214,20 +238,104 @@
                 } else {
                     alert(data.error);
                 }
-            });
+            } catch (err) {
+                console.error('Error accepting request:', err);
+                alert('Failed to accept request');
+            }
+        }
+
+        // Reject Request
+        async function rejectRequest(requestId) {
+            if(!confirm('Are you sure you want to reject this request?')) return;
+            
+            try {
+                const res = await fetch('/driver/reject-request', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ requestId })
+                });
+                const data = await res.json();
+                if(data.success) {
+                    const card = document.getElementById(`req-${requestId}`);
+                    if(card) card.remove();
+                    
+                    // Update count
+                    const count = document.getElementById('requestCount');
+                    count.innerText = Math.max(0, parseInt(count.innerText) - 1);
+                    
+                    // Show no requests message if empty
+                    if(document.getElementById('requestContainer').children.length === 0) {
+                        document.getElementById('requestContainer').innerHTML = `
+                            <div class="text-center py-12" id="noRequests">
+                                <i class="fas fa-search-location text-4xl text-gray-200 mb-4 block"></i>
+                                <p class="text-gray-400">Waiting for new requests...</p>
+                            </div>
+                        `;
+                    }
+                } else {
+                    alert(data.error);
+                }
+            } catch (err) {
+                console.error('Error rejecting request:', err);
+                alert('Failed to reject request');
+            }
+        }
+
+        // Update Trip Status
+        async function updateTripStatus(status) {
+            if(!activeRequestId) return;
+            
+            try {
+                const res = await fetch('/driver/update-trip-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ requestId: activeRequestId, status })
+                });
+                const data = await res.json();
+                if(data.success) {
+                    const statusText = status === 'on_the_way' ? 'On The Way' : status === 'arrived' ? 'Arrived at Location' : status;
+                    document.getElementById('tripStatus').innerText = `Status: ${statusText}`;
+                    
+                    if(data.eta) {
+                        document.getElementById('etaDisplay').innerText = `ETA: ${data.eta} min`;
+                    }
+                } else {
+                    alert(data.error);
+                }
+            } catch (err) {
+                console.error('Error updating trip status:', err);
+                alert('Failed to update trip status');
+            }
         }
 
         // Complete Trip
-        function completeTrip() {
-            fetch('/driver/complete-trip', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ requestId: activeRequestId })
-            }).then(res => res.json()).then(data => {
+        async function completeTrip() {
+            if(!activeRequestId) return;
+            
+            try {
+                const res = await fetch('/driver/complete-trip', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ requestId: activeRequestId })
+                });
+                const data = await res.json();
                 if(data.success) {
-                    window.location.reload();
+                    activeRequestId = null;
+                    document.getElementById('tripModal').classList.add('hidden');
+                    document.getElementById('requestContainer').innerHTML = `
+                        <div class="text-center py-12" id="noRequests">
+                            <i class="fas fa-search-location text-4xl text-gray-200 mb-4 block"></i>
+                            <p class="text-gray-400">Waiting for new requests...</p>
+                        </div>
+                    `;
+                    document.getElementById('requestCount').innerText = '0';
+                } else {
+                    alert(data.error);
                 }
-            });
+            } catch (err) {
+                console.error('Error completing trip:', err);
+                alert('Failed to complete trip');
+            }
         }
     </script>
 </body>

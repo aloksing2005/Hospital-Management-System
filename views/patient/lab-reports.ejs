@@ -1,55 +1,56 @@
 <% var title = 'My Lab Reports - HMS'; %>
 <%- include('../partials/header') %>
 
-<div class="container-fluid">
-  <div class="row">
-    <%- include('../partials/patient-sidebar', { active: 'lab-reports' }) %>
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <%- include('../partials/patient-sidebar', { active: 'lab-reports' }) %>
 
-    <div class="col-md-9 col-lg-10 p-4">
-      <h2 class="fw-bold mb-4"><i class="fas fa-flask text-primary me-2"></i>My Lab Reports</h2>
+  <!-- Main Content -->
+  <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+    <!-- Page Header -->
+    <div class="mb-8 animate-fade-in">
+      <h1 class="text-3xl font-black text-white mb-2">My Lab Reports</h1>
+      <p class="text-gray-400 font-medium">View and download your laboratory test results</p>
+    </div>
 
-      <div class="row g-4">
-        <% if (reports.length === 0) { %>
-          <div class="col-12 text-center py-5">
-            <div class="card p-5 border-0 shadow-sm">
-              <i class="fas fa-flask fa-4x text-muted mb-3"></i>
-              <h4 class="text-muted">No lab reports found</h4>
-              <p class="text-muted">Your reports will appear here once the hospital uploads them.</p>
-            </div>
-          </div>
-        <% } %>
-
+    <!-- Lab Reports Grid -->
+    <% if (reports.length === 0) { %>
+      <div class="hms-card text-center py-16 animate-fade-in">
+        <i class="fas fa-flask text-5xl text-gray-600 mb-4 block"></i>
+        <h3 class="text-xl font-bold text-white mb-2">No lab reports found</h3>
+        <p class="text-gray-400">Your reports will appear here once the hospital uploads them.</p>
+      </div>
+    <% } else { %>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <% reports.forEach(report => { %>
-          <div class="col-md-6 col-lg-4">
-            <div class="card h-100 shadow-sm border-0 border-top border-primary border-4">
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                  <span class="badge bg-primary"><%= report.test_type %></span>
-                  <small class="text-muted"><%= new Date(report.created_at).toLocaleDateString() %></small>
-                </div>
-                <h5 class="card-title fw-bold mb-3"><%= report.report_name %></h5>
-                <div class="d-grid">
-                  <a href="<%= report.file_path %>" target="_blank" class="btn btn-outline-primary">
-                    <i class="fas fa-download me-2"></i>Download / View PDF
-                  </a>
-                </div>
-              </div>
+          <div class="hms-card animate-scale-in">
+            <div class="flex justify-between items-start mb-4">
+              <span class="hms-badge hms-badge-primary"><%= report.test_type %></span>
+              <span class="text-xs text-gray-400"><%= new Date(report.created_at).toLocaleDateString() %></span>
             </div>
+            <h3 class="text-lg font-bold text-white mb-4"><%= report.report_name %></h3>
+            <a href="<%= report.file_path %>" target="_blank" class="hms-btn hms-btn-primary w-full text-sm">
+              <i class="fas fa-download mr-2"></i>Download / View PDF
+            </a>
           </div>
         <% }) %>
       </div>
-    </div>
+    <% } %>
   </div>
 </div>
 
 <script>
-  socket.on('new-lab-report', (data) => {
-    if (data.patientId == currentUser.id) {
-      showToast('New Lab Report Available!', `Your ${data.testType} report "${data.reportName}" has been uploaded.`, 'success');
-      // Optionally reload or append to UI
-      setTimeout(() => location.reload(), 3000);
-    }
-  });
+  const socket = window.hmsSocket ? window.hmsSocket() : null;
+  if (socket) {
+    socket.on('new-lab-report', (data) => {
+      if (String(data.patientId || '') === '<%= user.id %>') {
+        if (typeof window.hmsShowToast === 'function') {
+          window.hmsShowToast('Lab Report', (data.reportName || 'New report') + ' uploaded', 'info');
+        }
+        location.reload();
+      }
+    });
+  }
 </script>
 
 <%- include('../partials/footer') %>

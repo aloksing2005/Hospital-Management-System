@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const doctorController = require("../controllers/doctorController");
+const realChatController = require("../controllers/realChatController");
 const { isDoctor } = require("../middleware/auth");
 const upload = require("../middleware/upload");
 
@@ -18,6 +19,13 @@ router.get("/prescription/:id", isDoctor, doctorController.getPrescriptionForm);
 router.post("/prescription", isDoctor, doctorController.savePrescription);
 
 router.get("/chat", isDoctor, doctorController.getChat);
+
+// Real-time chat routes
+router.get("/chat/conversations", isDoctor, realChatController.getConversations);
+router.get("/chat/history/:otherUserId", isDoctor, realChatController.getChatHistory);
+router.post("/chat/send", isDoctor, realChatController.sendMessage);
+router.post("/chat/mark-read", isDoctor, realChatController.markAsRead);
+router.get("/chat/unread-count", isDoctor, realChatController.getUnreadCount);
 
 router.post("/leaves", isDoctor, doctorController.addLeave);
 router.post("/leaves/delete/:id", isDoctor, doctorController.removeLeave);

@@ -59,11 +59,11 @@ exports.login = async (req, res) => {
 
     // CRITICAL FIX: Properly set session user object
     req.session.user = {
-      id: user._id,
+      id: String(user._id),
       name: user.name,
       email: user.email,
       role: user.role,
-      phone: user.phone
+      phone: user.phone || ""
     };
 
     // Save session explicitly before redirect
@@ -93,6 +93,7 @@ exports.login = async (req, res) => {
 
 exports.logout = (req, res) => {
   req.session.destroy(() => {
+    res.clearCookie("hms.sid");
     res.clearCookie("connect.sid");
     res.redirect("/login");
   });
@@ -124,5 +125,56 @@ exports.verifyOTP = async (req, res) => {
     }
   } catch (err) {
     res.status(500).json({ success: false, message: "Verification failed" });
+  }
+};
+
+exports.quickLogin = async (req, res) => {
+  try {
+    const { role } = req.body;
+    
+    if (!["patient", "doctor", "admin", "driver"].includes(role)) {
+      req.flash("error", "Invalid demo role requested");
+      return res.redirect("/login");
+    }
+
+    let email = "";
+    if (role === "admin") email = "admin@hms.com";
+    else if (role === "patient") email = "patient@hms.com";
+    else if (role === "driver") email = "driver@hms.com";
+    else if (role === "doctor") email = "doctor@hms.com";
+
+    const user = await userModel.findByEmail(email);
+    if (!user) {
+      req.flash("error", `Demo user for role ${role} not found. Please ensure database is seeded.`);
+      return res.redirect("/login");
+    }
+
+    req.session.user = {
+      id: String(user._id),
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      phone: user.phone || ""
+    };
+
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error:", err);
+        req.flash("error", "Demo login failed");
+        return res.redirect("/login");
+      }
+
+      req.flash("success", `Logged in as Demo ${role.toUpperCase()}: ${user.name}`);
+      
+      if (user.role === "admin") return res.redirect("/admin/dashboard");
+      if (user.role === "doctor") return res.redirect("/doctor/dashboard");
+      if (user.role === "patient") return res.redirect("/patient/dashboard");
+      if (user.role === "driver") return res.redirect("/driver/dashboard");
+
+      res.redirect("/");
+    });
+  } catch (err) {
+    req.flash("error", "Quick Login failed: " + err.message);
+    res.redirect("/login");
   }
 };

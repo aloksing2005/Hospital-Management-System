@@ -2,6 +2,17 @@
   "name": "hospital-management-system",
   "version": "1.0.0",
   "description": "Real-time Hospital Management System with Admin, Doctor & Patient dashboards",
+  "homepage": "https://github.com/aloksing2005/Hospital-Management-System#readme",
+  "bugs": {
+    "url": "https://github.com/aloksing2005/Hospital-Management-System/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aloksing2005/Hospital-Management-System.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -13,12 +24,14 @@
     "canvas": "^2.11.2",
     "cloudinary": "^1.41.0",
     "connect-flash": "^0.1.1",
+    "connect-mongo": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "ejs": "^3.1.9",
     "express": "^4.18.2",
     "express-flash": "^0.0.2",
     "express-session": "^1.17.3",
+    "express-validator": "^7.0.1",
     "face-api.js": "^0.22.2",
     "jsonwebtoken": "^9.0.0",
     "moment": "^2.29.4",

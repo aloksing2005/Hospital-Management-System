@@ -1,70 +1,136 @@
 <% var title = 'Pharmacy - HMS'; %>
 <%- include('../partials/header') %>
 
-<div class="container-fluid bg-gray-50 min-h-screen">
-  <div class="row">
-    <%- include('../partials/patient-sidebar', { active: 'pharmacy' }) %>
-
-    <div class="col-md-9 col-lg-10 p-8">
-      <div class="max-w-6xl mx-auto">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6">
-            <div>
-                <h2 class="text-4xl font-black text-gray-900 tracking-tight">Digital Pharmacy</h2>
-                <p class="text-gray-500 mt-2 font-medium">Real-time stock of critical medications.</p>
-            </div>
-            <div class="w-full md:w-auto">
-                <form action="/patient/pharmacy" method="GET" class="relative group">
-                    <input type="text" name="search" value="<%= query %>" placeholder="Search medicine..." class="w-full md:w-80 bg-white border border-gray-100 rounded-2xl px-6 py-4 shadow-sm focus:ring-2 focus:ring-indigo-600 outline-none transition group-hover:shadow-md">
-                    <button type="submit" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-indigo-600 transition">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </form>
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <% if (medicines.length === 0) { %>
-                <div class="col-span-full py-20 text-center">
-                    <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6 text-gray-300">
-                        <i class="fas fa-pills text-3xl"></i>
-                    </div>
-                    <h3 class="text-2xl font-black text-gray-900 mb-2">Medicine Not Found</h3>
-                    <p class="text-gray-400 font-medium">We couldn't find any results for "<%= query %>".</p>
-                </div>
-            <% } else { %>
-                <% medicines.forEach(med => { %>
-                    <div class="bg-white p-8 rounded-[40px] border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group">
-                        <div class="flex justify-between items-start mb-6">
-                            <div class="w-16 h-16 bg-indigo-50 text-indigo-500 rounded-3xl flex items-center justify-center text-2xl transition-transform group-hover:rotate-12">
-                                <i class="fas fa-capsules"></i>
-                            </div>
-                            <span class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest
-                                <%= med.stock_quantity > 100 ? 'bg-emerald-50 text-emerald-500' : 'bg-rose-50 text-rose-500' %>">
-                                <%= med.stock_quantity > 100 ? 'In Stock' : 'Low Stock' %>
-                            </span>
-                        </div>
-                        <h3 class="text-xl font-black text-gray-900 mb-1"><%= med.medicine_name %></h3>
-                        <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6"><%= med.category %></p>
-                        
-                        <div class="flex justify-between items-end">
-                            <div>
-                                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Price per unit</p>
-                                <p class="text-2xl font-black text-gray-900">₹<%= med.price %></p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Available</p>
-                                <p class="text-sm font-bold text-gray-900"><%= med.stock_quantity %> units</p>
-                            </div>
-                        </div>
-
-                        <button class="w-full mt-8 py-4 bg-gray-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all active:scale-95">Request Medicine</button>
-                    </div>
-                <% }) %>
-            <% } %>
-        </div>
+<div class="flex h-screen">
+  <%- include('../partials/patient-sidebar', { active: 'pharmacy' }) %>
+  <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-6 animate-fade-in">
+      <div>
+        <h1 class="text-3xl font-black text-white mb-2">Digital Pharmacy</h1>
+        <p class="text-gray-400 font-medium">Order medicines with cart & tracking</p>
       </div>
+      <div class="flex gap-3 items-center">
+        <button type="button" id="viewCartBtn" class="hms-btn hms-btn-secondary relative">
+          <i class="fas fa-shopping-cart mr-2"></i>Cart (<span id="cartCount">0</span>)
+        </button>
+        <form action="/patient/pharmacy" method="GET" class="relative">
+          <input type="text" name="search" value="<%= query %>" placeholder="Search medicine..." class="w-full md:w-64 bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-indigo-500 outline-none text-white placeholder-gray-400">
+        </form>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <% if (medicines.length === 0) { %>
+        <div class="col-span-full py-20 text-center">
+          <h4 class="text-xl font-bold text-white">No medicines found</h4>
+        </div>
+      <% } else { %>
+        <% medicines.forEach(med => { %>
+          <div class="hms-card animate-scale-in">
+            <div class="flex justify-between items-start mb-4">
+              <div class="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-xl flex items-center justify-center">
+                <i class="fas fa-capsules text-xl"></i>
+              </div>
+              <span class="hms-badge hms-badge-<%= med.stock > 0 ? 'success' : 'danger' %>">
+                <%= med.stock > 0 ? 'In Stock' : 'Out of Stock' %>
+              </span>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2"><%= med.name %></h3>
+            <p class="text-gray-400 text-sm mb-4"><%= med.description %></p>
+            <div class="flex justify-between items-center pt-4 border-t border-white/10 mb-3">
+              <span class="text-indigo-400 font-bold">₹<%= med.price %></span>
+              <span class="text-gray-400 text-sm">Stock: <%= med.stock %></span>
+            </div>
+            <% if (med.stock > 0) { %>
+              <button type="button" class="hms-btn hms-btn-primary w-full add-cart-btn"
+                data-id="<%= med.id %>" data-name="<%= med.name %>" data-price="<%= med.price %>">
+                Add to Cart
+              </button>
+            <% } %>
+          </div>
+        <% }) %>
+      <% } %>
+    </div>
+
+    <div id="ordersSection" class="hms-card mt-8 hidden">
+      <h3 class="text-xl font-bold text-white mb-4">Your Orders</h3>
+      <div id="ordersList"></div>
+    </div>
+  </div>
+</div>
+
+<div id="cartModal" class="hidden fixed inset-0 z-[9998] flex items-center justify-center bg-black/60 p-4">
+  <div class="bg-slate-900 border border-white/10 rounded-2xl p-6 max-w-lg w-full max-h-[80vh] overflow-y-auto">
+    <h3 class="text-xl font-bold text-white mb-4">Cart</h3>
+    <div id="cartItems" class="space-y-3 mb-4"></div>
+    <p class="text-white font-bold mb-4">Total: ₹<span id="cartTotal">0</span></p>
+    <label class="flex items-center gap-2 text-gray-300 text-sm mb-4">
+      <input type="checkbox" id="rxRequired"> Prescription required
+    </label>
+    <div class="flex gap-3">
+      <button type="button" id="checkoutBtn" class="hms-btn hms-btn-primary flex-1">Place Order</button>
+      <button type="button" onclick="document.getElementById('cartModal').classList.add('hidden')" class="hms-btn hms-btn-secondary">Close</button>
     </div>
   </div>
 </div>
 
 <%- include('../partials/footer') %>
+<script>
+let cart = JSON.parse(localStorage.getItem('hmsPharmacyCart') || '[]');
+function saveCart() { localStorage.setItem('hmsPharmacyCart', JSON.stringify(cart)); updateCartUI(); }
+function updateCartUI() {
+  document.getElementById('cartCount').textContent = cart.reduce((s,i) => s + i.quantity, 0);
+}
+document.querySelectorAll('.add-cart-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const id = this.dataset.id;
+    const existing = cart.find(c => c.medicine_id === id);
+    if (existing) existing.quantity++;
+    else cart.push({ medicine_id: id, medicine_name: this.dataset.name, price: parseFloat(this.dataset.price), quantity: 1 });
+    saveCart();
+    window.hmsShowToast('Cart', this.dataset.name + ' added', 'success');
+  });
+});
+document.getElementById('viewCartBtn').addEventListener('click', function() {
+  const modal = document.getElementById('cartModal');
+  const list = document.getElementById('cartItems');
+  list.innerHTML = '';
+  let total = 0;
+  cart.forEach((item, idx) => {
+    const line = item.price * item.quantity;
+    total += line;
+    list.innerHTML += '<div class="flex justify-between text-white text-sm"><span>' + item.medicine_name + ' x' + item.quantity + '</span><span>₹' + line.toFixed(2) + '</span></div>';
+  });
+  document.getElementById('cartTotal').textContent = total.toFixed(2);
+  modal.classList.remove('hidden');
+});
+document.getElementById('checkoutBtn').addEventListener('click', async function() {
+  if (!cart.length) return;
+  const res = await fetch('/patient/pharmacy/order', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ items: cart, prescription_required: document.getElementById('rxRequired').checked })
+  });
+  const data = await res.json();
+  if (data.success) {
+    cart = [];
+    saveCart();
+    document.getElementById('cartModal').classList.add('hidden');
+    window.hmsShowToast('Order Placed', 'Tracking: ' + data.trackingId, 'success');
+    loadOrders();
+  } else {
+    window.hmsShowToast('Error', data.error, 'error');
+  }
+});
+async function loadOrders() {
+  const res = await fetch('/patient/pharmacy/orders');
+  const data = await res.json();
+  if (!data.success || !data.orders.length) return;
+  document.getElementById('ordersSection').classList.remove('hidden');
+  document.getElementById('ordersList').innerHTML = data.orders.map(o =>
+    '<div class="p-3 bg-white/5 rounded-lg mb-2 text-sm"><span class="text-white font-bold">' + o.tracking_id + '</span> — ₹' + o.total_amount + ' <span class="hms-badge hms-badge-info ml-2">' + o.status + '</span></div>'
+  ).join('');
+}
+updateCartUI();
+loadOrders();
+</script>

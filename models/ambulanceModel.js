@@ -94,14 +94,43 @@ class AmbulanceModel {
     }));
   }
 
-  static async updateRequestStatus(requestId, status) {
-    await AmbulanceRequest.findByIdAndUpdate(requestId, { status });
+  static async rejectRequest(requestId, driverId) {
+    await AmbulanceRequest.findByIdAndUpdate(requestId, { 
+      $unset: { driver_id: 1, vehicle_id: 1 },
+      status: "pending"
+    });
+  }
+
+  static async updateRequestStatus(requestId, status, eta = null) {
+    const updateData = { status };
+    if (eta) updateData.eta = eta;
+    await AmbulanceRequest.findByIdAndUpdate(requestId, updateData);
     if (status === "completed" || status === "cancelled") {
       const req = await AmbulanceRequest.findById(requestId).lean();
       if (req && req.vehicle_id) {
         await Ambulance.findByIdAndUpdate(req.vehicle_id, { status: "available" });
       }
     }
+  }
+
+  static async calculateETA(lat1, lng1, lat2, lng2) {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLng = ((lng2 - lng1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distanceKm = R * c;
+    
+    // Assume average speed of 40 km/h in city
+    const avgSpeedKmH = 40;
+    const timeMinutes = (distanceKm / avgSpeedKmH) * 60;
+    
+    return Math.ceil(timeMinutes);
   }
 
   static async getPendingRequests() {

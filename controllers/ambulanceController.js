@@ -116,6 +116,65 @@ exports.updateLocation = async (req, res) => {
   }
 };
 
+exports.rejectRequest = async (req, res) => {
+  try {
+    const { requestId } = req.body;
+    const driverId = req.session.user.id;
+
+    await AmbulanceModel.rejectRequest(requestId, driverId);
+    
+    const io = req.app.get("io");
+    io.to("drivers").emit("request-rejected", { requestId });
+    
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+exports.updateTripStatus = async (req, res) => {
+  try {
+    const { requestId, status } = req.body;
+    const driverId = req.session.user.id;
+    
+    const request = await AmbulanceModel.getRequestById(requestId);
+    if (!request || String(request.driver_id) !== String(driverId)) {
+      return res.json({ success: false, error: "Unauthorized" });
+    }
+
+    let eta = null;
+    if (status === "on_the_way" && request.pickup_lat && request.pickup_lng) {
+      const ambulance = await AmbulanceModel.getAmbulanceByDriver(driverId);
+      if (ambulance && ambulance.current_lat && ambulance.current_lng) {
+        eta = await AmbulanceModel.calculateETA(
+          ambulance.current_lat,
+          ambulance.current_lng,
+          request.pickup_lat,
+          request.pickup_lng
+        );
+      }
+    }
+
+    await AmbulanceModel.updateRequestStatus(requestId, status, eta ? `${eta} mins` : null);
+    
+    const updatedRequest = await AmbulanceModel.getRequestById(requestId);
+    const io = req.app.get("io");
+    
+    if (updatedRequest.patient_id) {
+      io.to(`user_${updatedRequest.patient_id}`).emit("ambulance-status-update", {
+        requestId,
+        status,
+        eta: eta ? `${eta} mins` : null,
+        request: updatedRequest
+      });
+    }
+
+    res.json({ success: true, status, eta: eta ? `${eta} mins` : null });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
 exports.completeTrip = async (req, res) => {
   try {
     const { requestId } = req.body;

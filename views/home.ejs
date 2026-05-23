@@ -1,11 +1,11 @@
-<% var title = 'Home - HMS Enterprise'; %>
+<% var title = 'Home - HMS Premium'; %>
 <%- include('partials/header') %>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 
 <style>
     .gradient-text {
-        background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #0ea5e9 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
@@ -14,51 +14,70 @@
                     radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.1), transparent);
     }
     .glass-card {
-        background: rgba(255, 255, 255, 0.7);
+        background: rgba(15, 23, 42, 0.4);
         backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    [data-theme="light"] .glass-card {
+        background: rgba(255, 255, 255, 0.75);
+        border: 1px solid rgba(99, 102, 241, 0.1);
     }
     .floating {
         animation: float 6s ease-in-out infinite;
     }
     @keyframes float {
         0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-20px); }
+        50% { transform: translateY(-15px); }
+    }
+    .glow-effect:hover {
+        box-shadow: 0 0 25px rgba(99, 102, 241, 0.35);
+        border-color: rgba(99, 102, 241, 0.4);
     }
 </style>
 
-<div class="min-h-screen bg-white selection:bg-indigo-100 hero-bg">
+<div class="min-h-screen selection:bg-indigo-500/30 hero-bg pb-20">
     <!-- Hero Section -->
-    <section class="relative pt-20 pb-32 overflow-hidden">
+    <section class="relative pt-12 pb-20 overflow-hidden">
         <div class="container mx-auto px-6 relative z-10">
             <div class="flex flex-col lg:flex-row items-center gap-16">
+                <!-- Left text column -->
                 <div class="lg:w-1/2 text-center lg:text-left">
-                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 border border-indigo-100 mb-8 animate__animated animate__fadeInDown">
-                        <span class="w-2 h-2 rounded-full bg-indigo-600 animate-pulse"></span>
-                        <span class="text-sm font-bold text-indigo-900 uppercase tracking-widest">Next-Gen Healthcare</span>
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/30 mb-8 animate__animated animate__fadeInDown">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span class="text-xs font-bold text-indigo-300 uppercase tracking-widest">Next-Gen Connected Healthcare</span>
                     </div>
-                    <h1 class="text-6xl lg:text-7xl font-black text-gray-900 leading-[1.1] mb-8 animate__animated animate__fadeInLeft">
+                    
+                    <h1 class="text-5xl lg:text-7xl font-black text-white dark:text-white leading-[1.1] mb-8 animate__animated animate__fadeInLeft">
                         Smart Care <br/> 
                         <span class="gradient-text">Redefined.</span>
                     </h1>
-                    <p class="text-xl text-gray-500 max-w-xl mb-12 animate__animated animate__fadeInLeft animate__delay-1s">
-                        Experience the future of hospital management with AI-driven diagnostics, real-time tracking, and a 360-degree patient ecosystem.
+                    
+                    <p class="text-lg text-gray-400 dark:text-gray-400 max-w-xl mb-12 animate__animated animate__fadeInLeft animate__delay-1s leading-relaxed">
+                        Experience the ultimate clinical management ecosystem. Powered by WebRTC video diagnostics, live vital telemetry tracking, automatic SOS dispatching, and secure clinical workflows.
                     </p>
+                    
                     <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start animate__animated animate__fadeInUp animate__delay-1s">
-                        <a href="/register" class="px-10 py-5 bg-indigo-600 text-white rounded-[30px] font-black text-lg shadow-2xl shadow-indigo-200 hover:bg-indigo-700 hover:scale-105 transition-all">Get Started Free</a>
-                        <a href="/login" class="px-10 py-5 bg-white text-gray-900 rounded-[30px] font-black text-lg border-2 border-gray-100 hover:bg-gray-50 transition-all">Sign In</a>
+                        <a href="#demo-console" class="hms-btn hms-btn-primary hms-btn-lg text-base">
+                            <i class="fas fa-play mr-2"></i> Try Interactive Demo
+                        </a>
+                        <a href="/register" class="hms-btn hms-btn-secondary hms-btn-lg text-base">
+                            <i class="fas fa-user-plus mr-2"></i> Register Account
+                        </a>
                     </div>
                 </div>
-                <div class="lg:w-1/2 relative">
-                    <div class="relative floating">
-                        <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800" class="rounded-[60px] shadow-2xl border-[12px] border-white" alt="Doctor">
-                        <div class="absolute -bottom-10 -left-10 glass-card p-8 rounded-[40px] shadow-xl animate__animated animate__fadeInUp animate__delay-2s">
-                            <div class="flex items-center gap-4">
-                                <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white"><i class="fas fa-check"></i></div>
-                                <div>
-                                    <p class="text-sm font-bold text-gray-400">Available Doctors</p>
-                                    <p class="text-2xl font-black text-gray-900">482 Online</p>
-                                </div>
+                
+                <!-- Right illustration column -->
+                <div class="lg:w-1/2 relative flex justify-center">
+                    <div class="relative floating max-w-md lg:max-w-full">
+                        <img src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?w=800" class="rounded-[50px] shadow-2xl border-8 border-white/5 object-cover h-[450px] w-[550px]" alt="Premium Medical Care">
+                        <div class="absolute -bottom-6 -left-6 glass-card p-6 rounded-[30px] shadow-2xl flex items-center gap-4 animate__animated animate__fadeInUp animate__delay-2s border border-white/10">
+                            <div class="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center text-xl shadow-lg">
+                                <i class="fas fa-heartbeat animate-pulse"></i>
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Medical Support</p>
+                                <p class="text-lg font-black text-white dark:text-white">24/7 Active Fleet</p>
                             </div>
                         </div>
                     </div>
@@ -67,75 +86,183 @@
         </div>
     </section>
 
-    <!-- Stats Section -->
-    <section class="py-20 bg-gray-900 text-white">
+    <!-- Stats Showcase -->
+    <section class="py-16 bg-slate-950/60 backdrop-blur-md border-y border-white/5 my-12">
         <div class="container mx-auto px-6">
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-12 text-center">
-                <div>
-                    <h3 class="text-5xl font-black mb-2">12k+</h3>
-                    <p class="text-gray-400 font-bold uppercase tracking-widest text-sm">Patients Served</p>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
+                <div class="p-4">
+                    <h3 class="text-4xl lg:text-5xl font-black text-white mb-2 gradient-text">12k+</h3>
+                    <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">Active Patients</p>
+                </div>
+                <div class="p-4">
+                    <h3 class="text-4xl lg:text-5xl font-black text-white mb-2 gradient-text">480+</h3>
+                    <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">Doctors Online</p>
+                </div>
+                <div class="p-4">
+                    <h3 class="text-4xl lg:text-5xl font-black text-white mb-2 gradient-text">99.9%</h3>
+                    <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">System Uptime</p>
+                </div>
+                <div class="p-4">
+                    <h3 class="text-4xl lg:text-5xl font-black text-white mb-2 gradient-text">&lt;15m</h3>
+                    <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">SOS Response Time</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Quick Demo Login Console -->
+    <section id="demo-console" class="py-20 scroll-mt-24">
+        <div class="container mx-auto px-6">
+            <div class="text-center max-w-2xl mx-auto mb-16">
+                <span class="text-indigo-400 text-xs font-black uppercase tracking-widest px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20">Dashboard Console</span>
+                <h2 class="text-4xl lg:text-5xl font-black text-white dark:text-white mt-6 mb-4">Try HMS Premium Instantly</h2>
+                <p class="text-gray-400">Launch any clinical dashboard in one click. Experience the real system with dummy databases and seeded test data.</p>
+            </div>
+
+            <!-- Dashboard Roles Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- Patient Card -->
+                <div class="glass-card rounded-[35px] p-8 glow-effect transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="w-14 h-14 bg-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center text-2xl mb-6 shadow-lg shadow-indigo-500/5">
+                            <i class="fas fa-user-injured"></i>
+                        </div>
+                        <h4 class="text-2xl font-extrabold text-white mb-2">Patient Portal</h4>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-6">Book appointments, view dynamic medical ID cards, view PDF prescriptions, and log daily wellness reports.</p>
+                        
+                        <div class="bg-white/5 rounded-2xl p-4 border border-white/5 mb-8 text-xs space-y-2">
+                            <div class="flex justify-between"><span class="text-gray-500">Email:</span> <span class="text-gray-300 font-mono">patient@hms.com</span></div>
+                            <div class="flex justify-between"><span class="text-gray-500">Password:</span> <span class="text-gray-300 font-mono">patient123</span></div>
+                        </div>
+                    </div>
+                    
+                    <form action="/auth/quick-login" method="POST">
+                        <input type="hidden" name="role" value="patient">
+                        <button type="submit" class="hms-btn hms-btn-primary w-full text-sm">
+                            Launch Patient <i class="fas fa-arrow-right ml-1"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Doctor Card -->
+                <div class="glass-card rounded-[35px] p-8 glow-effect transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="w-14 h-14 bg-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center text-2xl mb-6 shadow-lg shadow-emerald-500/5">
+                            <i class="fas fa-user-md"></i>
+                        </div>
+                        <h4 class="text-2xl font-extrabold text-white mb-2">Doctor Station</h4>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-6">Manage patient appointment queues, write instant digital prescriptions, and initiate telemedicine video consultations.</p>
+                        
+                        <div class="bg-white/5 rounded-2xl p-4 border border-white/5 mb-8 text-xs space-y-2">
+                            <div class="flex justify-between"><span class="text-gray-500">Email:</span> <span class="text-gray-300 font-mono">doctor@hms.com</span></div>
+                            <div class="flex justify-between"><span class="text-gray-500">Password:</span> <span class="text-gray-300 font-mono">doctor123</span></div>
+                        </div>
+                    </div>
+                    
+                    <form action="/auth/quick-login" method="POST">
+                        <input type="hidden" name="role" value="doctor">
+                        <button type="submit" class="hms-btn hms-btn-primary w-full text-sm !from-emerald-500 !to-teal-600 shadow-emerald-500/20">
+                            Launch Doctor <i class="fas fa-arrow-right ml-1"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Admin Card -->
+                <div class="glass-card rounded-[35px] p-8 glow-effect transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="w-14 h-14 bg-purple-500/20 text-purple-400 rounded-2xl flex items-center justify-center text-2xl mb-6 shadow-lg shadow-purple-500/5">
+                            <i class="fas fa-user-shield"></i>
+                        </div>
+                        <h4 class="text-2xl font-extrabold text-white mb-2">Admin Command</h4>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-6">Monitor hospital resources, manage real-time ICU/General bed availability, and oversee live emergency SOS broadcasts.</p>
+                        
+                        <div class="bg-white/5 rounded-2xl p-4 border border-white/5 mb-8 text-xs space-y-2">
+                            <div class="flex justify-between"><span class="text-gray-500">Email:</span> <span class="text-gray-300 font-mono">admin@hms.com</span></div>
+                            <div class="flex justify-between"><span class="text-gray-500">Password:</span> <span class="text-gray-300 font-mono">admin123</span></div>
+                        </div>
+                    </div>
+                    
+                    <form action="/auth/quick-login" method="POST">
+                        <input type="hidden" name="role" value="admin">
+                        <button type="submit" class="hms-btn hms-btn-primary w-full text-sm !from-purple-500 !to-indigo-600 shadow-purple-500/20">
+                            Launch Command <i class="fas fa-arrow-right ml-1"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Driver Card -->
+                <div class="glass-card rounded-[35px] p-8 glow-effect transition-all duration-300 flex flex-col justify-between">
+                    <div>
+                        <div class="w-14 h-14 bg-rose-500/20 text-rose-400 rounded-2xl flex items-center justify-center text-2xl mb-6 shadow-lg shadow-rose-500/5">
+                            <i class="fas fa-ambulance"></i>
+                        </div>
+                        <h4 class="text-2xl font-extrabold text-white mb-2">Ambulance Hub</h4>
+                        <p class="text-gray-400 text-sm leading-relaxed mb-6">Receive emergency dispatch alerts, review live patient coordinates, and update live location telemetry tracks.</p>
+                        
+                        <div class="bg-white/5 rounded-2xl p-4 border border-white/5 mb-8 text-xs space-y-2">
+                            <div class="flex justify-between"><span class="text-gray-500">Email:</span> <span class="text-gray-300 font-mono">driver@hms.com</span></div>
+                            <div class="flex justify-between"><span class="text-gray-500">Password:</span> <span class="text-gray-300 font-mono">driver123</span></div>
+                        </div>
+                    </div>
+                    
+                    <form action="/auth/quick-login" method="POST">
+                        <input type="hidden" name="role" value="driver">
+                        <button type="submit" class="hms-btn hms-btn-primary w-full text-sm !from-rose-500 !to-pink-600 shadow-rose-500/20">
+                            Launch Dispatch <i class="fas fa-arrow-right ml-1"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Demo Info Banner -->
+            <div class="mt-12 p-6 rounded-3xl bg-indigo-500/10 border border-indigo-500/20 text-center max-w-3xl mx-auto flex items-center gap-4 flex-col sm:flex-row text-left">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0 text-xl">
+                    <i class="fas fa-info-circle"></i>
                 </div>
                 <div>
-                    <h3 class="text-5xl font-black mb-2">500+</h3>
-                    <p class="text-gray-400 font-bold uppercase tracking-widest text-sm">Specialists</p>
-                </div>
-                <div>
-                    <h3 class="text-5xl font-black mb-2">99.9%</h3>
-                    <p class="text-gray-400 font-bold uppercase tracking-widest text-sm">Uptime</p>
-                </div>
-                <div>
-                    <h3 class="text-5xl font-black mb-2">24/7</h3>
-                    <p class="text-gray-400 font-bold uppercase tracking-widest text-sm">Emergency</p>
+                    <h5 class="text-white font-bold text-sm mb-0.5">Secure Demonstration Sandbox</h5>
+                    <p class="text-xs text-gray-400 leading-relaxed">No sensitive real-world actions are exposed. Accounts are pre-loaded with mock profiles, appointments, prescriptions, and status trackers to let you explore safely.</p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- Services Grid -->
-    <section class="py-32">
+    <section class="py-20 border-t border-white/5">
         <div class="container mx-auto px-6">
-            <div class="text-center mb-20">
-                <h2 class="text-4xl lg:text-5xl font-black text-gray-900 mb-4">Everything You Need</h2>
-                <p class="text-gray-500 text-xl">Powerful features designed for modern healthcare.</p>
+            <div class="text-center max-w-2xl mx-auto mb-16">
+                <span class="text-indigo-400 text-xs font-black uppercase tracking-widest">Medical Capabilities</span>
+                <h2 class="text-4xl lg:text-5xl font-black text-white dark:text-white mt-6 mb-4">Core Ecosystem Features</h2>
+                <p class="text-gray-400">Our platform combines cutting-edge clinical tools into a unified clinical hub.</p>
             </div>
+            
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div class="p-10 rounded-[50px] bg-white border border-gray-100 hover:border-indigo-100 hover:shadow-2xl transition-all duration-500 group">
-                    <div class="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-3xl flex items-center justify-center text-2xl mb-8 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-                        <i class="fas fa-ambulance"></i>
+                <!-- Smart Ambulance -->
+                <div class="p-10 rounded-[40px] glass-card border border-white/5 hover:border-indigo-500/30 transition-all duration-500 group relative overflow-hidden">
+                    <div class="w-14 h-14 bg-indigo-500/10 text-indigo-400 rounded-2xl flex items-center justify-center text-2xl mb-8 group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
+                        <i class="fas fa-truck-medical"></i>
                     </div>
-                    <h4 class="text-2xl font-bold text-gray-900 mb-4">Smart Ambulance</h4>
-                    <p class="text-gray-500 leading-relaxed">Real-time fleet tracking and emergency dispatch with live status updates.</p>
+                    <h4 class="text-2xl font-bold text-white mb-4">Smart Ambulance</h4>
+                    <p class="text-gray-400 leading-relaxed text-sm">Real-time driver dispatch tracking. Leverages WebSockets for live geographical coordinates updates to nearest drivers.</p>
                 </div>
-                <div class="p-10 rounded-[50px] bg-white border border-gray-100 hover:border-indigo-100 hover:shadow-2xl transition-all duration-500 group">
-                    <div class="w-16 h-16 bg-purple-50 text-purple-600 rounded-3xl flex items-center justify-center text-2xl mb-8 group-hover:bg-purple-600 group-hover:text-white transition-all">
-                        <i class="fas fa-robot"></i>
+
+                <!-- AI Symptom Checker -->
+                <div class="p-10 rounded-[40px] glass-card border border-white/5 hover:border-purple-500/30 transition-all duration-500 group relative overflow-hidden">
+                    <div class="w-14 h-14 bg-purple-500/10 text-purple-400 rounded-2xl flex items-center justify-center text-2xl mb-8 group-hover:bg-purple-600 group-hover:text-white transition-all duration-300">
+                        <i class="fas fa-brain"></i>
                     </div>
-                    <h4 class="text-2xl font-bold text-gray-900 mb-4">AI Diagnostics</h4>
-                    <p class="text-gray-500 leading-relaxed">Advanced symptom checker and predictive health analytics powered by AI.</p>
+                    <h4 class="text-2xl font-bold text-white mb-4">AI Consultation</h4>
+                    <p class="text-gray-400 leading-relaxed text-sm">Adaptive symptom analysis to identify conditions, suggest medical categories, and match specialized consultants.</p>
                 </div>
-                <div class="p-10 rounded-[50px] bg-white border border-gray-100 hover:border-indigo-100 hover:shadow-2xl transition-all duration-500 group">
-                    <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center text-2xl mb-8 group-hover:bg-blue-600 group-hover:text-white transition-all">
+
+                <!-- Telemedicine Video Consultation -->
+                <div class="p-10 rounded-[40px] glass-card border border-white/5 hover:border-cyan-500/30 transition-all duration-500 group relative overflow-hidden">
+                    <div class="w-14 h-14 bg-cyan-500/10 text-cyan-400 rounded-2xl flex items-center justify-center text-2xl mb-8 group-hover:bg-cyan-600 group-hover:text-white transition-all duration-300">
                         <i class="fas fa-video"></i>
                     </div>
-                    <h4 class="text-2xl font-bold text-gray-900 mb-4">Tele-Consult</h4>
-                    <p class="text-gray-500 leading-relaxed">Secure video consultations with expert doctors from the comfort of home.</p>
+                    <h4 class="text-2xl font-bold text-white mb-4">Tele-Consult</h4>
+                    <p class="text-gray-400 leading-relaxed text-sm">Zero-install peer-to-peer audio and video medical consultations using dynamic high-quality WebRTC networks.</p>
                 </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Call to Action -->
-    <section class="pb-32 px-6">
-        <div class="container mx-auto max-w-6xl">
-            <div class="bg-indigo-600 rounded-[60px] p-16 text-center text-white relative overflow-hidden">
-                <div class="relative z-10">
-                    <h2 class="text-5xl font-black mb-8 leading-tight">Ready to transform your <br/> healthcare experience?</h2>
-                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
-                        <a href="/register" class="px-10 py-5 bg-white text-indigo-600 rounded-[30px] font-black text-lg shadow-xl hover:scale-105 transition-all">Join HMS Today</a>
-                        <a href="/login" class="px-10 py-5 bg-indigo-700 text-white rounded-[30px] font-black text-lg hover:bg-indigo-800 transition-all">Sign In</a>
-                    </div>
-                </div>
-                <i class="fas fa-heartbeat absolute -bottom-20 -right-20 text-[300px] text-white/5"></i>
             </div>
         </div>
     </section>

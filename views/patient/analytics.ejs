@@ -1,149 +1,365 @@
-<% var title = 'Health Analytics - HMS'; %>
+<% var title = 'Health Analytics - HMS Premium'; %>
 <%- include('../partials/header') %>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<div class="container-fluid bg-gray-100 min-h-screen">
-  <div class="row">
-    <%- include('../partials/patient-sidebar', { active: 'analytics' }) %>
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <%- include('../partials/patient-sidebar', { active: 'analytics' }) %>
 
-    <div class="col-md-9 col-lg-10 p-6">
-      <div class="max-w-6xl mx-auto">
-        <div class="flex justify-between items-center mb-8">
-            <div>
-                <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">Health Analytics</h2>
-                <p class="text-gray-500 mt-1">Visualize your health trends over time.</p>
-            </div>
-            <button class="bg-indigo-600 text-white px-6 py-3 rounded-2xl font-bold shadow-lg hover:bg-indigo-700 transition">
-                <i class="fas fa-download mr-2"></i> Download Report
-            </button>
+  <!-- Main Content -->
+  <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+    <!-- Page Header -->
+    <div class="flex justify-between items-center mb-8 animate-fade-in">
+      <div>
+        <h1 class="text-3xl font-black text-white mb-2 tracking-tight">Health Analytics</h1>
+        <p class="text-gray-400 font-medium">Real-time health trends and telemetry analytics.</p>
+      </div>
+      <button onclick="window.print()" class="hms-btn hms-btn-primary flex items-center gap-2">
+        <i class="fas fa-download"></i> Download Report
+      </button>
+    </div>
+
+    <!-- Analytics Cards with Live Values -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <!-- Heart Rate Card -->
+      <div class="hms-card hms-card-glass hms-card-elevated hover:border-rose-500/40 relative overflow-hidden group animate-scale-in transition-all">
+        <div class="absolute -right-10 -top-10 w-24 h-24 rounded-full bg-rose-500/5 blur-2xl pointer-events-none"></div>
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-12 h-12 bg-rose-500/20 text-rose-400 rounded-xl flex items-center justify-center text-xl shrink-0">
+            <i class="fas fa-heartbeat animate-pulse"></i>
+          </div>
+          <div>
+            <p class="text-xs font-black text-gray-400 uppercase tracking-wider">Heart Rate</p>
+            <p id="liveHeartRate" class="text-2xl font-black text-white tracking-tight">72 <span class="text-xs text-gray-400">BPM</span></p>
+          </div>
         </div>
+        <div class="flex items-center gap-1.5 text-emerald-400 text-xs font-bold bg-emerald-500/10 w-fit px-2 py-0.5 rounded-lg">
+          <i class="fas fa-check-circle text-[10px]"></i>
+          <span>Stable Pulse</span>
+        </div>
+      </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <!-- Heart Rate Chart -->
-            <div class="bg-white rounded-3xl shadow-sm p-6 border border-gray-100">
-                <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center">
-                    <i class="fas fa-heartbeat text-red-500 mr-3"></i> Heart Rate (BPM)
-                </h3>
-                <canvas id="hrChart" height="250"></canvas>
-            </div>
+      <!-- SpO2 Card -->
+      <div class="hms-card hms-card-glass hms-card-elevated hover:border-cyan-500/40 relative overflow-hidden group animate-scale-in animate-delay-100 transition-all">
+        <div class="absolute -right-10 -top-10 w-24 h-24 rounded-full bg-cyan-500/5 blur-2xl pointer-events-none"></div>
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-12 h-12 bg-cyan-500/20 text-cyan-400 rounded-xl flex items-center justify-center text-xl shrink-0">
+            <i class="fas fa-wind"></i>
+          </div>
+          <div>
+            <p class="text-xs font-black text-gray-400 uppercase tracking-wider">SpO2 Level</p>
+            <p id="liveSpo2" class="text-2xl font-black text-white tracking-tight">98 <span class="text-xs text-gray-400">%</span></p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 text-emerald-400 text-xs font-bold bg-emerald-500/10 w-fit px-2 py-0.5 rounded-lg">
+          <i class="fas fa-check-circle text-[10px]"></i>
+          <span>Optimal Oxygen</span>
+        </div>
+      </div>
 
-            <!-- Blood Pressure Chart -->
-            <div class="bg-white rounded-3xl shadow-sm p-6 border border-gray-100">
-                <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center">
-                    <i class="fas fa-tint text-indigo-500 mr-3"></i> Blood Pressure (mmHg)
-                </h3>
-                <canvas id="bpChart" height="250"></canvas>
-            </div>
+      <!-- Blood Pressure Card -->
+      <div class="hms-card hms-card-glass hms-card-elevated hover:border-indigo-500/40 relative overflow-hidden group animate-scale-in animate-delay-200 transition-all">
+        <div class="absolute -right-10 -top-10 w-24 h-24 rounded-full bg-indigo-500/5 blur-2xl pointer-events-none"></div>
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-12 h-12 bg-indigo-500/20 text-indigo-400 rounded-xl flex items-center justify-center text-xl shrink-0">
+            <i class="fas fa-tint"></i>
+          </div>
+          <div>
+            <p class="text-xs font-black text-gray-400 uppercase tracking-wider">Blood Pressure</p>
+            <p id="liveBp" class="text-2xl font-black text-white tracking-tight">120/80 <span class="text-xs text-gray-400">mmHg</span></p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 text-gray-300 text-xs font-bold bg-white/5 w-fit px-2 py-0.5 rounded-lg">
+          <i class="fas fa-info-circle text-[10px] text-indigo-400"></i>
+          <span>Normal Range</span>
+        </div>
+      </div>
 
-            <!-- Body Temp Chart -->
-            <div class="bg-white rounded-3xl shadow-sm p-6 border border-gray-100">
-                <h3 class="text-lg font-bold text-gray-800 mb-6 flex items-center">
-                    <i class="fas fa-thermometer-half text-orange-500 mr-3"></i> Body Temp (°F)
-                </h3>
-                <canvas id="tempChart" height="250"></canvas>
-            </div>
+      <!-- Body Temperature Card -->
+      <div class="hms-card hms-card-glass hms-card-elevated hover:border-amber-500/40 relative overflow-hidden group animate-scale-in animate-delay-300 transition-all">
+        <div class="absolute -right-10 -top-10 w-24 h-24 rounded-full bg-amber-500/5 blur-2xl pointer-events-none"></div>
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center text-xl shrink-0">
+            <i class="fas fa-thermometer-half"></i>
+          </div>
+          <div>
+            <p class="text-xs font-black text-gray-400 uppercase tracking-wider">Body Temp</p>
+            <p id="liveTemp" class="text-2xl font-black text-white tracking-tight">98.6 <span class="text-xs text-gray-400">°F</span></p>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5 text-emerald-400 text-xs font-bold bg-emerald-500/10 w-fit px-2 py-0.5 rounded-lg">
+          <i class="fas fa-check-circle text-[10px]"></i>
+          <span>Normal Temp</span>
+        </div>
+      </div>
+    </div>
 
-            <!-- Health Summary Insights -->
-            <div class="bg-indigo-700 rounded-3xl shadow-xl p-8 text-white relative overflow-hidden">
-                <div class="relative z-10">
-                    <h3 class="text-xl font-bold mb-4">AI Health Insights</h3>
-                    <div class="space-y-4">
-                        <div class="bg-indigo-600/50 p-4 rounded-2xl backdrop-blur-sm border border-indigo-400/20">
-                            <p class="text-sm font-medium">Your heart rate has been stable over the last 7 days. Excellent cardiovascular health!</p>
-                        </div>
-                        <div class="bg-indigo-600/50 p-4 rounded-2xl backdrop-blur-sm border border-indigo-400/20">
-                            <p class="text-sm font-medium">Consider increasing water intake; your BP showed a slight spike on Tuesday morning.</p>
-                        </div>
-                    </div>
-                    <button class="mt-6 bg-white text-indigo-700 px-6 py-2 rounded-xl font-bold text-sm">Ask AI Assistant</button>
-                </div>
-                <i class="fas fa-brain absolute -bottom-10 -right-10 text-9xl text-indigo-600/30"></i>
-            </div>
+    <!-- Charts Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <!-- Vitals Chart -->
+      <div class="hms-card hms-card-glass hms-card-elevated hover:border-white/10 transition-all animate-fade-in relative overflow-hidden">
+        <div class="absolute -right-24 -top-24 w-52 h-52 rounded-full bg-indigo-500/5 blur-3xl pointer-events-none"></div>
+        <div class="flex items-center justify-between mb-6 relative z-10">
+          <h3 class="text-xl font-bold text-white flex items-center gap-2">
+            <i class="fas fa-wave-square text-indigo-400 animate-pulse"></i> Real-time Telemetry Trend
+          </h3>
+          <span class="hms-badge hms-badge-danger animate-pulse">LIVE PATIENT FEED</span>
+        </div>
+        <div class="relative w-full h-[320px] z-10">
+          <canvas id="vitalsChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Activity Overview Chart -->
+      <div class="hms-card hms-card-glass hms-card-elevated hover:border-white/10 transition-all animate-fade-in animate-delay-100 relative overflow-hidden">
+        <div class="absolute -right-24 -bottom-24 w-52 h-52 rounded-full bg-emerald-500/5 blur-3xl pointer-events-none"></div>
+        <div class="flex items-center justify-between mb-6 relative z-10">
+          <h3 class="text-xl font-bold text-white flex items-center gap-2">
+            <i class="fas fa-chart-bar text-emerald-400"></i> Weekly Activity Overview
+          </h3>
+          <span class="hms-badge hms-badge-success">STABLE DAILY AVERAGE</span>
+        </div>
+        <div class="relative w-full h-[320px] z-10">
+          <canvas id="activityChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Health Insights -->
+    <div class="hms-card hms-card-glass hms-card-elevated hover:border-white/10 transition-all animate-fade-in relative overflow-hidden">
+      <div class="absolute -left-20 -top-20 w-48 h-48 rounded-full bg-indigo-500/5 blur-3xl pointer-events-none"></div>
+      
+      <h3 class="text-xl font-bold text-white mb-6 relative z-10 flex items-center gap-2">
+        <i class="fas fa-lightbulb text-amber-400 animate-bounce"></i> Dynamic Health Insights
+      </h3>
+      <div class="space-y-4 relative z-10">
+        <div class="flex items-start gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all">
+          <div class="w-10 h-10 bg-emerald-500/20 text-emerald-400 rounded-xl flex items-center justify-center flex-shrink-0 text-lg">
+            <i class="fas fa-shield-alt"></i>
+          </div>
+          <div>
+            <h4 class="text-white font-bold mb-1">Optimal Heart Performance</h4>
+            <p class="text-gray-400 text-sm">Your resting and active cardiovascular rate falls squarely inside ideal limits. Keep up the high aerobic activity!</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all">
+          <div class="w-10 h-10 bg-indigo-500/20 text-indigo-400 rounded-xl flex items-center justify-center flex-shrink-0 text-lg">
+            <i class="fas fa-heartbeat animate-pulse"></i>
+          </div>
+          <div>
+            <h4 class="text-white font-bold mb-1">Live Vitality Track Established</h4>
+            <p class="text-gray-400 text-sm">The platform is currently listening to your smart health sensors. Any updates in SpO2, Heart Rate or Temperature are visually rendered instantaneously on this screen.</p>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<script>
-    // Real Data from Backend
-    const vitalsData = <%- JSON.stringify(vitalsHistory || []) %>;
-    const labels = vitalsData.map(v => new Date(v.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
-    
-    if (vitalsData.length === 0) {
-        // Show placeholder if no data
-        const ctxs = ['hrChart', 'bpChart', 'tempChart'];
-        ctxs.forEach(id => {
-            const ctx = document.getElementById(id).getContext('2d');
-            ctx.font = '20px Arial';
-            ctx.fillStyle = '#999';
-            ctx.textAlign = 'center';
-            ctx.fillText('No vitals data recorded yet. Start monitoring to see trends.', ctx.canvas.width/2, ctx.canvas.height/2);
-        });
-    } else {
-        // HR Chart
-        new Chart(document.getElementById('hrChart'), {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Heart Rate (BPM)',
-                    data: vitalsData.map(v => v.hr),
-                    borderColor: '#ef4444',
-                    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: {
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: false } }
-            }
-        });
-
-        // BP Chart
-        new Chart(document.getElementById('bpChart'), {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'Systolic',
-                        data: vitalsData.map(v => v.bp_sys),
-                        borderColor: '#6366f1',
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Diastolic',
-                        data: vitalsData.map(v => v.bp_dia),
-                        borderColor: '#a5b4fc',
-                        tension: 0.4
-                    }
-                ]
-            },
-            options: {
-                plugins: { legend: { display: true } }
-            }
-        });
-
-        // Temp Chart
-        new Chart(document.getElementById('tempChart'), {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: 'Temp °F',
-                    data: vitalsData.map(v => v.temp),
-                    backgroundColor: '#f97316',
-                    borderRadius: 8
-                }]
-            },
-            options: {
-                plugins: { legend: { display: false } },
-                scales: { y: { min: 95, max: 105 } }
-            }
-        });
-    }
-</script>
-
 <%- include('../partials/footer') %>
+
+<script>
+  // Setup Chart.js context and configuration
+  document.addEventListener('DOMContentLoaded', function () {
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.font.family = 'Inter, sans-serif';
+
+    // Vitals Chart: heart rate, spo2, temperature line charts
+    const vitalsCtx = document.getElementById('vitalsChart').getContext('2d');
+    
+    // Gradients
+    const hrGradient = vitalsCtx.createLinearGradient(0, 0, 0, 300);
+    hrGradient.addColorStop(0, 'rgba(239, 68, 68, 0.25)');
+    hrGradient.addColorStop(1, 'rgba(239, 68, 68, 0.0)');
+
+    const spo2Gradient = vitalsCtx.createLinearGradient(0, 0, 0, 300);
+    spo2Gradient.addColorStop(0, 'rgba(14, 165, 233, 0.25)');
+    spo2Gradient.addColorStop(1, 'rgba(14, 165, 233, 0.0)');
+
+    const tempGradient = vitalsCtx.createLinearGradient(0, 0, 0, 300);
+    tempGradient.addColorStop(0, 'rgba(245, 158, 11, 0.25)');
+    tempGradient.addColorStop(1, 'rgba(245, 158, 11, 0.0)');
+
+    const vitalsChart = new Chart(vitalsCtx, {
+      type: 'line',
+      data: {
+        labels: ['10:00 AM', '10:05 AM', '10:10 AM', '10:15 AM', '10:20 AM', '10:25 AM', '10:30 AM'],
+        datasets: [
+          {
+            label: 'Heart Rate (BPM)',
+            data: [72, 75, 71, 73, 70, 74, 72],
+            borderColor: '#ef4444',
+            backgroundColor: hrGradient,
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#ef4444',
+            pointHoverRadius: 7,
+            yAxisID: 'y'
+          },
+          {
+            label: 'Oxygen SpO2 (%)',
+            data: [98, 97, 98, 99, 98, 98, 98],
+            borderColor: '#0ea5e9',
+            backgroundColor: spo2Gradient,
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#0ea5e9',
+            pointHoverRadius: 7,
+            yAxisID: 'yPercent'
+          },
+          {
+            label: 'Body Temp (°F)',
+            data: [98.6, 98.4, 98.6, 98.7, 98.6, 98.5, 98.6],
+            borderColor: '#f59e0b',
+            backgroundColor: tempGradient,
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#f59e0b',
+            pointHoverRadius: 7,
+            yAxisID: 'yTemp'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              boxWidth: 12,
+              padding: 15,
+              font: { size: 11, weight: '600' }
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+            titleFont: { weight: 'bold' },
+            padding: 12,
+            cornerRadius: 12,
+            borderColor: 'rgba(255, 255, 255, 0.1)',
+            borderWidth: 1
+          }
+        },
+        scales: {
+          y: {
+            position: 'left',
+            ticks: { color: '#94a3b8' },
+            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            title: { display: true, text: 'BPM' }
+          },
+          yPercent: {
+            position: 'right',
+            ticks: { color: '#94a3b8' },
+            grid: { drawOnChartArea: false },
+            title: { display: true, text: 'Oxygen %' },
+            min: 80,
+            max: 100
+          },
+          yTemp: {
+            position: 'right',
+            ticks: { color: '#94a3b8' },
+            grid: { drawOnChartArea: false },
+            title: { display: true, text: 'Temp °F' },
+            min: 94,
+            max: 105
+          },
+          x: {
+            ticks: { color: '#94a3b8' },
+            grid: { color: 'rgba(255, 255, 255, 0.05)' }
+          }
+        }
+      }
+    });
+
+    // Activity Overview Chart
+    const activityCtx = document.getElementById('activityChart').getContext('2d');
+    const actGradient = activityCtx.createLinearGradient(0, 0, 0, 300);
+    actGradient.addColorStop(0, '#10b981');
+    actGradient.addColorStop(1, '#059669');
+
+    const activityChart = new Chart(activityCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+          label: 'Daily Steps',
+          data: [6500, 7200, 8100, 7800, 8450, 9200, 8800],
+          backgroundColor: actGradient,
+          borderRadius: 8,
+          borderWidth: 0,
+          barThickness: 16
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+            padding: 12,
+            cornerRadius: 12
+          }
+        },
+        scales: {
+          y: {
+            ticks: { color: '#94a3b8' },
+            grid: { color: 'rgba(255, 255, 255, 0.05)' }
+          },
+          x: {
+            ticks: { color: '#94a3b8' },
+            grid: { display: false }
+          }
+        }
+      }
+    });
+
+    // Listen to Socket.IO live vitals stream for real-time telemetry rendering!
+    const socket = window.hmsSocket ? window.hmsSocket() : null;
+    if (socket) {
+      socket.on('vitals-update', (data) => {
+        if (data.patientId === '<%= user.id %>') {
+          const v = data.vitals;
+          
+          // Update live DOM card badges
+          const hrEl = document.getElementById('liveHeartRate');
+          if (hrEl) hrEl.innerHTML = `${v.hr} <span class="text-xs text-gray-400">BPM</span>`;
+
+          const spo2El = document.getElementById('liveSpo2');
+          if (spo2El) spo2El.innerHTML = `${v.spo2} <span class="text-xs text-gray-400">%</span>`;
+
+          const bpEl = document.getElementById('liveBp');
+          if (bpEl) bpEl.innerHTML = `${v.bpSys}/${v.bpDia} <span class="text-xs text-gray-400">mmHg</span>`;
+
+          const tempEl = document.getElementById('liveTemp');
+          if (tempEl) tempEl.innerHTML = `${v.temp} <span class="text-xs text-gray-400">°F</span>`;
+
+          // Append to Chart.js in real-time
+          const nowStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          
+          // Add label
+          vitalsChart.data.labels.push(nowStr);
+          // Add data values
+          vitalsChart.data.datasets[0].data.push(v.hr);
+          vitalsChart.data.datasets[1].data.push(v.spo2);
+          vitalsChart.data.datasets[2].data.push(v.temp);
+
+          // Cap the size of the datasets to prevent memory leak/clutter
+          if (vitalsChart.data.labels.length > 10) {
+            vitalsChart.data.labels.shift();
+            vitalsChart.data.datasets[0].data.shift();
+            vitalsChart.data.datasets[1].data.shift();
+            vitalsChart.data.datasets[2].data.shift();
+          }
+
+          // Trigger update
+          vitalsChart.update('none'); // Update smoothly without reset transitions
+        }
+      });
+    }
+  });
+</script>

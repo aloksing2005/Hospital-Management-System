@@ -1,83 +1,225 @@
-<% var title = 'Register - HMS'; %>
+<% var title = 'Register - HMS Premium'; %>
 <%- include('../partials/header') %>
 
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-      <div class="card p-4">
-        <div class="text-center mb-4">
-          <i class="fas fa-user-plus fa-3x text-primary mb-3"></i>
-          <h3 class="fw-bold">Create Account</h3>
-          <p class="text-muted">Join our healthcare platform</p>
+<div class="min-h-screen flex items-center justify-center px-4 py-12">
+  <div class="w-full max-w-2xl">
+    <!-- Logo & Branding -->
+    <div class="text-center mb-8 animate-fade-in">
+      <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl shadow-2xl shadow-indigo-500/30 mb-6">
+        <i class="fas fa-user-plus text-4xl text-white"></i>
+      </div>
+      <h1 class="text-4xl font-black text-white mb-2">Create Account</h1>
+      <p class="text-gray-400 font-medium">Join our premium healthcare platform</p>
+    </div>
+
+    <!-- Register Card -->
+    <div class="hms-card animate-scale-in">
+      <form action="/register" method="POST" class="space-y-6">
+        <!-- Full Name -->
+        <div>
+          <label class="hms-label">
+            <i class="fas fa-user mr-2"></i>Full Name
+          </label>
+          <div class="relative">
+            <input 
+              type="text" 
+              name="name" 
+              class="hms-input pl-12" 
+              required 
+              placeholder="Enter your full name"
+              autocomplete="name"
+            >
+            <i class="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+          </div>
         </div>
 
-        <form action="/register" method="POST">
-          <div class="mb-3">
-            <label class="form-label"><i class="fas fa-user me-2"></i>Full Name</label>
-            <input type="text" name="name" class="form-control" required placeholder="Enter your full name">
+        <!-- Email -->
+        <div>
+          <label class="hms-label">
+            <i class="fas fa-envelope mr-2"></i>Email Address
+          </label>
+          <div class="relative">
+            <input 
+              type="email" 
+              name="email" 
+              class="hms-input pl-12" 
+              required 
+              placeholder="Enter your email"
+              autocomplete="email"
+            >
+            <i class="fas fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
           </div>
-          <div class="mb-3">
-            <label class="form-label"><i class="fas fa-envelope me-2"></i>Email</label>
-            <input type="email" name="email" class="form-control" required placeholder="Enter your email">
-          </div>
-          <div class="mb-3">
-            <label class="form-label"><i class="fas fa-phone me-2"></i>Phone</label>
-            <input type="tel" name="phone" class="form-control" placeholder="Enter phone number">
-          </div>
-          <div class="mb-3">
-            <label class="form-label"><i class="fas fa-lock me-2"></i>Password</label>
-            <input type="password" name="password" class="form-control" required placeholder="Create a password">
-          </div>
-          <div class="mb-3">
-            <label class="form-label"><i class="fas fa-user-tag me-2"></i>Role</label>
-            <select name="role" class="form-select" id="roleSelect" onchange="toggleDoctorFields()">
-              <option value="patient">Patient</option>
-              <option value="doctor">Doctor</option>
-            </select>
-          </div>
+        </div>
 
-          <div id="doctorFields" style="display:none">
-            <div class="mb-3">
-              <label class="form-label">Specialization</label>
-              <select name="specialization" class="form-select">
+        <!-- Phone -->
+        <div>
+          <label class="hms-label">
+            <i class="fas fa-phone mr-2"></i>Phone Number
+          </label>
+          <div class="relative">
+            <input 
+              type="tel" 
+              name="phone" 
+              class="hms-input pl-12" 
+              placeholder="Enter phone number"
+              autocomplete="tel"
+            >
+            <i class="fas fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div>
+          <label class="hms-label">
+            <i class="fas fa-lock mr-2"></i>Password
+          </label>
+          <div class="relative">
+            <input 
+              type="password" 
+              name="password" 
+              class="hms-input pl-12 pr-12" 
+              required 
+              placeholder="Create a strong password"
+              autocomplete="new-password"
+              id="passwordInput"
+            >
+            <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            <button 
+              type="button" 
+              class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+              onclick="togglePassword()"
+            >
+              <i class="fas fa-eye" id="passwordToggleIcon"></i>
+            </button>
+          </div>
+          <p class="text-xs text-gray-500 mt-2">Minimum 8 characters with at least one letter and one number</p>
+        </div>
+
+        <!-- Role Selection -->
+        <div>
+          <label class="hms-label">
+            <i class="fas fa-user-tag mr-2"></i>I want to register as
+          </label>
+          <div class="grid grid-cols-2 gap-4">
+            <label class="relative cursor-pointer">
+              <input type="radio" name="role" value="patient" class="peer sr-only" checked onchange="toggleDoctorFields()">
+              <div class="hms-input text-center peer-checked:border-indigo-500 peer-checked:bg-indigo-500/10 transition-all">
+                <i class="fas fa-user-injured text-2xl mb-2 block"></i>
+                <span class="font-semibold">Patient</span>
+              </div>
+            </label>
+            <label class="relative cursor-pointer">
+              <input type="radio" name="role" value="doctor" class="peer sr-only" onchange="toggleDoctorFields()">
+              <div class="hms-input text-center peer-checked:border-indigo-500 peer-checked:bg-indigo-500/10 transition-all">
+                <i class="fas fa-user-md text-2xl mb-2 block"></i>
+                <span class="font-semibold">Doctor</span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Doctor Fields (Hidden by default) -->
+        <div id="doctorFields" class="hidden space-y-6 animate-fade-in">
+          <div class="p-6 bg-white/5 rounded-xl border border-white/10">
+            <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+              <i class="fas fa-stethoscope text-indigo-400"></i>
+              Professional Details
+            </h3>
+            
+            <!-- Specialization -->
+            <div class="mb-4">
+              <label class="hms-label">Specialization</label>
+              <select name="specialization" class="hms-input hms-select">
                 <option>General Physician</option>
                 <option>Cardiologist</option>
                 <option>Dermatologist</option>
                 <option>Neurologist</option>
                 <option>Orthopedic</option>
-                <option>ENT</option>
+                <option>ENT Specialist</option>
                 <option>Pediatrician</option>
                 <option>Gynecologist</option>
+                <option>Ophthalmologist</option>
+                <option>Psychiatrist</option>
               </select>
             </div>
-            <div class="mb-3">
-              <label class="form-label">Location</label>
-              <input type="text" name="location" class="form-control" placeholder="Clinic/Hospital address">
+
+            <!-- Location -->
+            <div class="mb-4">
+              <label class="hms-label">Clinic/Hospital Location</label>
+              <input type="text" name="location" class="hms-input" placeholder="Enter clinic or hospital address">
             </div>
-            <div class="mb-3">
-              <label class="form-label">Consultation Fees (₹)</label>
-              <input type="number" name="fees" class="form-control" value="500">
+
+            <!-- Consultation Fees -->
+            <div>
+              <label class="hms-label">Consultation Fees (₹)</label>
+              <input type="number" name="fees" class="hms-input" value="500" min="100" step="50">
             </div>
           </div>
-
-          <button type="submit" class="btn btn-primary w-100 mb-3">
-            <i class="fas fa-user-plus me-2"></i>Register
-          </button>
-        </form>
-
-        <div class="text-center">
-          <p class="mb-0">Already have an account? <a href="/login" class="text-primary fw-bold">Login</a></p>
         </div>
+
+        <!-- Terms & Conditions -->
+        <div class="flex items-start gap-3">
+          <input type="checkbox" required class="w-4 h-4 mt-1 rounded border-gray-600 bg-gray-700 text-indigo-500 focus:ring-indigo-500">
+          <span class="text-sm text-gray-400">
+            I agree to the <a href="#" class="text-indigo-400 hover:text-indigo-300">Terms of Service</a> and <a href="#" class="text-indigo-400 hover:text-indigo-300">Privacy Policy</a>
+          </span>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="hms-btn hms-btn-primary w-full text-lg">
+          <i class="fas fa-user-plus"></i>
+          Create Account
+        </button>
+      </form>
+
+      <!-- Login Link -->
+      <div class="text-center mt-6 pt-6 border-t border-gray-700">
+        <p class="text-gray-400">
+          Already have an account? 
+          <a href="/login" class="text-indigo-400 hover:text-indigo-300 font-semibold transition-colors">
+            Sign in
+          </a>
+        </p>
       </div>
+    </div>
+
+    <!-- Footer Links -->
+    <div class="text-center mt-8 text-sm text-gray-500">
+      <a href="#" class="hover:text-gray-400 transition-colors">Privacy Policy</a>
+      <span class="mx-3">•</span>
+      <a href="#" class="hover:text-gray-400 transition-colors">Terms of Service</a>
+      <span class="mx-3">•</span>
+      <a href="#" class="hover:text-gray-400 transition-colors">Help Center</a>
     </div>
   </div>
 </div>
 
 <script>
-  function toggleDoctorFields() {
-    const role = document.getElementById('roleSelect').value;
-    document.getElementById('doctorFields').style.display = role === 'doctor' ? 'block' : 'none';
+function togglePassword() {
+  const input = document.getElementById('passwordInput');
+  const icon = document.getElementById('passwordToggleIcon');
+  
+  if (input.type === 'password') {
+    input.type = 'text';
+    icon.classList.remove('fa-eye');
+    icon.classList.add('fa-eye-slash');
+  } else {
+    input.type = 'password';
+    icon.classList.remove('fa-eye-slash');
+    icon.classList.add('fa-eye');
   }
+}
+
+function toggleDoctorFields() {
+  const roleSelect = document.querySelector('input[name="role"]:checked');
+  const doctorFields = document.getElementById('doctorFields');
+  
+  if (roleSelect && roleSelect.value === 'doctor') {
+    doctorFields.classList.remove('hidden');
+  } else {
+    doctorFields.classList.add('hidden');
+  }
+}
 </script>
 
 <%- include('../partials/footer') %>

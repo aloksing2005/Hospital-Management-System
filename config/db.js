@@ -48,7 +48,7 @@ const appointmentSchema = new mongoose.Schema({
   doctor_id:  { type: mongoose.Schema.Types.ObjectId, ref: "Doctor", required: true },
   date:       { type: Date },
   time_slot:  { type: String, maxlength: 50 },
-  status:     { type: String, enum: ["pending", "confirmed", "completed", "cancelled"], default: "pending" },
+  status:     { type: String, enum: ["pending", "confirmed", "checked_in", "completed", "cancelled"], default: "pending" },
   symptoms:   { type: String },
   notes:      { type: String }
 }, { timestamps: { createdAt: "created_at", updatedAt: false } });
@@ -87,7 +87,8 @@ paymentSchema.index({ razorpay_order_id: 1 });
 const messageSchema = new mongoose.Schema({
   sender_id:   { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   receiver_id: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  message:     { type: String }
+  message:     { type: String },
+  read:        { type: Boolean, default: false }
 }, { timestamps: { createdAt: "created_at", updatedAt: false } });
 
 // --- Reviews ---
@@ -226,7 +227,7 @@ const ambulanceRequestSchema = new mongoose.Schema({
   vehicle_id:     { type: mongoose.Schema.Types.ObjectId, ref: "Ambulance" },
   pickup_address: { type: String },
   emergency_type: { type: String, maxlength: 100 },
-  status:         { type: String, enum: ["pending", "accepted", "arrived", "completed", "cancelled"], default: "pending" },
+  status:         { type: String, enum: ["pending", "accepted", "on_the_way", "arrived", "completed", "cancelled"], default: "pending" },
   pickup_lat:     { type: Number },
   pickup_lng:     { type: Number },
   eta:            { type: String, maxlength: 50 }
@@ -235,6 +236,90 @@ const ambulanceRequestSchema = new mongoose.Schema({
 ambulanceRequestSchema.index({ patient_id: 1 });
 ambulanceRequestSchema.index({ status: 1 });
 ambulanceRequestSchema.index({ driver_id: 1 });
+
+// --- Parking Slots ---
+const parkingSlotSchema = new mongoose.Schema({
+  spot_code:  { type: String, unique: true, required: true, maxlength: 20 },
+  zone:       { type: String, maxlength: 50 },
+  status:     { type: String, enum: ["available", "occupied", "reserved"], default: "available" }
+}, { timestamps: false });
+
+// --- Parking Reservations ---
+const parkingReservationSchema = new mongoose.Schema({
+  patient_id: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  slot_id:    { type: mongoose.Schema.Types.ObjectId, ref: "ParkingSlot", required: true },
+  spot_code:  { type: String, maxlength: 20 },
+  date:       { type: Date, default: Date.now },
+  status:     { type: String, enum: ["active", "completed", "cancelled"], default: "active" }
+}, { timestamps: { createdAt: "created_at", updatedAt: false } });
+
+parkingReservationSchema.index({ patient_id: 1 });
+
+// --- Pharmacy Orders ---
+const pharmacyOrderSchema = new mongoose.Schema({
+  patient_id:  { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  items:       [{ medicine_id: mongoose.Schema.Types.ObjectId, medicine_name: String, quantity: Number, price: Number }],
+  total_amount:{ type: Number, default: 0 },
+  status:      { type: String, enum: ["pending", "confirmed", "dispatched", "delivered", "cancelled"], default: "pending" },
+  prescription_required: { type: Boolean, default: false },
+  prescription_verified: { type: Boolean, default: false },
+  tracking_id: { type: String, maxlength: 50 }
+}, { timestamps: { createdAt: "created_at", updatedAt: false } });
+
+pharmacyOrderSchema.index({ patient_id: 1 });
+
+// --- Insurance Claims ---
+const insuranceClaimSchema = new mongoose.Schema({
+  patient_id:    { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  provider:      { type: String, maxlength: 100 },
+  policy_number: { type: String, maxlength: 100 },
+  amount:        { type: Number },
+  description:   { type: String },
+  document_path: { type: String, maxlength: 255 },
+  status:        { type: String, enum: ["submitted", "under_review", "approved", "rejected"], default: "submitted" }
+}, { timestamps: { createdAt: "created_at", updatedAt: false } });
+
+insuranceClaimSchema.index({ patient_id: 1 });
+
+// --- Wellbeing Logs ---
+const wellbeingLogSchema = new mongoose.Schema({
+  patient_id: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  mood:       { type: String, maxlength: 50 },
+  stress_level:{ type: Number, min: 1, max: 10 },
+  activity:   { type: String, enum: ["mood", "meditation", "breathing", "journal", "tip"], default: "mood" },
+  notes:      { type: String },
+  duration_mins:{ type: Number }
+}, { timestamps: { createdAt: "created_at", updatedAt: false } });
+
+wellbeingLogSchema.index({ patient_id: 1 });
+
+// --- AI Consultations ---
+const aiConsultationSchema = new mongoose.Schema({
+  patient_id:       { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  symptoms:         { type: String },
+  transcript:       { type: String },
+  possible_conditions:[{ name: String, description: String, severity: String }],
+  medicines:        [{ type: String }],
+  precautions:      [{ type: String }],
+  recommended_specialty: { type: String },
+  recommended_doctors:[{ doctor_id: mongoose.Schema.Types.ObjectId, name: String, specialization: String }],
+  summary:          { type: String },
+  duration_secs:    { type: Number }
+}, { timestamps: { createdAt: "created_at", updatedAt: false } });
+
+aiConsultationSchema.index({ patient_id: 1 });
+
+// --- Emergency Alerts ---
+const emergencyAlertSchema = new mongoose.Schema({
+  patient_id:   { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  patient_name: { type: String },
+  lat:          { type: Number },
+  lng:          { type: Number },
+  message:      { type: String },
+  status:       { type: String, enum: ["active", "resolved"], default: "active" }
+}, { timestamps: { createdAt: "created_at", updatedAt: false } });
+
+emergencyAlertSchema.index({ status: 1 });
 
 // ─── Model Exports ─────────────────────────────────────────────────────────────
 const User               = mongoose.model("User", userSchema);
@@ -256,6 +341,13 @@ const PharmacyInventory  = mongoose.model("PharmacyInventory", pharmacyInventory
 const Bill               = mongoose.model("Bill", billSchema);
 const Ambulance          = mongoose.model("Ambulance", ambulanceSchema);
 const AmbulanceRequest   = mongoose.model("AmbulanceRequest", ambulanceRequestSchema);
+const ParkingSlot        = mongoose.model("ParkingSlot", parkingSlotSchema);
+const ParkingReservation = mongoose.model("ParkingReservation", parkingReservationSchema);
+const PharmacyOrder      = mongoose.model("PharmacyOrder", pharmacyOrderSchema);
+const InsuranceClaim     = mongoose.model("InsuranceClaim", insuranceClaimSchema);
+const WellbeingLog       = mongoose.model("WellbeingLog", wellbeingLogSchema);
+const AIConsultation     = mongoose.model("AIConsultation", aiConsultationSchema);
+const EmergencyAlert     = mongoose.model("EmergencyAlert", emergencyAlertSchema);
 
 // ─── Seed Default Data ──────────────────────────────────────────────────────────
 async function seedDB() {
@@ -266,6 +358,45 @@ async function seedDB() {
       const hashedPass = bcrypt.hashSync("admin123", 10);
       await User.create({ name: "Admin", email: "admin@hms.com", password: hashedPass, role: "admin" });
       console.log("  → Default admin created (admin@hms.com / admin123)");
+    }
+
+    // --- Default Patient ---
+    const patientExists = await User.findOne({ email: "patient@hms.com" });
+    if (!patientExists) {
+      const patientPass = bcrypt.hashSync("patient123", 10);
+      await User.create({
+        name: "Demo Patient",
+        email: "patient@hms.com",
+        password: patientPass,
+        role: "patient",
+        phone: "9876543210"
+      });
+      console.log("  → Default patient created (patient@hms.com / patient123)");
+    }
+
+    // --- Default Doctor ---
+    const doctorExists = await User.findOne({ email: "doctor@hms.com" });
+    if (!doctorExists) {
+      const doctorPass = bcrypt.hashSync("doctor123", 10);
+      const doctorUser = await User.create({
+        name: "Dr. Gregory House",
+        email: "doctor@hms.com",
+        password: doctorPass,
+        role: "doctor",
+        phone: "9876543211"
+      });
+      await Doctor.create({
+        user_id: doctorUser._id,
+        name: "Gregory House",
+        specialization: "Neurologist",
+        location: "Clinic A, Floor 2",
+        photo: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200",
+        fees: 800,
+        available_from: "09:00",
+        available_to: "17:00",
+        status: "active"
+      });
+      console.log("  → Default doctor created (doctor@hms.com / doctor123)");
     }
 
     // --- Default Driver ---
@@ -324,6 +455,39 @@ async function seedDB() {
       console.log("  → Hospital resources seeded");
     }
 
+    // --- Demo blood lab report for patient ---
+    const demoPatient = await User.findOne({ email: "patient@hms.com" });
+    if (demoPatient) {
+      const bloodReport = await LabReport.findOne({
+        patient_id: demoPatient._id,
+        test_type: /blood/i
+      });
+      if (!bloodReport) {
+        await LabReport.create({
+          patient_id: demoPatient._id,
+          report_name: "Complete Blood Count (CBC)",
+          test_type: "Blood Profile",
+          file_path: "/images/sample-blood-report.pdf"
+        });
+        console.log("  → Demo blood profile report seeded");
+      }
+    }
+
+    // --- Parking Slots Seed ---
+    const parkingCount = await ParkingSlot.countDocuments();
+    if (parkingCount === 0) {
+      const slots = [];
+      for (let i = 1; i <= 12; i++) {
+        slots.push({
+          spot_code: `P-${i < 10 ? "0" + i : i}`,
+          zone: `Zone ${Math.ceil(i / 4)}`,
+          status: i % 3 === 0 ? "occupied" : "available"
+        });
+      }
+      await ParkingSlot.insertMany(slots);
+      console.log("  → Parking slots seeded");
+    }
+
     console.log("✅ Database seeding completed");
   } catch (err) {
     console.error("❌ DB Seed Error:", err.message);
@@ -355,5 +519,12 @@ module.exports = {
   PharmacyInventory,
   Bill,
   Ambulance,
-  AmbulanceRequest
+  AmbulanceRequest,
+  ParkingSlot,
+  ParkingReservation,
+  PharmacyOrder,
+  InsuranceClaim,
+  WellbeingLog,
+  AIConsultation,
+  EmergencyAlert
 };

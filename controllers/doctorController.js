@@ -10,7 +10,7 @@ exports.getDashboard = async (req, res) => {
     const doctor = await doctorModel.findByUserId(req.session.user.id);
     if (!doctor) {
       req.flash("error", "Doctor profile not found");
-      return res.redirect("/");
+      return res.redirect("/doctor/profile");
     }
 
     const stats = await doctorModel.getDoctorStats(doctor.id);
@@ -28,7 +28,7 @@ exports.getDashboard = async (req, res) => {
     });
   } catch (err) {
     req.flash("error", "Dashboard error: " + err.message);
-    res.redirect("/");
+    res.redirect("/doctor/dashboard");
   }
 };
 

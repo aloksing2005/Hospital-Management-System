@@ -93,7 +93,7 @@ exports.searchDoctorsAdvanced = async ({ search, specialization, maxFees, minRat
     filter.$or = [{ name: regex }, { specialization: regex }];
   }
   if (specialization) {
-    filter.specialization = specialization;
+    filter.specialization = new RegExp(specialization, "i");
   }
   if (maxFees) {
     filter.fees = { $lte: maxFees };

@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const { Appointment, Prescription } = require("../config/db");
 const AmbulanceModel = require("../models/ambulanceModel");
+const notificationModel = require("../models/notificationModel");
 const { isLoggedIn } = require("../middleware/auth");
 
 function haversineKm(lat1, lon1, lat2, lon2) {
@@ -101,6 +102,34 @@ router.get("/patient-risk/:patientId", isLoggedIn, async (req, res) => {
     });
   } catch (e) {
     res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+/** Global Notifications API */
+router.get("/notifications", isLoggedIn, async (req, res) => {
+  try {
+    const notifications = await notificationModel.getByUser(req.session.user.id);
+    const unread = await notificationModel.getUnreadCount(req.session.user.id);
+    res.json({
+      success: true,
+      notifications: notifications.map(n => ({
+        ...n,
+        is_read: n.is_read,
+        read: n.is_read
+      })),
+      unread
+    });
+  } catch (err) {
+    res.status(500).json({ success: false });
+  }
+});
+
+router.post("/notifications/read-all", isLoggedIn, async (req, res) => {
+  try {
+    await notificationModel.markAllAsRead(req.session.user.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false });
   }
 });
 

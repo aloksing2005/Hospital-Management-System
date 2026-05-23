@@ -1,67 +1,83 @@
-<% var title = 'My Prescriptions - HMS'; %>
+<% var title = 'My Prescriptions - HMS Premium'; %>
 <%- include('../partials/header') %>
 
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-md-3 col-lg-2 sidebar p-0">
-      <div class="p-3 text-white">
-        <h5 class="fw-bold"><i class="fas fa-heartbeat me-2"></i>Patient Panel</h5>
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <%- include('../partials/patient-sidebar', { active: 'prescriptions' }) %>
+
+  <!-- Main Content -->
+  <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+    <!-- Page Header -->
+      <div class="mb-8 animate-fade-in">
+        <h1 class="text-3xl font-black text-white mb-2">My Prescriptions</h1>
+        <p class="text-gray-400 font-medium">View and download your medical prescriptions</p>
       </div>
-      <nav class="nav flex-column">
-        <a class="nav-link" href="/patient/dashboard"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
-        <a class="nav-link" href="/patient/doctors"><i class="fas fa-user-md me-2"></i>Find Doctors</a>
-        <a class="nav-link" href="/patient/appointments"><i class="fas fa-calendar-check me-2"></i>My Appointments</a>
-        <a class="nav-link active" href="/patient/prescriptions"><i class="fas fa-file-prescription me-2"></i>Prescriptions</a>
-        <a class="nav-link" href="/patient/symptom-checker"><i class="fas fa-brain me-2"></i>AI Symptom Checker</a>
-        <a class="nav-link" href="/patient/chat"><i class="fas fa-comments me-2"></i>Chat</a>
-      </nav>
-    </div>
 
-    <div class="col-md-9 col-lg-10 p-4">
-      <h2 class="fw-bold mb-4"><i class="fas fa-file-prescription me-2"></i>My Prescriptions</h2>
-
-      <div class="row g-4">
-        <% if (prescriptions.length === 0) { %>
-          <div class="col-12 text-center py-5">
-            <i class="fas fa-file-medical fa-3x text-muted mb-3"></i>
-            <h4 class="text-muted">No prescriptions yet</h4>
-            <p class="text-muted">Your prescriptions will appear here after doctor visits</p>
-          </div>
-        <% } else { %>
+      <!-- Prescriptions Grid -->
+      <% if (prescriptions.length === 0) { %>
+        <div class="hms-card text-center py-16 animate-fade-in">
+          <i class="fas fa-file-medical text-5xl text-gray-600 mb-4 block"></i>
+          <h3 class="text-xl font-bold text-white mb-2">No prescriptions yet</h3>
+          <p class="text-gray-400">Your prescriptions will appear here after doctor visits</p>
+        </div>
+      <% } else { %>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <% prescriptions.forEach(p => { %>
-            <div class="col-md-6 col-lg-4">
-              <div class="card h-100">
-                <div class="card-header bg-white">
-                  <h6 class="fw-bold mb-0">Dr. <%= p.doctor_name %></h6>
-                  <small class="text-muted"><%= new Date(p.appointment_date).toLocaleDateString() %></small>
+            <div class="hms-card animate-scale-in">
+              <div class="mb-6">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="w-12 h-12 bg-indigo-500/20 text-indigo-400 rounded-xl flex items-center justify-center">
+                    <i class="fas fa-user-md text-xl"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-bold text-white">Dr. <%= p.doctor_name %></h3>
+                    <p class="text-gray-400 text-sm"><%= new Date(p.appointment_date).toLocaleDateString() %></p>
+                  </div>
                 </div>
-                <div class="card-body">
-                  <p class="mb-2"><strong>Disease:</strong> <%= p.disease %></p>
-                  <p class="mb-2"><strong>Medicines:</strong></p>
-                  <ul class="list-unstyled">
+              </div>
+
+              <div class="space-y-4 mb-6">
+                <div>
+                  <span class="text-gray-500 text-sm font-medium">Diagnosis</span>
+                  <p class="text-white font-semibold"><%= p.disease %></p>
+                </div>
+                <div>
+                  <span class="text-gray-500 text-sm font-medium">Medicines</span>
+                  <ul class="space-y-2 mt-2">
                     <% p.medicines.split(',').forEach(med => { %>
-                      <li><i class="fas fa-pills me-2 text-primary"></i><%= med.trim() %></li>
+                      <li class="flex items-center gap-2 text-gray-300">
+                        <i class="fas fa-pills text-indigo-400"></i>
+                        <span><%= med.trim() %></span>
+                      </li>
                     <% }) %>
                   </ul>
                 </div>
-                <div class="card-footer bg-white">
-                  <a href="<%= p.file_path %>" target="_blank" class="btn btn-primary w-100">
-                    <i class="fas fa-download me-2"></i>Download PDF
-                  </a>
-                </div>
               </div>
+
+              <a href="<%= p.file_path %>" target="_blank" class="hms-btn hms-btn-primary w-full">
+                <i class="fas fa-download"></i>
+                Download PDF
+              </a>
             </div>
           <% }) %>
-        <% } %>
-      </div>
+        </div>
+      <% } %>
     </div>
   </div>
 </div>
 
 <script>
-  socket.on('new-prescription', (data) => {
-    showToast('New Prescription!', `Dr. ${data.doctorName} generated your prescription`, 'success');
-  });
+  const socket = window.hmsSocket ? window.hmsSocket() : null;
+  if (socket) {
+    socket.on('new-prescription', (data) => {
+      if (String(data.patientId || '') === '<%= user.id %>') {
+        if (typeof window.hmsShowToast === 'function') {
+          window.hmsShowToast('New Prescription', 'Dr. ' + (data.doctorName || '') + ' issued a new prescription', 'success');
+        }
+        location.reload();
+      }
+    });
+  }
 </script>
 
 <%- include('../partials/footer') %>

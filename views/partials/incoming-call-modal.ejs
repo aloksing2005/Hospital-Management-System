@@ -1,0 +1,118 @@
+<!-- Incoming Call Modal -->
+<div id="incomingCallModal" class="hidden fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50">
+  <div class="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl text-center animate-bounce-in">
+    <div class="w-24 h-24 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+      <i class="fas fa-video text-4xl"></i>
+    </div>
+    <h3 class="text-2xl font-bold text-gray-900 mb-2">Incoming Video Call</h3>
+    <p class="text-gray-500 mb-6" id="callerName">Dr. Smith is calling...</p>
+    
+    <div class="flex gap-4 justify-center">
+      <button onclick="acceptCall()" class="w-16 h-16 bg-green-500 text-white rounded-full flex items-center justify-center hover:bg-green-600 transition transform hover:scale-110">
+        <i class="fas fa-phone text-2xl"></i>
+      </button>
+      <button onclick="rejectCall()" class="w-16 h-16 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition transform hover:scale-110">
+        <i class="fas fa-phone-slash text-2xl"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes bounce-in {
+    0% { transform: scale(0.5); opacity: 0; }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .animate-bounce-in {
+    animation: bounce-in 0.5s ease-out;
+  }
+</style>
+
+<script>
+  let incomingCallData = null;
+
+  // Initialize socket
+  const socket = window.hmsSocket ? window.hmsSocket() : null;
+  if (socket) {
+    socket.on('incoming-call', (data) => {
+      incomingCallData = data;
+      document.getElementById('callerName').textContent = `${data.callerName} is calling...`;
+      const modal = document.getElementById('incomingCallModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      
+      // Play ringtone
+      playRingtone();
+    });
+
+    socket.on('call-rejected', (data) => {
+      alert('Call was rejected by the other party');
+      window.location.href = '<%= user.role === "doctor" ? "/doctor/appointments" : "/patient/appointments" %>';
+    });
+
+    socket.on('call-ended', (data) => {
+      alert('Call ended');
+      window.location.href = '<%= user.role === "doctor" ? "/doctor/appointments" : "/patient/appointments" %>';
+    });
+    // Play ringtone
+    playRingtone();
+  }
+
+  function hideIncomingCall() {
+    const modal = document.getElementById('incomingCallModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    stopRingtone();
+  }
+
+  function acceptCall() {
+    if (incomingCallData) {
+      hideIncomingCall();
+      window.location.href = `/consultation/${incomingCallData.appointmentId}`;
+    }
+  }
+
+  function rejectCall() {
+    if (incomingCallData && socket) {
+      socket.emit('reject-call', {
+        appointmentId: incomingCallData.appointmentId,
+        callerId: incomingCallData.callerId
+      });
+      hideIncomingCall();
+    }
+  }
+
+  let ringtoneAudio = null;
+  function playRingtone() {
+    if (!ringtoneAudio) {
+      ringtoneAudio = new Audio('https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg');
+      ringtoneAudio.loop = true;
+    }
+    ringtoneAudio.play().catch(e => console.log('Audio play failed:', e));
+  }
+
+  function stopRingtone() {
+    if (ringtoneAudio) {
+      ringtoneAudio.pause();
+      ringtoneAudio.currentTime = 0;
+    }
+  }
+
+  // Socket.IO listeners for incoming calls
+  if (socket) {
+    socket.on('incoming-call', (data) => {
+      showIncomingCall(data);
+    });
+
+    socket.on('call-rejected', (data) => {
+      alert('Call was rejected by the other party');
+      window.location.href = '<%= user.role === "doctor" ? "/doctor/appointments" : "/patient/appointments" %>';
+    });
+
+    socket.on('call-ended', (data) => {
+      alert('Call ended');
+      window.location.href = '<%= user.role === "doctor" ? "/doctor/appointments" : "/patient/appointments" %>';
+    });
+  }
+</script>

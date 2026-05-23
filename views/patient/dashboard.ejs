@@ -1,162 +1,247 @@
-<% var title = 'Patient Command Center - HMS'; %>
+<% var title = 'Patient Dashboard - HMS Premium'; %>
 <%- include('../partials/header') %>
+<%- include('../partials/incoming-call-modal') %>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-<div class="container-fluid mesh-bg min-h-screen">
-  <div class="row">
-    <%- include('../partials/patient-sidebar', { active: 'dashboard' }) %>
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <%- include('../partials/patient-sidebar', { active: 'dashboard' }) %>
 
-    <div class="col-md-9 col-lg-10 p-8">
+  <!-- Main Content -->
+  <div class="flex-1 overflow-y-auto p-6 lg:p-8">
       <!-- Welcome Header -->
-      <div class="page-header flex flex-col md:flex-row justify-between items-start md:items-end mb-12">
-          <div>
-              <span class="text-xs font-black uppercase tracking-[0.3em] text-indigo-400 mb-2 block">System Overview</span>
-              <h1 class="text-5xl font-black text-white tracking-tighter">Welcome back, <%= user.name %></h1>
-              <p class="text-slate-400 font-medium mt-2">Here's your health summary for today.</p>
-          </div>
-          <div class="flex flex-col md:flex-row gap-6 mt-6 md:mt-0">
-              <div class="glass px-8 py-4 rounded-[30px] flex items-center gap-6 border border-white/10 shadow-2xl">
-                  <div class="relative w-16 h-16">
-                      <svg class="w-full h-full transform -rotate-90">
-                          <circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="6" fill="transparent" class="text-white/10" />
-                          <circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="6" fill="transparent" class="<%= healthScore > 80 ? 'text-emerald-400' : 'text-amber-400' %>" stroke-dasharray="176" stroke-dashoffset="<%= 176 - (176 * healthScore) / 100 %>" />
-                      </svg>
-                      <span class="absolute inset-0 flex items-center justify-center text-lg font-black text-white"><%= healthScore %></span>
-                  </div>
-                  <div>
-                      <span class="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400 mb-1 block">Health Score</span>
-                      <h4 class="text-white font-bold"><%= healthScore > 80 ? 'Excellent' : 'Stable' %></h4>
-                  </div>
-              </div>
-              <div class="glass px-6 py-3 rounded-2xl flex items-center gap-3 border border-white/10">
-                  <div class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></div>
-                  <span class="text-sm font-bold text-slate-300">AURA: Online</span>
-              </div>
-          </div>
+      <div class="mb-8 animate-fade-in">
+        <h1 class="text-3xl font-black text-white mb-2">Welcome back, <%= user.name %></h1>
+        <p class="text-gray-400 font-medium">Here's your health summary for today.</p>
       </div>
 
-      <!-- Live Vitals Grid (Real-time Simulation) -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          <div class="cyber-card p-8 group">
-              <div class="flex justify-between items-start mb-6">
-                  <div class="w-14 h-14 bg-rose-500/10 text-rose-500 rounded-2xl flex items-center justify-center text-xl transition-transform group-hover:scale-110">
-                      <i class="fas fa-heartbeat"></i>
-                  </div>
-                  <span class="text-xs font-black text-rose-500 bg-rose-500/10 px-2 py-1 rounded-lg border border-rose-500/20">LIVE</span>
-              </div>
-              <h3 class="stat-value text-4xl font-black text-white mb-1">72 <span class="text-lg text-slate-400 font-medium">BPM</span></h3>
-              <p class="text-slate-400 text-sm font-bold uppercase tracking-widest">Heart Rate</p>
+      <!-- Health Score Card -->
+      <div class="hms-card mb-8 animate-scale-in">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div class="flex items-center gap-6">
+            <div class="relative w-20 h-20">
+              <svg class="w-full h-full transform -rotate-90">
+                <circle cx="40" cy="40" r="36" stroke="currentColor" stroke-width="8" fill="transparent" class="text-gray-700" />
+                <circle cx="40" cy="40" r="36" stroke="currentColor" stroke-width="8" fill="transparent" class="<%= healthScore > 80 ? 'text-emerald-400' : 'text-amber-400' %>" stroke-dasharray="226" stroke-dashoffset="<%= 226 - (226 * healthScore) / 100 %>" />
+              </svg>
+              <span class="absolute inset-0 flex items-center justify-center text-2xl font-black text-white"><%= healthScore %></span>
+            </div>
+            <div>
+              <span class="text-xs font-black uppercase tracking-wider text-indigo-400 block mb-1">Health Score</span>
+              <h3 class="text-xl font-bold text-white"><%= healthScore > 80 ? 'Excellent' : 'Stable' %></h3>
+            </div>
           </div>
-
-          <div class="cyber-card p-8 group">
-              <div class="flex justify-between items-start mb-6">
-                  <div class="w-14 h-14 bg-cyan-500/10 text-cyan-500 rounded-2xl flex items-center justify-center text-xl transition-transform group-hover:scale-110">
-                      <i class="fas fa-wind"></i>
-                  </div>
-                  <span class="text-xs font-black text-cyan-500 bg-cyan-500/10 px-2 py-1 rounded-lg border border-cyan-500/20">LIVE</span>
-              </div>
-              <h3 class="stat-value text-4xl font-black text-white mb-1">98 <span class="text-lg text-slate-400 font-medium">%</span></h3>
-              <p class="text-slate-400 text-sm font-bold uppercase tracking-widest">SpO2 Level</p>
+          <div class="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-xl border border-white/10">
+            <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+            <span class="text-sm font-bold text-gray-300">System Online</span>
           </div>
-
-          <div class="cyber-card p-8 group">
-              <div class="flex justify-between items-start mb-6">
-                  <div class="w-14 h-14 bg-indigo-500/10 text-indigo-500 rounded-2xl flex items-center justify-center text-xl transition-transform group-hover:scale-110">
-                      <i class="fas fa-tint"></i>
-                  </div>
-                  <span class="text-xs font-black text-indigo-500 bg-indigo-500/10 px-2 py-1 rounded-lg border border-indigo-500/20">STABLE</span>
-              </div>
-              <h3 class="stat-value text-4xl font-black text-white mb-1">120/80</h3>
-              <p class="text-slate-400 text-sm font-bold uppercase tracking-widest">Blood Pressure</p>
-          </div>
-
-          <div class="cyber-card p-8 group">
-              <div class="flex justify-between items-start mb-6">
-                  <div class="w-14 h-14 bg-amber-500/10 text-amber-500 rounded-2xl flex items-center justify-center text-xl transition-transform group-hover:scale-110">
-                      <i class="fas fa-thermometer-half"></i>
-                  </div>
-                  <span class="text-xs font-black text-amber-500 bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-500/20">NORMAL</span>
-              </div>
-              <h3 class="stat-value text-4xl font-black text-white mb-1">98.6 <span class="text-lg text-slate-400 font-medium">°F</span></h3>
-              <p class="text-slate-400 text-sm font-bold uppercase tracking-widest">Body Temp</p>
-          </div>
+        </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <!-- Main Content Area -->
-          <div class="lg:col-span-2 space-y-8">
-              <div class="cyber-card p-10 overflow-hidden relative">
-                  <div class="relative z-10">
-                      <h3 class="text-2xl font-black text-white mb-8">Recent Consultations</h3>
-                      <div class="space-y-6">
-                          <% if (appointments.length === 0) { %>
-                              <div class="text-center py-10">
-                                  <p class="text-slate-400 font-medium">No recent medical activity found.</p>
-                              </div>
-                          <% } else { %>
-                              <% appointments.forEach(app => { %>
-                                  <div class="flex items-center gap-6 p-6 rounded-3xl bg-white/5 border border-white/5 hover:bg-white/10 hover:shadow-xl transition-all duration-500">
-                                      <img src="https://i.pravatar.cc/100?u=<%= app.doctor_id %>" class="w-16 h-16 rounded-2xl object-cover shadow-md">
-                                      <div class="flex-grow">
-                                          <h4 class="text-lg font-black text-white"><%= app.doctor_name %></h4>
-                                          <p class="text-xs font-bold text-indigo-400 uppercase tracking-widest"><%= app.specialization %></p>
-                                      </div>
-                                      <div class="text-right">
-                                          <p class="text-sm font-bold text-white"><%= app.date %></p>
-                                          <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-emerald-500/20 text-emerald-400">Completed</span>
-                                      </div>
-                                  </div>
-                              <% }) %>
-                          <% } %>
-                      </div>
-                  </div>
-              </div>
+      <!-- Live Vitals Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="hms-card animate-scale-in">
+          <div class="flex justify-between items-start mb-4">
+            <div class="w-12 h-12 bg-rose-500/20 text-rose-400 rounded-xl flex items-center justify-center">
+              <i class="fas fa-heartbeat text-xl"></i>
+            </div>
+            <span class="hms-badge hms-badge-danger animate-pulse-custom">LIVE</span>
+          </div>
+          <div class="hms-stat-value text-3xl">72 <span class="text-lg text-gray-400">BPM</span></div>
+          <div class="hms-stat-label">Heart Rate</div>
+        </div>
+        <div class="hms-card animate-scale-in animate-delay-100">
+          <div class="flex justify-between items-start mb-4">
+            <div class="w-12 h-12 bg-cyan-500/20 text-cyan-400 rounded-xl flex items-center justify-center">
+              <i class="fas fa-wind text-xl"></i>
+            </div>
+            <span class="hms-badge hms-badge-info animate-pulse-custom">LIVE</span>
+          </div>
+          <div class="hms-stat-value text-3xl">98 <span class="text-lg text-gray-400">%</span></div>
+          <div class="hms-stat-label">SpO2 Level</div>
+        </div>
+        <div class="hms-card animate-scale-in animate-delay-200">
+          <div class="flex justify-between items-start mb-4">
+            <div class="w-12 h-12 bg-indigo-500/20 text-indigo-400 rounded-xl flex items-center justify-center">
+              <i class="fas fa-tint text-xl"></i>
+            </div>
+            <span class="hms-badge hms-badge-primary">STABLE</span>
+          </div>
+          <div class="hms-stat-value text-3xl">120/80</div>
+          <div class="hms-stat-label">Blood Pressure</div>
+        </div>
+        <div class="hms-card animate-scale-in animate-delay-300">
+          <div class="flex justify-between items-start mb-4">
+            <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center">
+              <i class="fas fa-thermometer-half text-xl"></i>
+            </div>
+            <span class="hms-badge hms-badge-warning">NORMAL</span>
+          </div>
+          <div class="hms-stat-value text-3xl">98.6 <span class="text-lg text-gray-400">°F</span></div>
+          <div class="hms-stat-label">Body Temp</div>
+        </div>
+      </div>
 
-              <!-- AI Health Tip -->
-              <div class="bg-indigo-600 rounded-[40px] p-10 text-white flex items-center gap-8 shadow-2xl shadow-indigo-500/20">
-                  <div class="w-20 h-20 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center text-3xl shrink-0">
-                      <i class="fas fa-robot"></i>
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Content Area -->
+        <div class="lg:col-span-2 space-y-6">
+          <!-- Digital Health ID Card -->
+          <div class="hms-card animate-fade-in relative overflow-hidden group">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                <i class="fas fa-id-card text-indigo-400"></i> Digital Health Card
+              </h3>
+              <button onclick="printHealthCard()" class="px-3.5 py-1.5 bg-white/5 hover:bg-indigo-600 border border-white/10 hover:border-indigo-500 rounded-xl text-xs font-bold text-gray-300 hover:text-white transition-all flex items-center gap-1.5">
+                <i class="fas fa-print"></i> Print Pass
+              </button>
+            </div>
+
+            <!-- The Smart Card -->
+            <div id="healthCardToPrint" class="relative w-full max-w-md mx-auto aspect-[1.586/1] bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 border border-white/15 rounded-[24px] p-6 shadow-2xl overflow-hidden flex flex-col justify-between text-white group-hover:border-indigo-500/40 transition-colors">
+              <!-- Radial Ambient Glow inside card -->
+              <div class="absolute -right-20 -top-20 w-48 h-48 rounded-full bg-indigo-500/15 blur-3xl pointer-events-none"></div>
+              <div class="absolute -left-20 -bottom-20 w-48 h-48 rounded-full bg-purple-500/10 blur-3xl pointer-events-none"></div>
+
+              <!-- Card Header -->
+              <div class="flex justify-between items-start relative z-10">
+                <div class="flex items-center gap-2">
+                  <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-sm shadow-md">
+                    <i class="fas fa-heartbeat"></i>
                   </div>
                   <div>
-                      <h4 class="text-xl font-bold mb-2">AURA Intelligence Tip</h4>
-                      <p class="text-indigo-100 font-medium leading-relaxed">Your hydration levels seem a bit lower than usual today. Aim for 2 more liters before 8 PM to maintain optimal kidney function.</p>
+                    <h4 class="text-xs font-black tracking-widest uppercase opacity-90">HMS Premium</h4>
+                    <span class="text-[9px] uppercase tracking-wider text-indigo-300 font-bold">Digital Health Pass</span>
                   </div>
+                </div>
+                <div class="flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                  <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+                  <span class="text-[8px] font-bold text-emerald-400 uppercase tracking-widest">Active</span>
+                </div>
               </div>
+
+              <!-- Card Body / Details & QR -->
+              <div class="grid grid-cols-3 items-end gap-4 mt-4 relative z-10">
+                <!-- Info Section -->
+                <div class="col-span-2 space-y-4">
+                  <div>
+                    <span class="text-[9px] text-gray-400 uppercase tracking-wider block mb-0.5">Cardholder</span>
+                    <p class="text-lg font-black tracking-tight text-white leading-tight uppercase"><%= user.name %></p>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <span class="text-[8px] text-gray-500 uppercase tracking-wider block">Blood Group</span>
+                      <p class="text-xs font-bold text-gray-200">O+ (Demo)</p>
+                    </div>
+                    <div>
+                      <span class="text-[8px] text-gray-500 uppercase tracking-wider block">Emergency</span>
+                      <p class="text-xs font-bold text-gray-200"><%= user.phone || '9876543210' %></p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- QR Section -->
+                <div class="flex flex-col items-center justify-center">
+                  <div class="bg-white p-1.5 rounded-xl shadow-lg border border-white/10" id="qrcodeContainer">
+                    <!-- Target for QR Generator -->
+                  </div>
+                  <span class="text-[7px] text-gray-500 font-mono tracking-widest mt-1.5">PAT-<%= user.id.slice(-6).toUpperCase() %></span>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <!-- Right Sidebar Area -->
-          <div class="space-y-8">
-              <div class="cyber-card p-8 bg-slate-900/50 border-white/5">
-                  <h3 class="text-xl font-black text-white mb-8">Upcoming Visit</h3>
-                  <div class="p-6 bg-white/5 rounded-3xl border border-white/10 mb-8">
-                      <div class="flex items-center gap-4 mb-4">
-                          <i class="fas fa-calendar-alt text-indigo-400"></i>
-                          <span class="text-sm font-bold text-white">Tomorrow, 10:30 AM</span>
-                      </div>
-                      <h4 class="text-lg font-black text-white">Dr. Alok Singh</h4>
-                      <p class="text-xs text-slate-400 uppercase tracking-widest font-bold">Cardiologist • Room 402</p>
-                  </div>
-                  <button class="w-full cyber-btn py-4 rounded-2xl text-xs">Check In Early</button>
+          <!-- Recent Consultations -->
+          <div class="hms-card animate-fade-in">
+            <h3 class="text-xl font-bold text-white mb-6">Recent Consultations</h3>
+            <% if (appointments.length === 0) { %>
+              <div class="hms-empty-state">
+                <i class="fas fa-calendar-check hms-empty-state-icon"></i>
+                <h4 class="hms-empty-state-title">No Consultations Yet</h4>
+                <p class="hms-empty-state-description">Book your first appointment to start tracking your health journey.</p>
               </div>
+            <% } else { %>
+              <div class="space-y-4">
+                <% appointments.forEach(app => { %>
+                  <div class="flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-white/5 hover:bg-white/10 hover:border-white/10 transition-all cursor-pointer group">
+                    <img src="https://i.pravatar.cc/100?u=<%= app.doctor_id %>" class="w-14 h-14 rounded-xl object-cover group-hover:scale-110 transition-transform">
+                    <div class="flex-grow">
+                      <h4 class="text-white font-bold mb-0"><%= app.doctor_name %></h4>
+                      <p class="text-xs font-bold text-indigo-400 uppercase tracking-widest"><%= app.specialization %></p>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-sm font-bold text-white"><%= app.date %></p>
+                      <span class="hms-badge hms-badge-success">Completed</span>
+                    </div>
+                  </div>
+                <% }) %>
+              </div>
+            <% } %>
+          </div>
 
-              <div class="cyber-card p-8">
-                  <h3 class="text-xl font-black text-white mb-8">Lab Status</h3>
-                  <div class="space-y-6">
-                      <div class="flex items-center gap-4">
-                          <div class="w-10 h-10 bg-emerald-500/10 text-emerald-500 rounded-xl flex items-center justify-center"><i class="fas fa-check"></i></div>
-                          <div class="flex-grow">
-                              <p class="text-sm font-bold text-white">Blood Profile</p>
-                              <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Ready to view</p>
-                          </div>
-                      </div>
-                      <div class="flex items-center gap-4 opacity-50">
-                          <div class="w-10 h-10 bg-white/5 text-slate-400 rounded-xl flex items-center justify-center"><i class="fas fa-spinner animate-spin"></i></div>
-                          <div class="flex-grow">
-                              <p class="text-sm font-bold text-white">X-Ray Analysis</p>
-                              <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Processing...</p>
-                          </div>
-                      </div>
-                  </div>
+          <!-- AI Health Tip -->
+          <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 text-white flex items-center gap-6 shadow-2xl shadow-indigo-500/20 animate-fade-in animate-delay-100 hover:shadow-indigo-500/30 transition-all">
+            <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-2xl shrink-0 animate-float">
+              <i class="fas fa-robot"></i>
+            </div>
+            <div>
+              <h4 class="text-lg font-bold mb-1">AI Health Tip</h4>
+              <p class="text-indigo-100 text-sm leading-relaxed">Your hydration levels seem a bit lower than usual today. Aim for 2 more liters before 8 PM to maintain optimal kidney function.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Sidebar -->
+        <div class="space-y-6">
+          <!-- Upcoming Visit -->
+          <div class="hms-card animate-fade-in animate-delay-200">
+            <h3 class="text-xl font-bold text-white mb-6">Upcoming Visit</h3>
+            <% if (upcomingAppointment) { %>
+            <div class="p-4 bg-white/5 rounded-xl border border-white/10 mb-4 hover:bg-white/10 transition-all">
+              <div class="flex items-center gap-3 mb-3">
+                <i class="fas fa-calendar-alt text-indigo-400"></i>
+                <span class="text-sm font-bold text-white"><%= new Date(upcomingAppointment.date).toLocaleDateString() %>, <%= upcomingAppointment.time_slot %></span>
               </div>
+              <h4 class="text-lg font-bold text-white">Dr. <%= upcomingAppointment.doctor_name %></h4>
+              <p class="text-xs text-gray-400 uppercase tracking-widest font-bold"><%= upcomingAppointment.specialization %> • <%= upcomingAppointment.status %></p>
+            </div>
+            <% if (upcomingAppointment.status !== 'checked_in') { %>
+            <button type="button" onclick="checkInEarly('<%= upcomingAppointment._id || upcomingAppointment.id %>')" class="hms-btn hms-btn-primary w-full text-sm">Check In Early</button>
+            <% } else { %>
+            <span class="hms-badge hms-badge-success w-full text-center block py-2">Checked In</span>
+            <% } %>
+            <% } else { %>
+            <div class="text-center py-6 text-gray-400 text-sm">
+              <p>No upcoming appointments</p>
+              <a href="/patient/doctors" class="hms-btn hms-btn-primary mt-4 text-sm inline-block">Book Now</a>
+            </div>
+            <% } %>
+          </div>
+
+          <!-- Lab Status -->
+          <div class="hms-card animate-fade-in animate-delay-300">
+            <h3 class="text-xl font-bold text-white mb-6">Lab Status</h3>
+            <div class="space-y-4">
+              <div class="flex items-center gap-3 p-3 <%= hasBloodReport ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-white/5 border-white/10 opacity-60' %> rounded-xl border hover:bg-emerald-500/15 transition-all cursor-pointer" onclick="window.location.href='/patient/lab-reports/blood'">
+                <div class="w-10 h-10 <%= hasBloodReport ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/5 text-gray-400' %> rounded-lg flex items-center justify-center">
+                  <i class="fas <%= hasBloodReport ? 'fa-check' : 'fa-clock' %>"></i>
+                </div>
+                <div class="flex-grow">
+                  <p class="text-sm font-bold text-white">Blood Profile</p>
+                  <p class="text-xs <%= hasBloodReport ? 'text-emerald-400' : 'text-gray-400' %> uppercase tracking-wider"><%= hasBloodReport ? 'Ready to view' : 'Pending' %></p>
+                </div>
+                <i class="fas fa-chevron-right text-gray-400"></i>
+              </div>
+              <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/10 opacity-60">
+                <div class="w-10 h-10 bg-white/5 text-gray-400 rounded-lg flex items-center justify-center">
+                  <i class="fas fa-spinner animate-spin-custom"></i>
+                </div>
+                <div class="flex-grow">
+                  <p class="text-sm font-bold text-white">X-Ray Analysis</p>
+                  <p class="text-xs text-gray-400 uppercase tracking-wider">Processing...</p>
+                </div>
+              </div>
+            </div>
           </div>
       </div>
     </div>
@@ -164,3 +249,111 @@
 </div>
 
 <%- include('../partials/footer') %>
+
+<script>
+  // Generate QR Code dynamically from real patient data
+  document.addEventListener('DOMContentLoaded', function () {
+    const qrcodeContainer = document.getElementById('qrcodeContainer');
+    if (qrcodeContainer) {
+      new QRCode(qrcodeContainer, {
+        text: "HMS_PATIENT_<%= user.id %>",
+        width: 70,
+        height: 70,
+        colorDark : "#0f172a",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.H
+      });
+    }
+  });
+
+  function printHealthCard() {
+    const cardHtml = document.getElementById('healthCardToPrint').outerHTML;
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Print Health Card - HMS Premium</title>
+          <script src="https://cdn.tailwindcss.com"><\/script>
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+          <style>
+            @media print {
+              body {
+                background: white;
+                color: black;
+                margin: 0;
+                padding: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+              }
+              #healthCardToPrint {
+                border: 2px solid #e2e8f0 !important;
+                background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%) !important;
+                color: white !important;
+                box-shadow: none !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+                width: 450px !important;
+                height: 280px !important;
+              }
+              .no-print {
+                display: none;
+              }
+            }
+            body {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              min-height: 100vh;
+              background-color: #f8fafc;
+            }
+          </style>
+        </head>
+        <body onload="window.print(); window.close();">
+          <div class="mb-6 text-center no-print">
+            <h1 class="text-xl font-bold text-gray-800">Print Preview</h1>
+            <p class="text-sm text-gray-500 mt-1">If the print dialog does not open automatically, press Ctrl+P</p>
+          </div>
+          \${cardHtml}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  }
+
+  const socket = window.hmsSocket ? window.hmsSocket() : null;
+  if (socket) {
+    socket.on('vitals-update', (data) => {
+      if (data.patientId === '<%= user.id %>') {
+        const v = data.vitals;
+        const hrEl = document.querySelector('.hms-stat-value');
+        if (hrEl && hrEl.parentElement.querySelector('.fa-heartbeat')) {
+          hrEl.textContent = v.hr + ' BPM';
+        }
+        const spo2El = document.querySelectorAll('.hms-stat-value')[1];
+        if (spo2El && spo2El.parentElement.querySelector('.fa-wind')) {
+          spo2El.textContent = v.spo2 + ' %';
+        }
+        const bpEl = document.querySelectorAll('.hms-stat-value')[2];
+        if (bpEl && bpEl.parentElement.querySelector('.fa-tint')) {
+          bpEl.textContent = v.bpSys + '/' + v.bpDia;
+        }
+        const tempEl = document.querySelectorAll('.hms-stat-value')[3];
+        if (tempEl && tempEl.parentElement.querySelector('.fa-thermometer-half')) {
+          tempEl.textContent = v.temp + ' °F';
+        }
+      }
+    });
+
+    socket.on('appointment-update', (data) => {
+      if (typeof window.hmsShowToast === 'function') {
+        window.hmsShowToast('Update', `Your appointment is now ${data.status}`, 'success');
+      } else {
+        alert(`Your appointment is now ${data.status}`);
+      }
+    });
+  }
+
+</script>

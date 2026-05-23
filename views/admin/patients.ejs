@@ -1,51 +1,43 @@
-<% var title = 'Patients - HMS'; %>
+<% var title = 'Patients - HMS Premium'; %>
 <%- include('../partials/header') %>
 
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-md-3 col-lg-2 sidebar p-0">
-      <div class="p-3 text-white">
-        <h5 class="fw-bold"><i class="fas fa-shield-alt me-2"></i>Admin Panel</h5>
-      </div>
-      <nav class="nav flex-column">
-        <a class="nav-link" href="/admin/dashboard"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
-        <a class="nav-link" href="/admin/doctors"><i class="fas fa-user-md me-2"></i>Doctors</a>
-        <a class="nav-link active" href="/admin/patients"><i class="fas fa-users me-2"></i>Patients</a>
-        <a class="nav-link" href="/admin/appointments"><i class="fas fa-calendar-check me-2"></i>Appointments</a>
-        <a class="nav-link" href="/admin/reports"><i class="fas fa-chart-bar me-2"></i>Reports</a>
-      </nav>
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <%- include('../partials/admin-sidebar', { active: 'patients' }) %>
+
+  <!-- Main Content -->
+  <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+    <!-- Page Header -->
+    <div class="mb-8 animate-fade-in">
+      <h1 class="text-3xl font-black text-white mb-2">Patients</h1>
+      <p class="text-gray-400 font-medium">View and manage all registered patients</p>
     </div>
 
-    <div class="col-md-9 col-lg-10 p-4">
-      <h2 class="fw-bold mb-4"><i class="fas fa-users me-2"></i>Patients</h2>
-
-      <div class="card">
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-hover mb-0">
-              <thead class="bg-light">
-                <tr>
-                  <th>ID</th>
-                  <th>Name</th>
-                  <th>Email</th>
-                  <th>Phone</th>
-                  <th>Registered</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% patients.forEach(p => { %>
-                  <tr>
-                    <td>#<%= p.id %></td>
-                    <td class="fw-bold"><%= p.name %></td>
-                    <td><%= p.email %></td>
-                    <td><%= p.phone || 'N/A' %></td>
-                    <td><%= new Date(p.created_at).toLocaleDateString() %></td>
-                  </tr>
-                <% }) %>
-              </tbody>
-            </table>
-          </div>
-        </div>
+    <!-- Patients Table -->
+    <div class="hms-card animate-scale-in">
+      <div class="hms-table-container">
+        <table class="hms-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Registered</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% patients.forEach(p => { %>
+              <tr>
+                <td class="text-gray-500 font-mono">#<%= p.id %></td>
+                <td class="font-semibold text-white"><%= p.name %></td>
+                <td class="text-gray-400"><%= p.email %></td>
+                <td class="text-gray-400"><%= p.phone || 'N/A' %></td>
+                <td class="text-gray-500"><%= new Date(p.created_at).toLocaleDateString() %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>

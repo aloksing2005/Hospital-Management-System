@@ -1,256 +1,238 @@
-<% var title = 'My Appointments - HMS'; %>
+<% var title = 'My Appointments - HMS Premium'; %>
 <%- include('../partials/header') %>
 
-<div class="container-fluid">
-  <div class="row">
-    <%- include('../partials/doctor-sidebar', { active: 'appointments' }) %>
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <%- include('../partials/doctor-sidebar', { active: 'appointments' }) %>
 
-    <div class="col-md-9 col-lg-10 p-4">
-      <h2 class="fw-bold mb-4"><i class="fas fa-calendar-check me-2"></i>My Appointments</h2>
-
-      <div class="card">
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-hover mb-0">
-              <thead class="bg-light">
-                <tr>
-                  <th>Patient</th>
-                  <th>Phone</th>
-                  <th>Date</th>
-                  <th>Time</th>
-                  <th>Symptoms</th>
-                  <th>Status</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% appointments.forEach(app => { %>
-                  <tr data-id="<%= app.id %>">
-                    <td class="fw-bold"><%= app.patient_name %></td>
-                    <td><%= app.patient_phone || 'N/A' %></td>
-                    <td><%= new Date(app.date).toLocaleDateString() %></td>
-                    <td><%= app.time_slot %></td>
-                    <td><small class="text-muted"><%= app.symptoms || 'N/A' %></small></td>
-                    <td>
-                      <span class="badge badge-<%= app.status %>"><%= app.status %></span>
-                    </td>
-                    <td>
-                      <div class="d-flex gap-2">
-                        <form action="/doctor/appointments/update/<%= app.id %>" method="POST" class="d-inline">
-                          <input type="hidden" name="status" value="confirmed">
-                          <button type="submit" class="btn btn-sm btn-success" <%= app.status !== 'pending' ? 'disabled' : '' %>>
-                            <i class="fas fa-check"></i>
-                          </button>
-                        </form>
-                        <form action="/doctor/appointments/update/<%= app.id %>" method="POST" class="d-inline">
-                          <input type="hidden" name="status" value="completed">
-                          <button type="submit" class="btn btn-sm btn-primary" <%= app.status === 'completed' || app.status === 'cancelled' ? 'disabled' : '' %> title="Mark Completed">
-                            <i class="fas fa-check-double"></i>
-                          </button>
-                        </form>
-                        <% if (app.status === 'confirmed') { %>
-                          <a href="/consultation/<%= app.id %>" class="btn btn-sm btn-info text-white" title="Join Video Call">
-                            <i class="fas fa-video"></i>
-                          </a>
-                          <button class="btn btn-sm btn-dark" title="Call to Room" onclick="callNextPatient('<%= app.id %>', '<%= app.patient_id %>', '<%= app.patient_name %>')">
-                            <i class="fas fa-bullhorn"></i>
-                          </button>
-                          <button class="btn btn-sm btn-danger" title="Live Vitals" onclick="showVitalsModal('<%= app.patient_id %>', '<%= app.patient_name %>')">
-                            <i class="fas fa-heartbeat"></i>
-                          </button>
-                        <% } %>
-                        <a href="/doctor/prescription/<%= app.id %>" class="btn btn-sm btn-warning" <%= app.status !== 'completed' ? 'disabled' : '' %> title="Write Prescription">
-                          <i class="fas fa-prescription"></i>
+  <!-- Main Content -->
+  <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+      <div class="mb-8 animate-fade-in">
+        <h1 class="text-3xl font-black text-white mb-2">My Appointments</h1>
+        <p class="text-gray-400">Manage your patient consultations</p>
+      </div>
+      <div class="hms-card animate-scale-in">
+        <div class="hms-table-container">
+          <table class="hms-table">
+            <thead>
+              <tr>
+                <th>Patient</th>
+                <th>Phone</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Symptoms</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% appointments.forEach(app => { %>
+                <tr data-id="<%= app.id %>">
+                  <td class="font-semibold text-white"><%= app.patient_name %></td>
+                  <td class="text-gray-400"><%= app.patient_phone || 'N/A' %></td>
+                  <td class="text-gray-400"><%= new Date(app.date).toLocaleDateString() %></td>
+                  <td class="text-gray-400"><%= app.time_slot %></td>
+                  <td class="text-gray-500 text-sm"><%= app.symptoms || 'N/A' %></td>
+                  <td>
+                    <span class="hms-badge hms-badge-<%= app.status === 'pending' ? 'warning' : app.status === 'confirmed' ? 'success' : app.status === 'completed' ? 'info' : 'danger' %>"><%= app.status %></span>
+                  </td>
+                  <td>
+                    <div class="flex gap-2">
+                      <form action="/doctor/appointments/update/<%= app.id %>" method="POST" class="inline">
+                        <input type="hidden" name="status" value="confirmed">
+                        <button type="submit" class="hms-btn hms-btn-success hms-btn-sm" <%= app.status !== 'pending' ? 'disabled' : '' %> title="Confirm">
+                          <i class="fas fa-check"></i>
+                        </button>
+                      </form>
+                      <button onclick="startVideoCall('<%= app.id %>', '<%= app.patient_name %>')" class="hms-btn hms-btn-primary hms-btn-sm" <%= app.status !== 'confirmed' ? 'disabled' : '' %> title="Video Call">
+                        <i class="fas fa-video"></i>
+                      </button>
+                      <form action="/doctor/appointments/update/<%= app.id %>" method="POST" class="inline">
+                        <input type="hidden" name="status" value="completed">
+                        <button type="submit" class="hms-btn hms-btn-primary hms-btn-sm" <%= app.status === 'completed' || app.status === 'cancelled' ? 'disabled' : '' %> title="Mark Completed">
+                          <i class="fas fa-check-double"></i>
+                        </button>
+                      </form>
+                      <% if (app.status === 'confirmed') { %>
+                        <a href="/consultation/<%= app.id %>" class="hms-btn hms-btn-info hms-btn-sm" title="Join Video Call">
+                          <i class="fas fa-video"></i>
                         </a>
-                      </div>
-                    </td>
-                  </tr>
-                <% }) %>
-              </tbody>
-            </table>
-          </div>
+                        <button class="hms-btn hms-btn-secondary hms-btn-sm" title="Call to Room" onclick="callNextPatient('<%= app.id %>', '<%= app.patient_id %>', '<%= app.patient_name %>')">
+                          <i class="fas fa-bullhorn"></i>
+                        </button>
+                        <button class="hms-btn hms-btn-danger hms-btn-sm" title="Live Vitals" onclick="showVitalsModal('<%= app.patient_id %>', '<%= app.patient_name %>')">
+                          <i class="fas fa-heartbeat"></i>
+                        </button>
+                      <% } %>
+                      <a href="/doctor/prescription/<%= app.id %>" class="hms-btn hms-btn-warning hms-btn-sm" <%= app.status !== 'completed' ? 'disabled' : '' %> title="Write Prescription">
+                        <i class="fas fa-prescription"></i>
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Vitals Monitoring Modal -->
-<div class="modal fade" id="vitalsModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content bg-dark text-white border-0 shadow-lg">
-      <div class="modal-header border-secondary">
-        <h5 class="modal-title fw-bold text-danger"><i class="fas fa-heartbeat me-2 pulse-icon"></i>Live Vitals Monitoring: <span id="vitalsPatientName"></span></h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" onclick="stopMonitoring()"></button>
-      </div>
-      <div class="modal-body p-4">
-        <div class="row g-4">
-          <!-- Heart Rate -->
-          <div class="col-md-6">
-            <div class="vitals-card p-3 rounded bg-secondary-subtle bg-opacity-10 border border-secondary border-opacity-25 text-center">
-              <h6 class="text-muted text-uppercase small mb-2">Heart Rate</h6>
-              <div class="d-flex align-items-center justify-content-center">
-                <span class="fs-1 fw-bold text-success" id="vitals-hr">--</span>
-                <span class="ms-2 text-muted">BPM</span>
-              </div>
-              <div class="vitals-wave-container mt-2">
-                <div class="vitals-wave hr-wave"></div>
-              </div>
-            </div>
-          </div>
-          <!-- SpO2 -->
-          <div class="col-md-6">
-            <div class="vitals-card p-3 rounded bg-secondary-subtle bg-opacity-10 border border-secondary border-opacity-25 text-center">
-              <h6 class="text-muted text-uppercase small mb-2">SpO2 (Oxygen)</h6>
-              <div class="d-flex align-items-center justify-content-center">
-                <span class="fs-1 fw-bold text-info" id="vitals-spo2">--</span>
-                <span class="ms-2 text-muted">%</span>
-              </div>
-              <div class="vitals-progress mt-3">
-                <div class="progress" style="height: 10px;">
-                  <div id="vitals-spo2-bar" class="progress-bar bg-info" role="progressbar" style="width: 0%"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- Blood Pressure -->
-          <div class="col-md-6">
-            <div class="vitals-card p-3 rounded bg-secondary-subtle bg-opacity-10 border border-secondary border-opacity-25 text-center">
-              <h6 class="text-muted text-uppercase small mb-2">Blood Pressure</h6>
-              <div class="d-flex align-items-center justify-content-center">
-                <span class="fs-1 fw-bold text-warning" id="vitals-bp">--/--</span>
-                <span class="ms-2 text-muted">mmHg</span>
-              </div>
-              <p class="small text-muted mt-2 mb-0">Normal: 120/80</p>
-            </div>
-          </div>
-          <!-- Temperature -->
-          <div class="col-md-6">
-            <div class="vitals-card p-3 rounded bg-secondary-subtle bg-opacity-10 border border-secondary border-opacity-25 text-center">
-              <h6 class="text-muted text-uppercase small mb-2">Body Temp</h6>
-              <div class="d-flex align-items-center justify-content-center">
-                <span class="fs-1 fw-bold text-primary" id="vitals-temp">--</span>
-                <span class="ms-2 text-muted">°F</span>
-              </div>
-              <p class="small text-muted mt-2 mb-0" id="temp-status">Stable</p>
-            </div>
-          </div>
-        </div>
-        
-        <div id="vitals-alert" class="alert alert-danger mt-4 d-none animate__animated animate__flash animate__infinite">
-          <i class="fas fa-exclamation-triangle me-2"></i><strong>Critical Alert:</strong> Abnormal vitals detected!
+<div id="vitalsModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden items-center justify-center">
+  <div class="hms-card max-w-4xl w-full mx-4 animate-scale-in">
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="text-xl font-bold text-white flex items-center gap-2">
+        <i class="fas fa-heartbeat text-rose-500 animate-pulse"></i>
+        Live Vitals: <span id="vitalsPatientName"></span>
+      </h3>
+      <button type="button" onclick="closeVitalsModal()" class="text-gray-400 hover:text-white">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+      <div class="bg-gray-800/50 rounded-xl p-6 text-center border border-gray-700">
+        <h6 class="text-gray-400 text-sm uppercase mb-2">Heart Rate</h6>
+        <div class="flex items-center justify-center gap-2">
+          <span class="text-4xl font-black text-emerald-400" id="vitals-hr">--</span>
+          <span class="text-gray-500">BPM</span>
         </div>
       </div>
-      <div class="modal-footer border-secondary">
-        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal" onclick="stopMonitoring()">Close Monitoring</button>
+      <div class="bg-gray-800/50 rounded-xl p-6 text-center border border-gray-700">
+        <h6 class="text-gray-400 text-sm uppercase mb-2">SpO2 (Oxygen)</h6>
+        <div class="flex items-center justify-center gap-2">
+          <span class="text-4xl font-black text-indigo-400" id="vitals-spo2">--</span>
+          <span class="text-gray-500">%</span>
+        </div>
+        <div class="w-full bg-gray-700 h-2 rounded-full mt-3">
+          <div id="vitals-spo2-bar" class="h-full bg-indigo-500 transition-all" style="width: 0%"></div>
+        </div>
+      </div>
+      <div class="bg-gray-800/50 rounded-xl p-6 text-center border border-gray-700">
+        <h6 class="text-gray-400 text-sm uppercase mb-2">Blood Pressure</h6>
+        <div class="flex items-center justify-center gap-2">
+          <span class="text-4xl font-black text-amber-400" id="vitals-bp">--/--</span>
+          <span class="text-gray-500">mmHg</span>
+        </div>
+        <p class="text-gray-500 text-sm mt-2">Normal: 120/80</p>
+      </div>
+      <div class="bg-gray-800/50 rounded-xl p-6 text-center border border-gray-700">
+        <h6 class="text-gray-400 text-sm uppercase mb-2">Body Temp</h6>
+        <div class="flex items-center justify-center gap-2">
+          <span class="text-4xl font-black text-indigo-400" id="vitals-temp">--</span>
+          <span class="text-gray-500">°F</span>
+        </div>
+        <p class="text-gray-500 text-sm mt-2" id="temp-status">Stable</p>
       </div>
     </div>
+    <div id="vitals-alert" class="hidden bg-rose-500/20 border border-rose-500/50 rounded-xl p-4 mb-6">
+      <div class="flex items-center gap-2 text-rose-400">
+        <i class="fas fa-exclamation-triangle"></i>
+        <span class="font-bold">Critical Alert:</span>
+        <span>Abnormal vitals detected!</span>
+      </div>
+    </div>
+    <button type="button" onclick="closeVitalsModal()" class="hms-btn hms-btn-secondary w-full">Close Monitoring</button>
   </div>
 </div>
-
-<style>
-  .vitals-card { transition: all 0.3s ease; }
-  .pulse-icon { animation: pulse 1s infinite; }
-  @keyframes pulse {
-    0% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.2); opacity: 0.8; }
-    100% { transform: scale(1); opacity: 1; }
-  }
-  .vitals-wave {
-    height: 30px;
-    background: linear-gradient(90deg, transparent, rgba(40, 167, 69, 0.4), transparent);
-    background-size: 200% 100%;
-    animation: wave 2s linear infinite;
-    border-radius: 4px;
-  }
-  @keyframes wave {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
-  }
-  .bg-secondary-subtle { background-color: rgba(108, 117, 125, 0.1) !important; }
-</style>
 
 <script>
-  let vitalsModal;
+  const socket = window.hmsSocket ? window.hmsSocket() : null;
+  if (socket) {
+    socket.on('appointment-status-update', (data) => {
+      const row = document.querySelector(`tr[data-id="${data.appointmentId}"]`);
+      if (row) {
+        const badge = row.querySelector('.hms-badge');
+        if (badge) {
+          badge.className = `hms-badge hms-badge-${data.status === 'pending' ? 'warning' : data.status === 'confirmed' ? 'success' : data.status === 'completed' ? 'info' : 'danger'}`;
+          badge.textContent = data.status;
+        }
+      }
+    });
+  }
+
+  function startVideoCall(appointmentId, patientName) {
+    if (confirm(`Start video call with ${patientName}?`)) {
+      window.location.href = `/consultation/${appointmentId}`;
+    }
+  }
+
   let currentPatientId;
-
-  document.addEventListener('DOMContentLoaded', () => {
-    vitalsModal = new bootstrap.Modal(document.getElementById('vitalsModal'));
-  });
-
   function showVitalsModal(patientId, patientName) {
     currentPatientId = patientId;
     document.getElementById('vitalsPatientName').innerText = patientName;
-    vitalsModal.show();
-    
-    // Start monitoring via socket
-    socket.emit('start-vitals-monitoring', { patientId });
+    const modal = document.getElementById('vitalsModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    if (socket) socket.emit('start-vitals-monitoring', { patientId });
+  }
+  function closeVitalsModal() {
+    const modal = document.getElementById('vitalsModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    if (socket) socket.emit('stop-vitals-monitoring');
   }
 
-  function stopMonitoring() {
-    socket.emit('stop-vitals-monitoring');
+  if (socket) {
+    socket.on('vitals-update', (data) => {
+      if (data.patientId == currentPatientId) {
+        const v = data.vitals;
+        document.getElementById('vitals-hr').innerText = v.hr;
+        document.getElementById('vitals-spo2').innerText = v.spo2;
+        document.getElementById('vitals-spo2-bar').style.width = v.spo2 + '%';
+        document.getElementById('vitals-bp').innerText = `${v.bpSys}/${v.bpDia}`;
+        document.getElementById('vitals-temp').innerText = v.temp;
+        const hrEl = document.getElementById('vitals-hr');
+        if (v.hr > 110 || v.hr < 50) {
+          hrEl.classList.replace('text-emerald-400', 'text-rose-500');
+        } else {
+          hrEl.classList.replace('text-rose-500', 'text-emerald-400');
+        }
+        const spo2El = document.getElementById('vitals-spo2');
+        const spo2Bar = document.getElementById('vitals-spo2-bar');
+        if (v.spo2 < 92) {
+          spo2El.classList.replace('text-indigo-400', 'text-rose-500');
+          spo2Bar.classList.replace('bg-indigo-500', 'bg-rose-500');
+        } else {
+          spo2El.classList.replace('text-rose-500', 'text-indigo-400');
+          spo2Bar.classList.replace('bg-rose-500', 'bg-indigo-500');
+        }
+        const alertBox = document.getElementById('vitals-alert');
+        if (v.hr > 120 || v.hr < 45 || v.spo2 < 90) {
+          alertBox.classList.remove('hidden');
+        } else {
+          alertBox.classList.add('hidden');
+        }
+      }
+    });
+
+    socket.on('appointment-status-update', (data) => {
+      const row = document.querySelector(`tr[data-id="${data.appointmentId}"]`);
+      if (row) {
+        const badge = row.querySelector('.hms-badge');
+        badge.className = `hms-badge hms-badge-${data.status === 'pending' ? 'warning' : data.status === 'confirmed' ? 'success' : data.status === 'completed' ? 'info' : 'danger'}`;
+        badge.textContent = data.status;
+      }
+    });
   }
-
-  socket.on('vitals-update', (data) => {
-    if (data.patientId == currentPatientId) {
-      const v = data.vitals;
-      
-      // Update UI
-      document.getElementById('vitals-hr').innerText = v.hr;
-      document.getElementById('vitals-spo2').innerText = v.spo2;
-      document.getElementById('vitals-spo2-bar').style.width = v.spo2 + '%';
-      document.getElementById('vitals-bp').innerText = `${v.bpSys}/${v.bpDia}`;
-      document.getElementById('vitals-temp').innerText = v.temp;
-
-      // Color coding & alerts
-      const hrEl = document.getElementById('vitals-hr');
-      if (v.hr > 110 || v.hr < 50) {
-        hrEl.classList.replace('text-success', 'text-danger');
-      } else {
-        hrEl.classList.replace('text-danger', 'text-success');
-      }
-
-      const spo2El = document.getElementById('vitals-spo2');
-      if (v.spo2 < 92) {
-        spo2El.classList.replace('text-info', 'text-danger');
-        document.getElementById('vitals-spo2-bar').classList.replace('bg-info', 'bg-danger');
-      } else {
-        spo2El.classList.replace('text-danger', 'text-info');
-        document.getElementById('vitals-spo2-bar').classList.replace('bg-danger', 'bg-info');
-      }
-
-      // Show alert if critical
-      const alertBox = document.getElementById('vitals-alert');
-      if (v.hr > 120 || v.hr < 45 || v.spo2 < 90) {
-        alertBox.classList.remove('d-none');
-      } else {
-        alertBox.classList.add('d-none');
-      }
-    }
-  });
-
-  socket.on('appointment-status-update', (data) => {
-    const row = document.querySelector(`tr[data-id="${data.appointmentId}"]`);
-    if (row) {
-      const badge = row.querySelector('.badge');
-      badge.className = `badge badge-${data.status}`;
-      badge.textContent = data.status;
-    }
-  });
 
   function callNextPatient(appId, patientId, patientName) {
-    socket.emit("call-next-patient", {
-      doctorId: currentUser.id,
-      doctorName: currentUser.name,
-      patientId: patientId,
-      patientName: patientName,
-      tokenNumber: "T-" + Math.floor(Math.random() * 1000)
-    });
-    alert(`Called ${patientName}`);
+    if (socket) {
+      socket.emit("call-next-patient", {
+        doctorId: '<%= user.id %>',
+        doctorName: '<%= user.name %>',
+        patientId: patientId,
+        patientName: patientName,
+        tokenNumber: "T-" + Math.floor(Math.random() * 1000)
+      });
+    }
+    if (typeof window.hmsShowToast === 'function') {
+      window.hmsShowToast('Called', `${patientName} has been called to the room`, 'success');
+    } else {
+      alert(`${patientName} has been called to the room`);
+    }
   }
 
-  // Ensure monitoring stops on navigation
-  window.addEventListener('beforeunload', stopMonitoring);
+  window.addEventListener('beforeunload', closeVitalsModal);
 </script>
-
 <%- include('../partials/footer') %>

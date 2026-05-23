@@ -92,9 +92,10 @@
 
 <%- include('../partials/footer') %>
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-  var ctx = document.getElementById('opsChart');
-  if (ctx && window.Chart) {
+(function () {
+  function initCommandCenter() {
+    var ctx = document.getElementById('opsChart');
+    if (ctx && window.Chart) {
     new Chart(ctx, {
       type: 'bar',
       data: {
@@ -120,9 +121,11 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     });
   }
-  document.querySelectorAll('#riskRows tr[data-pid]').forEach(function (row) {
+  document.querySelectorAll('#riskRows tr[data-pid]').forEach(async function (row) {
     var id = row.getAttribute('data-pid');
-    fetch('/api/patient-risk/' + id).then(function (r) { return r.json(); }).then(function (d) {
+    try {
+      const res = await fetch('/api/patient-risk/' + id);
+      const d = await res.json();
       var badge = row.querySelector('.risk-badge');
       if (!badge || !d.success) return;
       badge.textContent = d.band + ' (' + d.riskScore + ')';
@@ -130,7 +133,11 @@ document.addEventListener('DOMContentLoaded', function () {
       if (d.riskScore >= 75) { badge.classList.add('bg-danger'); }
       else if (d.riskScore >= 45) { badge.classList.add('bg-warning', 'text-dark'); }
       else { badge.classList.add('bg-success'); }
-    }).catch(function () {});
+    } catch (err) {
+      console.error('Error fetching patient risk:', err);
+    }
   });
-});
-</script>
+}
+
+document.addEventListener('DOMContentLoaded', initCommandCenter);
+})();

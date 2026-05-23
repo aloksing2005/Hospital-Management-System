@@ -5,12 +5,15 @@ const labReportModel = require("../models/labReportModel");
 const notificationModel = require("../models/notificationModel");
 const billModel = require("../models/billModel");
 const pharmacyModel = require("../models/pharmacyModel");
+const reviewModel = require("../models/reviewModel");
 const { findSpecialization, suggestMedicines, generateSlots } = require("../utils/aiEngine");
 const bloodBankModel = require("../models/bloodBankModel");
 const { User, Appointment, Prescription, PatientVitals, MedicineReminder } = require("../config/db");
 const path = require("path");
 const fs = require("fs");
 const { writeHealthReportPdf } = require("../utils/healthReportPdf");
+const { notifyUser } = require("../utils/notifyHelper");
+const { Appointment: AppointmentModel } = require("../config/db");
 
 exports.getDashboard = async (req, res) => {
   try {
@@ -21,6 +24,21 @@ exports.getDashboard = async (req, res) => {
 
     const appointments = await appointmentModel.getAppointmentsByPatient(userId);
     const prescriptions = await prescriptionModel.getPrescriptionsByPatient(userId);
+
+    const now = new Date();
+    const upcomingAppointment = await AppointmentModel.findOne({
+      patient_id: userId,
+      status: { $in: ["pending", "confirmed"] },
+      date: { $gte: now }
+    })
+      .sort({ date: 1 })
+      .populate("doctor_id", "name specialization")
+      .lean();
+
+    const labReports = await labReportModel.getReportsByPatient(userId);
+    const bloodReport = labReports.find(
+      r => (r.test_type && /blood/i.test(r.test_type)) || (r.report_name && /blood/i.test(r.report_name))
+    );
 
     // Get latest vitals for Health Score
     const latestVitals = await PatientVitals.findOne({ patient_id: userId }).sort({ created_at: -1 }).lean();
@@ -42,11 +60,35 @@ exports.getDashboard = async (req, res) => {
       prescriptions: prescriptions.slice(0, 5),
       healthScore,
       unreadNotifications,
+      upcomingAppointment: upcomingAppointment
+        ? {
+            id: upcomingAppointment._id,
+            date: upcomingAppointment.date,
+            time_slot: upcomingAppointment.time_slot,
+            status: upcomingAppointment.status,
+            doctor_name: upcomingAppointment.doctor_id?.name || "Doctor",
+            specialization: upcomingAppointment.doctor_id?.specialization || ""
+          }
+        : null,
+      hasBloodReport: !!bloodReport,
       user: req.session.user,
     });
   } catch (err) {
+    console.error("Patient dashboard:", err.message);
     req.flash("error", "Dashboard error: " + err.message);
-    res.redirect("/");
+    if (err.name === "MongoServerError" || err.message.includes("connect")) {
+      return res.redirect("/login");
+    }
+    res.render("patient/dashboard", {
+      stats: { total_appointments: 0, total_prescriptions: 0 },
+      appointments: [],
+      prescriptions: [],
+      healthScore: 85,
+      unreadNotifications: 0,
+      upcomingAppointment: null,
+      hasBloodReport: false,
+      user: req.session.user
+    });
   }
 };
 
@@ -131,6 +173,14 @@ exports.bookAppointment = async (req, res) => {
         appointment: payload
       });
     }
+
+    await notifyUser(
+      io,
+      req.session.user.id,
+      "Appointment Booked",
+      `Your appointment with Dr. ${doctor.name} on ${date} at ${time_slot} is confirmed.`,
+      "success"
+    );
 
     req.flash("success", `Appointment booked with Dr. ${doctor.name} on ${date} at ${time_slot}`);
     res.redirect("/patient/appointments");
@@ -275,6 +325,15 @@ exports.postReminder = async (req, res) => {
   }
 };
 
+exports.deleteReminder = async (req, res) => {
+  try {
+    await MedicineReminder.findByIdAndDelete(req.params.id);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
 exports.getVitals = (req, res) => {
   res.render("patient/vitals", { title: "Live Vitals - HMS", user: req.session.user });
 };
@@ -336,12 +395,13 @@ exports.registerAsDonor = async (req, res) => {
 };
 
 exports.getWellbeing = (req, res) => {
-  res.render("patient/wellbeing", { user: req.session.user });
+  res.redirect("/patient/wellbeing");
 };
 
 exports.getNotifications = async (req, res) => {
   try {
-    const notifications = await notificationModel.getByUser(req.session.user.id);
+    const raw = await notificationModel.getByUser(req.session.user.id);
+    const notifications = raw.map(n => ({ ...n, read: n.is_read }));
     res.render("patient/notifications", { title: "My Notifications", notifications, user: req.session.user });
   } catch (err) {
     req.flash("error", err.message);
@@ -371,10 +431,39 @@ exports.getBills = async (req, res) => {
 exports.getPharmacy = async (req, res) => {
   try {
     const query = req.query.search || "";
-    const medicines = query ? await pharmacyModel.search(query) : await pharmacyModel.getAll();
+    const raw = query ? await pharmacyModel.search(query) : await pharmacyModel.getAll();
+    const medicines = raw.map(m => ({
+      id: m._id || m.id,
+      name: m.medicine_name,
+      stock: m.stock_quantity,
+      price: m.price,
+      category: m.category,
+      description: m.category ? `${m.category} medication` : "Hospital pharmacy stock"
+    }));
     res.render("patient/pharmacy", { title: "Pharmacy Inventory", medicines, query, user: req.session.user });
   } catch (err) {
     req.flash("error", err.message);
     res.redirect("/patient/dashboard");
+  }
+};
+
+exports.submitReview = async (req, res) => {
+  try {
+    const { appointment_id, doctor_id, rating, review } = req.body;
+    const patientId = req.session.user.id;
+
+    await reviewModel.addReview({
+      doctor_id,
+      patient_id: patientId,
+      appointment_id,
+      rating: parseInt(rating),
+      review
+    });
+
+    req.flash("success", "Review submitted successfully");
+    res.redirect("/patient/appointments");
+  } catch (err) {
+    req.flash("error", err.message);
+    res.redirect("/patient/appointments");
   }
 };

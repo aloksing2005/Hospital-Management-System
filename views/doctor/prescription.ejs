@@ -1,60 +1,49 @@
-<% var title = 'Generate Prescription - HMS'; %>
+<% var title = 'Generate Prescription - HMS Premium'; %>
 <%- include('../partials/header') %>
 
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-md-3 col-lg-2 sidebar p-0">
-      <div class="p-3 text-white">
-        <h5 class="fw-bold"><i class="fas fa-user-md me-2"></i>Doctor Panel</h5>
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <%- include('../partials/doctor-sidebar', { active: 'prescription' }) %>
+
+  <!-- Main Content -->
+  <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+      <div class="mb-8 animate-fade-in">
+        <h1 class="text-3xl font-black text-white mb-2">Generate Prescription</h1>
+        <p class="text-gray-400">Create and send prescription to patient</p>
       </div>
-      <nav class="nav flex-column">
-        <a class="nav-link" href="/doctor/dashboard"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
-        <a class="nav-link active" href="/doctor/appointments"><i class="fas fa-calendar-check me-2"></i>Appointments</a>
-        <a class="nav-link" href="/doctor/profile"><i class="fas fa-user me-2"></i>Profile</a>
-        <a class="nav-link" href="/doctor/chat"><i class="fas fa-comments me-2"></i>Chat</a>
-      </nav>
-    </div>
-
-    <div class="col-md-9 col-lg-10 p-4">
-      <h2 class="fw-bold mb-4"><i class="fas fa-file-prescription me-2"></i>Generate Prescription</h2>
-
-      <div class="row justify-content-center">
-        <div class="col-md-8">
-          <div class="card p-4">
-            <div class="mb-4 p-3 bg-light rounded">
-              <h6 class="fw-bold">Appointment Details</h6>
-              <p class="mb-1"><strong>Patient:</strong> <%= appointment.patient_name %></p>
-              <p class="mb-1"><strong>Date:</strong> <%= new Date(appointment.date).toLocaleDateString() %></p>
-              <p class="mb-0"><strong>Symptoms:</strong> <%= appointment.symptoms || 'N/A' %></p>
+      <div class="max-w-2xl mx-auto">
+        <div class="hms-card animate-scale-in">
+          <div class="mb-6 p-4 bg-gray-800/50 rounded-xl border border-gray-700">
+            <h3 class="text-lg font-bold text-white mb-3">Appointment Details</h3>
+            <div class="space-y-2">
+              <p class="text-gray-400"><span class="text-white font-semibold">Patient:</span> <%= appointment.patient_name %></p>
+              <p class="text-gray-400"><span class="text-white font-semibold">Date:</span> <%= new Date(appointment.date).toLocaleDateString() %></p>
+              <p class="text-gray-400"><span class="text-white font-semibold">Symptoms:</span> <%= appointment.symptoms || 'N/A' %></p>
             </div>
-
-            <form action="/doctor/prescription" method="POST">
-              <input type="hidden" name="appointmentId" value="<%= appointment.id %>">
-              <input type="hidden" name="patientName" value="<%= appointment.patient_name %>">
-
-              <div class="mb-3">
-                <label class="form-label">Disease/Condition</label>
-                <input type="text" name="disease" class="form-control" required placeholder="e.g., Viral Fever, Common Cold">
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">Medicines (comma separated)</label>
-                <textarea name="medicines" class="form-control" rows="4" required placeholder="Paracetamol 500mg - 1 tablet after meal,&#10;Cetirizine 10mg - 1 tablet at night,&#10;Vitamin C 500mg - 1 tablet daily"></textarea>
-                <small class="text-muted">Enter each medicine on new line or comma separated</small>
-              </div>
-
-              <div class="d-flex gap-3">
-                <button type="submit" class="btn btn-primary">
-                  <i class="fas fa-file-pdf me-2"></i>Generate PDF
-                </button>
-                <a href="/doctor/appointments" class="btn btn-secondary">Cancel</a>
-              </div>
-            </form>
           </div>
+          <form action="/doctor/prescription" method="POST" class="space-y-4">
+            <input type="hidden" name="appointmentId" value="<%= appointment.id %>">
+            <input type="hidden" name="patientName" value="<%= appointment.patient_name %>">
+            <div>
+              <label class="hms-label">Disease/Condition</label>
+              <input type="text" name="disease" class="hms-input" required placeholder="e.g., Viral Fever, Common Cold">
+            </div>
+            <div>
+              <label class="hms-label">Medicines (comma separated)</label>
+              <textarea name="medicines" class="hms-input" rows="4" required placeholder="Paracetamol 500mg - 1 tablet after meal,&#10;Cetirizine 10mg - 1 tablet at night,&#10;Vitamin C 500mg - 1 tablet daily"></textarea>
+              <p class="text-gray-500 text-sm mt-2">Enter each medicine on new line or comma separated</p>
+            </div>
+            <div class="flex gap-3">
+              <button type="submit" class="hms-btn hms-btn-primary flex-1">
+                <i class="fas fa-file-pdf"></i>
+                Generate PDF
+              </button>
+              <a href="/doctor/appointments" class="hms-btn hms-btn-secondary flex-1">Cancel</a>
+            </div>
+          </form>
         </div>
       </div>
     </div>
   </div>
 </div>
-
 <%- include('../partials/footer') %>

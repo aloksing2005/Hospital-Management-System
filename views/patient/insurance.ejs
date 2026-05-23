@@ -1,100 +1,140 @@
 <% var title = 'Insurance Assistant - HMS'; %>
 <%- include('../partials/header') %>
-<script src="https://cdn.tailwindcss.com"></script>
 
-<div class="container-fluid bg-gray-50 min-h-screen">
-  <div class="row">
-    <%- include('../partials/patient-sidebar', { active: 'insurance' }) %>
-
-    <div class="col-md-9 col-lg-10 p-12">
-      <div class="max-w-4xl mx-auto">
-        <div class="bg-white rounded-[50px] shadow-sm border border-gray-100 p-12 mb-8">
-            <div class="flex justify-between items-start mb-12">
-                <div>
-                    <h2 class="text-4xl font-black text-gray-900 tracking-tight">Claim Assistant</h2>
-                    <p class="text-gray-500 mt-2 text-lg">Hassle-free insurance claims processing.</p>
-                </div>
-                <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl">
-                    <i class="fas fa-shield-alt"></i>
-                </div>
-            </div>
-
-            <!-- Claim Progress -->
-            <div class="flex justify-between items-center mb-16 relative">
-                <div class="absolute h-1 bg-gray-100 top-1/2 left-0 right-0 -translate-y-1/2 z-0"></div>
-                <div class="absolute h-1 bg-blue-500 top-1/2 left-0 w-1/3 -translate-y-1/2 z-0"></div>
-                <div class="relative z-10 w-10 h-10 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold">1</div>
-                <div class="relative z-10 w-10 h-10 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-bold">2</div>
-                <div class="relative z-10 w-10 h-10 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-bold">3</div>
-            </div>
-
-            <form class="space-y-8">
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-4">Select Linked Appointment</label>
-                    <div class="grid grid-cols-1 gap-4">
-                        <label class="relative flex items-center p-6 bg-gray-50 rounded-3xl border-2 border-transparent hover:border-blue-500 cursor-pointer transition has-[:checked]:bg-blue-50 has-[:checked]:border-blue-500">
-                            <input type="radio" name="appt" class="sr-only peer" checked>
-                            <div class="flex-grow">
-                                <p class="font-bold text-gray-900">General Consultation - Dr. Sharma</p>
-                                <p class="text-sm text-gray-500">Yesterday, 10:30 AM • $120.00</p>
-                            </div>
-                            <div class="w-6 h-6 border-2 border-gray-300 rounded-full peer-checked:border-blue-600 peer-checked:bg-blue-600 flex items-center justify-center">
-                                <div class="w-2 h-2 bg-white rounded-full"></div>
-                            </div>
-                        </label>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-4">Insurance Provider</label>
-                        <select class="w-full bg-gray-50 border-0 rounded-2xl px-6 py-4 outline-none focus:ring-2 focus:ring-blue-600 transition">
-                            <option>Star Health Insurance</option>
-                            <option>HDFC ERGO</option>
-                            <option>ICICI Lombard</option>
-                            <option>Niva Bupa</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-4">Policy Number</label>
-                        <input type="text" placeholder="POL-987654321" class="w-full bg-gray-50 border-0 rounded-2xl px-6 py-4 outline-none focus:ring-2 focus:ring-blue-600 transition">
-                    </div>
-                </div>
-
-                <div class="p-8 bg-blue-900 rounded-[32px] text-white">
-                    <h4 class="font-bold mb-4 flex items-center"><i class="fas fa-magic mr-2"></i> AI Auto-Fill Active</h4>
-                    <p class="text-blue-100 text-sm mb-6">Our AI has detected your bills and prescriptions. We have pre-filled 80% of the claim form for you.</p>
-                    <div class="flex items-center gap-4 text-xs font-bold uppercase tracking-widest text-blue-300">
-                        <span class="flex items-center gap-1"><i class="fas fa-check-circle"></i> Bill Detected</span>
-                        <span class="flex items-center gap-1"><i class="fas fa-check-circle"></i> ID Verified</span>
-                        <span class="flex items-center gap-1"><i class="fas fa-check-circle"></i> Reports Ready</span>
-                    </div>
-                </div>
-
-                <button type="submit" class="w-full bg-blue-600 text-white py-5 rounded-[30px] font-black text-xl hover:bg-blue-700 transition shadow-xl shadow-blue-100">
-                    Submit Digital Claim
-                </button>
-            </form>
+<div class="flex h-screen">
+  <%- include('../partials/patient-sidebar', { active: 'insurance' }) %>
+  <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+    <div class="hms-card mb-8 animate-fade-in">
+      <div class="flex justify-between items-start mb-8">
+        <div>
+          <h1 class="text-4xl font-black text-white mb-2 tracking-tight">Claim Assistant</h1>
+          <p class="text-gray-400 text-lg">Hassle-free insurance claims processing</p>
         </div>
-
-        <div class="bg-white rounded-[40px] shadow-sm border border-gray-100 p-8">
-            <h3 class="text-2xl font-bold text-gray-900 mb-6">Recent Claims</h3>
-            <div class="space-y-4">
-                <div class="flex items-center justify-between p-6 bg-gray-50 rounded-3xl border border-gray-100">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center"><i class="fas fa-check"></i></div>
-                        <div>
-                            <p class="font-bold text-gray-900">Dental Surgery - Claim #882</p>
-                            <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">Approved • $450.00</p>
-                        </div>
-                    </div>
-                    <button class="text-blue-600 font-bold">View PDF</button>
-                </div>
-            </div>
+        <div class="w-16 h-16 bg-blue-500/20 text-blue-400 rounded-2xl flex items-center justify-center text-2xl">
+          <i class="fas fa-shield-alt"></i>
         </div>
       </div>
+
+      <form action="/patient/insurance/claim" method="POST" enctype="multipart/form-data" class="space-y-6" id="claimForm">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-bold text-gray-300 mb-2">Insurance Provider *</label>
+            <select name="provider" required class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-blue-500 outline-none text-white">
+              <option value="">Select Provider</option>
+              <option>Star Health</option>
+              <option>ICICI Lombard</option>
+              <option>HDFC Ergo</option>
+              <option>Max Bupa</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-gray-300 mb-2">Policy Number *</label>
+            <input type="text" name="policy_number" required placeholder="Enter policy number" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-blue-500 outline-none text-white placeholder-gray-400">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-bold text-gray-300 mb-2">Claim Amount (₹) *</label>
+          <input type="number" name="amount" required min="1" placeholder="Enter claim amount" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-blue-500 outline-none text-white placeholder-gray-400">
+        </div>
+        <div>
+          <label class="block text-sm font-bold text-gray-300 mb-2">Description</label>
+          <textarea name="description" rows="4" placeholder="Describe your claim" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:border-blue-500 outline-none text-white placeholder-gray-400"></textarea>
+        </div>
+        <div>
+          <label class="block text-sm font-bold text-gray-300 mb-2">Supporting Document (PDF/Image)</label>
+          <input type="file" name="document" accept=".pdf,.jpg,.jpeg,.png" class="w-full text-gray-300 text-sm">
+        </div>
+        <button type="submit" class="hms-btn hms-btn-primary w-full" id="claimSubmitBtn">Submit Claim</button>
+      </form>
+    </div>
+
+    <div class="hms-card animate-fade-in">
+      <h3 class="text-2xl font-bold text-white mb-6">Claims History</h3>
+      <% if (!claims || claims.length === 0) { %>
+        <div class="text-center py-12 text-gray-400">
+          <i class="fas fa-file-invoice text-4xl mb-4"></i>
+          <p>No claims submitted yet</p>
+        </div>
+      <% } else { %>
+        <div class="space-y-4">
+          <% claims.forEach(c => { %>
+            <div class="p-4 bg-white/5 rounded-xl border border-white/10 flex justify-between items-center">
+              <div>
+                <p class="text-white font-bold"><%= c.provider %> — ₹<%= c.amount %></p>
+                <p class="text-gray-400 text-sm"><%= c.policy_number %> • <%= new Date(c.created_at).toLocaleDateString() %></p>
+              </div>
+              <span class="hms-badge hms-badge-<%= c.status === 'approved' ? 'success' : c.status === 'rejected' ? 'danger' : 'warning' %>"><%= c.status %></span>
+            </div>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- Premium Confirmation Prompt Modal -->
+<div id="claimConfirmModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 animate-fade-in">
+  <div class="bg-slate-950/90 border border-indigo-500/30 rounded-3xl p-8 max-w-md w-full shadow-[0_0_50px_rgba(99,102,241,0.2)] animate-scale-in text-center">
+    <div class="w-16 h-16 bg-indigo-500/10 text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl border border-indigo-500/20">
+      <i class="fas fa-file-shield"></i>
+    </div>
+    <h3 class="text-2xl font-black text-white mb-2">Verify Claim Details</h3>
+    <p class="text-gray-400 text-sm mb-6">Please confirm that your submitted details are accurate before sending to audit.</p>
+    
+    <div class="bg-white/5 rounded-2xl p-4 mb-6 text-left space-y-3 border border-white/5">
+      <div class="flex justify-between text-sm">
+        <span class="text-gray-400">Provider</span>
+        <span class="text-white font-bold" id="confirmProvider">-</span>
+      </div>
+      <div class="flex justify-between text-sm">
+        <span class="text-gray-400">Policy Number</span>
+        <span class="text-white font-bold" id="confirmPolicy">-</span>
+      </div>
+      <div class="flex justify-between text-sm">
+        <span class="text-gray-400">Amount</span>
+        <span class="text-indigo-400 font-bold" id="confirmAmount">-</span>
+      </div>
+      <div class="flex justify-between text-sm">
+        <span class="text-gray-400">Description</span>
+        <span class="text-white truncate max-w-[200px]" id="confirmDesc">-</span>
+      </div>
+    </div>
+    
+    <div class="flex gap-4">
+      <button type="button" id="confirmCancelBtn" class="hms-btn hms-btn-secondary flex-1">Go Back</button>
+      <button type="button" id="confirmSubmitBtn" class="hms-btn hms-btn-primary flex-1">Confirm & Submit</button>
     </div>
   </div>
 </div>
 
 <%- include('../partials/footer') %>
+
+<script>
+document.getElementById('claimForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  
+  // Fill details
+  const provider = this.querySelector('[name="provider"]').value;
+  const policy = this.querySelector('[name="policy_number"]').value;
+  const amount = this.querySelector('[name="amount"]').value;
+  const desc = this.querySelector('[name="description"]').value || 'No description';
+  
+  document.getElementById('confirmProvider').textContent = provider;
+  document.getElementById('confirmPolicy').textContent = policy;
+  document.getElementById('confirmAmount').textContent = '₹' + parseFloat(amount).toLocaleString();
+  document.getElementById('confirmDesc').textContent = desc;
+  
+  // Show Modal
+  document.getElementById('claimConfirmModal').classList.remove('hidden');
+});
+
+document.getElementById('confirmCancelBtn').addEventListener('click', function() {
+  document.getElementById('claimConfirmModal').classList.add('hidden');
+});
+
+document.getElementById('confirmSubmitBtn').addEventListener('click', function() {
+  document.getElementById('claimConfirmModal').classList.add('hidden');
+  document.getElementById('claimForm').submit();
+});
+</script>

@@ -1,41 +1,48 @@
-<div class="col-md-3 col-lg-2 p-0">
-  <div class="cyber-sidebar">
-    <div class="mb-12 text-center animate__animated animate__fadeIn">
-      <div class="w-20 h-20 bg-indigo-600/20 text-indigo-400 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-indigo-500/30 shadow-[0_0_30px_rgba(99,102,241,0.2)]">
-        <i class="fas fa-user-md text-3xl"></i>
+<div class="w-64 lg:w-72 flex-shrink-0">
+  <div class="hms-sidebar h-full flex flex-col">
+    <!-- Logo Section -->
+    <div class="mb-8 text-center px-4">
+      <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-500/30">
+        <i class="fas fa-user-md text-2xl text-white"></i>
       </div>
-      <h5 class="text-white font-black tracking-[0.2em] uppercase text-xs">Physician Hub</h5>
-      <p class="text-indigo-400/60 text-[10px] font-bold uppercase tracking-widest mt-2">Active Session</p>
+      <h5 class="text-white font-black tracking-tight text-lg">Doctor Portal</h5>
+      <p class="text-gray-500 text-xs font-medium mt-1">Physician Hub</p>
     </div>
     
-    <nav class="nav flex-column gap-2">
-      <a class="cyber-nav-link <%= active === 'dashboard' ? 'active' : '' %>" href="/doctor/dashboard">
+    <!-- Navigation -->
+    <nav class="space-y-1 flex-1 px-3">
+      <a class="hms-nav-link <%= active === 'dashboard' ? 'active' : '' %>" href="/doctor/dashboard">
         <i class="fas fa-th-large"></i>
-        <span>Overview</span>
+        <span>Dashboard</span>
       </a>
-      <a class="cyber-nav-link <%= active === 'appointments' ? 'active' : '' %>" href="/doctor/appointments">
+      <a class="hms-nav-link <%= active === 'appointments' ? 'active' : '' %>" href="/doctor/appointments">
         <i class="fas fa-calendar-check"></i>
-        <span>My Visits</span>
+        <span>Appointments</span>
       </a>
-      <a class="cyber-nav-link <%= active === 'anatomy' ? 'active' : '' %>" href="/doctor/anatomy">
+      <a class="hms-nav-link <%= active === 'prescription' ? 'active' : '' %>" href="/doctor/prescription">
+        <i class="fas fa-file-prescription"></i>
+        <span>Prescriptions</span>
+      </a>
+      <a class="hms-nav-link <%= active === 'anatomy' ? 'active' : '' %>" href="/doctor/anatomy">
         <i class="fas fa-dna"></i>
-        <span>Explainer</span>
+        <span>Anatomy Explainer</span>
       </a>
-      <a class="cyber-nav-link <%= active === 'profile' ? 'active' : '' %>" href="/doctor/profile">
+      <a class="hms-nav-link <%= active === 'profile' ? 'active' : '' %>" href="/doctor/profile">
         <i class="fas fa-id-card"></i>
         <span>My Profile</span>
       </a>
-      <a class="cyber-nav-link <%= active === 'chat' ? 'active' : '' %>" href="/doctor/chat">
+      <a class="hms-nav-link <%= active === 'chat' ? 'active' : '' %>" href="/doctor/chat">
         <i class="fas fa-comment-dots"></i>
         <span>Messages</span>
       </a>
     </nav>
 
-    <div class="mt-auto pt-10 border-t border-white/5">
-        <a href="/logout" class="cyber-nav-link text-rose-400 hover:bg-rose-500/10">
-            <i class="fas fa-power-off"></i>
-            <span>Disconnect</span>
-        </a>
+    <!-- Logout -->
+    <div class="mt-auto pt-8 border-t border-gray-700 px-3">
+      <a href="/logout" class="hms-nav-link text-rose-400 hover:bg-rose-500/10 hover:text-rose-300">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Logout</span>
+      </a>
     </div>
   </div>
 </div>

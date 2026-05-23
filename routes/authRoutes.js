@@ -17,4 +17,6 @@ router.get("/public-queue", (req, res) => {
   res.render("public-queue", { title: "Live OPD Queue - HMS", user: req.session.user || null });
 });
 
+router.post("/auth/quick-login", authController.quickLogin);
+
 module.exports = router;

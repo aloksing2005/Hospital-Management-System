@@ -1,38 +1,91 @@
-<div class="col-md-3 col-lg-2 p-0">
-  <div class="sidebar-modern glass">
-    <div class="mb-10 text-center">
-      <div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/10">
-        <i class="fas fa-heartbeat text-2xl text-indigo-400"></i>
+<div class="w-64 lg:w-72 flex-shrink-0">
+  <div class="hms-sidebar h-full flex flex-col">
+    <!-- Logo Section -->
+    <div class="mb-8 text-center px-4">
+      <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-500/30">
+        <i class="fas fa-heartbeat text-2xl text-white"></i>
       </div>
-      <h5 class="text-white font-black tracking-tight">PATIENT HUB</h5>
+      <h5 class="text-white font-black tracking-tight text-lg">Patient Hub</h5>
+      <p class="text-gray-500 text-xs font-medium mt-1">Health Portal</p>
     </div>
     
-    <nav class="nav flex-column gap-1">
-      <a class="nav-link <%= active === 'dashboard' ? 'active' : '' %>" href="/patient/dashboard"><i class="fas fa-grid-2 me-2"></i>Overview</a>
-      <a class="nav-link <%= active === 'doctors' ? 'active' : '' %>" href="/patient/doctors"><i class="fas fa-user-md me-2"></i>Find Doctors</a>
-      <a class="nav-link <%= active === 'appointments' ? 'active' : '' %>" href="/patient/appointments"><i class="fas fa-calendar-check me-2"></i>My Visits</a>
-      <a class="nav-link <%= active === 'prescriptions' ? 'active' : '' %>" href="/patient/prescriptions"><i class="fas fa-file-prescription me-2"></i>Scripts</a>
-      <a class="nav-link <%= active === 'lab-reports' ? 'active' : '' %>" href="/patient/lab-reports"><i class="fas fa-flask me-2"></i>Lab Tests</a>
-      <a class="nav-link <%= active === 'ambulance' ? 'active' : '' %>" href="/patient/ambulance"><i class="fas fa-ambulance me-2"></i>Emergency</a>
-      <a class="nav-link <%= active === 'vitals' ? 'active' : '' %>" href="/patient/vitals"><i class="fas fa-wave-square me-2"></i>Vitals</a>
-      <a class="nav-link <%= active === 'notifications' ? 'active' : '' %>" href="/patient/notifications">
-        <i class="fas fa-bell me-2"></i>Notifications
-        <% if (locals.unreadNotifications > 0) { %>
-          <span class="badge bg-danger rounded-pill ms-auto"><%= unreadNotifications %></span>
+    <!-- Navigation -->
+    <nav class="space-y-1 flex-1 px-3">
+      <a class="hms-nav-link <%= active === 'dashboard' ? 'active' : '' %>" href="/patient/dashboard">
+        <i class="fas fa-th-large"></i>
+        <span>Dashboard</span>
+      </a>
+      <a class="hms-nav-link <%= active === 'doctors' ? 'active' : '' %>" href="/patient/doctors">
+        <i class="fas fa-user-md"></i>
+        <span>Find Doctors</span>
+      </a>
+      <a class="hms-nav-link <%= active === 'appointments' ? 'active' : '' %>" href="/patient/appointments">
+        <i class="fas fa-calendar-check"></i>
+        <span>Appointments</span>
+      </a>
+      <a class="hms-nav-link <%= active === 'prescriptions' ? 'active' : '' %>" href="/patient/prescriptions">
+        <i class="fas fa-file-prescription"></i>
+        <span>Prescriptions</span>
+      </a>
+      <a class="hms-nav-link <%= active === 'lab-reports' ? 'active' : '' %>" href="/patient/lab-reports">
+        <i class="fas fa-flask"></i>
+        <span>Lab Reports</span>
+      </a>
+      <a class="hms-nav-link <%= active === 'ambulance' ? 'active' : '' %>" href="/patient/ambulance">
+        <i class="fas fa-ambulance"></i>
+        <span>Emergency</span>
+      </a>
+      <a class="hms-nav-link <%= active === 'vitals' ? 'active' : '' %>" href="/patient/vitals">
+        <i class="fas fa-wave-square"></i>
+        <span>Vitals</span>
+      </a>
+      <a class="hms-nav-link <%= active === 'notifications' ? 'active' : '' %>" href="/patient/notifications">
+        <i class="fas fa-bell"></i>
+        <span>Notifications</span>
+        <% if (typeof unreadNotifications !== 'undefined' && unreadNotifications > 0) { %>
+          <span class="ml-auto bg-rose-500 text-white text-xs font-bold px-2 py-0.5 rounded-full"><%= unreadNotifications %></span>
         <% } %>
       </a>
-      <a class="nav-link <%= active === 'bills' ? 'active' : '' %>" href="/patient/bills"><i class="fas fa-file-invoice-dollar me-2"></i>Billing</a>
-      <a class="nav-link <%= active === 'pharmacy' ? 'active' : '' %>" href="/patient/pharmacy"><i class="fas fa-pills me-2"></i>Pharmacy</a>
-      <a class="nav-link <%= active === 'wellbeing' ? 'active' : '' %>" href="/patient/wellbeing"><i class="fas fa-spa me-2"></i>Wellbeing</a>
-      <a class="nav-link <%= active === 'parking' ? 'active' : '' %>" href="/patient/parking"><i class="fas fa-parking me-2"></i>Parking</a>
-      <a class="nav-link <%= active === 'insurance' ? 'active' : '' %>" href="/patient/insurance"><i class="fas fa-shield-alt me-2"></i>Insurance</a>
-      <a class="nav-link" href="/patient/health-report.pdf" target="_blank" rel="noopener"><i class="fas fa-file-pdf me-2"></i>Health PDF</a>
-      <a class="nav-link <%= active === 'ai-chat' ? 'active' : '' %>" href="/patient/ai-chat"><i class="fas fa-robot me-2"></i>AI Assistant</a>
-      <a class="nav-link <%= active === 'analytics' ? 'active' : '' %>" href="/patient/analytics"><i class="fas fa-chart-line me-2"></i>Insights</a>
+      <a class="hms-nav-link <%= active === 'bills' ? 'active' : '' %>" href="/patient/bills">
+        <i class="fas fa-file-invoice-dollar"></i>
+        <span>Billing</span>
+      </a>
+      <a class="hms-nav-link <%= active === 'pharmacy' ? 'active' : '' %>" href="/patient/pharmacy">
+        <i class="fas fa-pills"></i>
+        <span>Pharmacy</span>
+      </a>
+      <a class="hms-nav-link <%= active === 'wellbeing' ? 'active' : '' %>" href="/patient/wellbeing">
+        <i class="fas fa-spa"></i>
+        <span>Wellbeing</span>
+      </a>
+      <a class="hms-nav-link <%= active === 'parking' ? 'active' : '' %>" href="/patient/parking">
+        <i class="fas fa-parking"></i>
+        <span>Parking</span>
+      </a>
+      <a class="hms-nav-link <%= active === 'insurance' ? 'active' : '' %>" href="/patient/insurance">
+        <i class="fas fa-shield-alt"></i>
+        <span>Insurance</span>
+      </a>
+      <a class="hms-nav-link <%= active === 'ai-consultation' ? 'active' : '' %>" href="/patient/ai-consultation">
+        <i class="fas fa-video"></i>
+        <span>AI Video Call</span>
+      </a>
+      <a class="hms-nav-link <%= active === 'ai-chat' ? 'active' : '' %>" href="/patient/ai-chat">
+        <i class="fas fa-robot"></i>
+        <span>AI Chat</span>
+      </a>
+      <a class="hms-nav-link <%= active === 'analytics' ? 'active' : '' %>" href="/patient/analytics">
+        <i class="fas fa-chart-line"></i>
+        <span>Analytics</span>
+      </a>
     </nav>
 
-    <div class="mt-auto pt-10">
-        <a href="/logout" class="nav-link text-red-400 hover:bg-red-500/10"><i class="fas fa-sign-out-alt me-2"></i>Sign Out</a>
+    <!-- Logout -->
+    <div class="mt-auto pt-8 border-t border-gray-700 px-3">
+      <a href="/logout" class="hms-nav-link text-rose-400 hover:bg-rose-500/10 hover:text-rose-300">
+        <i class="fas fa-sign-out-alt"></i>
+        <span>Logout</span>
+      </a>
     </div>
   </div>
 </div>

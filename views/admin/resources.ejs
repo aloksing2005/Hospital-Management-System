@@ -1,49 +1,67 @@
-<% var title = 'Manage Resources - HMS'; %>
+<% var title = 'Manage Resources - HMS Premium'; %>
 <%- include('../partials/header') %>
 
-<div class="container-fluid">
-  <div class="row">
-    <%- include('../partials/admin-sidebar', { active: 'resources' }) %>
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <%- include('../partials/admin-sidebar', { active: 'resources' }) %>
 
-    <div class="col-md-9 col-lg-10 p-4">
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold"><i class="fas fa-bed text-primary me-2"></i>Live Hospital Resources</h2>
-        <span class="badge bg-success p-2 fs-6"><i class="fas fa-sync-alt me-2"></i>Live Sync Active</span>
+  <!-- Main Content -->
+  <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+    <!-- Page Header -->
+    <div class="flex items-center justify-between mb-8 animate-fade-in">
+      <div>
+        <h1 class="text-3xl font-black text-white mb-2">Live Hospital Resources</h1>
+        <p class="text-gray-400 font-medium">Monitor and manage hospital resources in real-time</p>
+      </div>
+      <div class="flex items-center gap-3 bg-emerald-500/20 px-4 py-2 rounded-xl border border-emerald-500/30">
+          <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+          <span class="text-emerald-400 text-sm font-bold uppercase tracking-wider">Live Sync Active</span>
+        </div>
       </div>
 
-      <div class="row g-4">
+      <!-- Resources Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <% resources.forEach(res => { %>
-          <div class="col-md-4">
-            <div class="card p-3 shadow-sm border-0 border-start border-primary border-4">
-              <h5 class="fw-bold"><%= res.resource_name %></h5>
-              <div class="d-flex justify-content-between align-items-center mt-3">
-                <h3 class="mb-0 text-success fw-bold" id="qty-<%= res.id %>"><%= res.available_quantity %> <span class="text-muted fs-6">/ <%= res.total_quantity %></span></h3>
-                <div class="btn-group">
-                  <button class="btn btn-outline-danger btn-sm" onclick="updateResource(`<%= res.id %>`, -1)"><i class="fas fa-minus"></i></button>
-                  <button class="btn btn-outline-success btn-sm" onclick="updateResource(`<%= res.id %>`, 1)"><i class="fas fa-plus"></i></button>
-                </div>
+          <div class="hms-card animate-scale-in">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="text-lg font-bold text-white"><%= res.resource_name %></h3>
+              <div class="w-10 h-10 bg-indigo-500/20 text-indigo-400 rounded-lg flex items-center justify-center">
+                <i class="fas fa-box"></i>
+              </div>
+            </div>
+            <div class="flex items-center justify-between">
+              <div>
+                <span class="text-3xl font-black text-emerald-400" id="qty-<%= res.id %>"><%= res.available_quantity %></span>
+                <span class="text-gray-500 text-lg">/ <%= res.total_quantity %></span>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="updateResource(`<%= res.id %>`, -1)" class="hms-btn hms-btn-danger hms-btn-sm">
+                  <i class="fas fa-minus"></i>
+                </button>
+                <button onclick="updateResource(`<%= res.id %>`, 1)" class="hms-btn hms-btn-success hms-btn-sm">
+                  <i class="fas fa-plus"></i>
+                </button>
               </div>
             </div>
           </div>
         <% }) %>
       </div>
 
-      <div class="mt-5">
-        <h4 class="fw-bold mb-4"><i class="fas fa-microchip text-danger me-2"></i>Live ICU Bed Monitor</h4>
-        <div class="card p-4">
-          <div class="row g-3" id="bedMap">
-            <!-- Simulated ICU Beds -->
-            <% for(let i=1; i<=12; i++) { %>
-              <div class="col-md-2 col-4">
-                <div class="bed-unit p-3 text-center rounded border <%= i % 3 === 0 ? 'bed-occupied' : 'bed-vacant' %>" id="bed-<%= i %>">
-                  <i class="fas fa-bed fa-2x mb-2"></i>
-                  <div class="small fw-bold">ICU-<%= i %></div>
-                  <div class="status-label small"><%= i % 3 === 0 ? 'Occupied' : 'Vacant' %></div>
-                  <button class="btn btn-sm btn-light mt-2 py-0 px-2" onclick="toggleBed(`<%= i %>`)">Toggle</button>
-                </div>
-              </div>
-            <% } %>
-          </div>
+      <!-- ICU Bed Monitor -->
+      <div class="hms-card animate-fade-in">
+        <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+          <i class="fas fa-microchip text-rose-400"></i>
+          Live ICU Bed Monitor
+        </h3>
+        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4" id="bedMap">
+          <!-- Simulated ICU Beds -->
+          <% for(let i=1; i<=12; i++) { %>
+            <div class="bed-unit p-4 text-center rounded-xl border-2 transition-all cursor-pointer hover:scale-105 <%= i % 3 === 0 ? 'bed-occupied' : 'bed-vacant' %>" id="bed-<%= i %>" onclick="toggleBed(`<%= i %>`)">
+              <i class="fas fa-bed text-3xl mb-3"></i>
+              <div class="font-bold text-white">ICU-<%= i %></div>
+              <div class="status-label text-sm font-semibold mt-1"><%= i % 3 === 0 ? 'Occupied' : 'Vacant' %></div>
+            </div>
+          <% } %>
         </div>
       </div>
     </div>
@@ -51,26 +69,42 @@
 </div>
 
 <style>
-  .bed-unit { transition: all 0.3s; }
-  .bed-occupied { background: #fee2e2; color: #991b1b; border-color: #fecaca; }
-  .bed-vacant { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
-  .bed-occupied .status-label { font-weight: bold; }
+  .bed-unit { transition: all 0.3s ease; }
+  .bed-occupied { 
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1)); 
+    border-color: rgba(239, 68, 68, 0.5);
+  }
+  .bed-vacant { 
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1)); 
+    border-color: rgba(16, 185, 129, 0.5);
+  }
 </style>
 
 <%- include('../partials/footer') %>
 <script>
-  function updateResource(id, change) {
-    fetch('/admin/resources/update', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, change })
-    }).then(function (res) { return res.json(); })
-      .then(function (data) {
-        if (data.success) {
-          var el = document.getElementById('qty-' + id);
-          if (el) el.innerHTML = data.new_quantity + ' <span class="text-muted fs-6">/ ' + data.total_quantity + '</span>';
-        }
+  async function updateResource(id, change) {
+    try {
+      const res = await fetch('/admin/resources/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, change })
       });
+      const data = await res.json();
+      if (data.success) {
+        if (typeof window.hmsShowToast === 'function') {
+          window.hmsShowToast('Success', 'Resource updated', 'success');
+        }
+      } else {
+        if (typeof window.hmsShowToast === 'function') {
+          window.hmsShowToast('Error', data.message || 'Failed to update resource', 'error');
+        }
+      }
+    } catch (err) {
+      console.error('Error updating resource:', err);
+      if (typeof window.hmsShowToast === 'function') {
+        window.hmsShowToast('Error', 'Failed to update resource', 'error');
+      }
+    }
   }
 
   function toggleBed(bedId) {
@@ -81,4 +115,3 @@
     window.hmsSocket().emit('update-bed-status', { bedId: bedId, status: newStatus });
   }
 </script>
-

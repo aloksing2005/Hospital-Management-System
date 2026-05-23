@@ -1,105 +1,153 @@
 <% var title = 'Well-being Hub - HMS'; %>
 <%- include('../partials/header') %>
-<script src="https://cdn.tailwindcss.com"></script>
 
-<div class="container-fluid bg-white min-h-screen">
-  <div class="row">
-    <%- include('../partials/patient-sidebar', { active: 'wellbeing' }) %>
+<div class="flex h-screen">
+  <%- include('../partials/patient-sidebar', { active: 'wellbeing' }) %>
+  <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+    <div class="mb-12 text-center animate-fade-in">
+      <h1 class="text-4xl font-black text-white mb-4 tracking-tight">Mindful <span class="text-indigo-400">Well-being</span></h1>
+      <p class="text-gray-400 text-xl">Track mood, meditate, and build healthy habits</p>
+    </div>
 
-    <div class="col-md-9 col-lg-10 p-12">
-      <div class="max-w-4xl mx-auto">
-        <div class="mb-12 text-center">
-            <h2 class="text-5xl font-black text-gray-900 mb-4 tracking-tight">Mindful <span class="text-indigo-600">Well-being</span></h2>
-            <p class="text-gray-500 text-xl">A healthy mind leads to a healthy body. Take a moment for yourself.</p>
+    <div class="hms-card mb-6 bg-indigo-500/10 border border-indigo-500/20">
+      <p class="text-indigo-200 text-sm"><i class="fas fa-lightbulb mr-2"></i><strong>Daily tip:</strong> <%= dailyTip %></p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+      <div class="hms-card animate-scale-in">
+        <h3 class="text-2xl font-bold text-white mb-6">How are you feeling?</h3>
+        <div class="grid grid-cols-4 gap-4" id="moodButtons">
+          <button type="button" data-mood="great" class="mood-btn flex flex-col items-center gap-2 p-4 rounded-2xl hover:bg-emerald-500/20 transition group">
+            <span class="text-4xl group-hover:scale-125 transition">😊</span>
+            <span class="text-xs font-bold text-gray-400 uppercase">Great</span>
+          </button>
+          <button type="button" data-mood="okay" class="mood-btn flex flex-col items-center gap-2 p-4 rounded-2xl hover:bg-white/10 transition group">
+            <span class="text-4xl group-hover:scale-125 transition">😐</span>
+            <span class="text-xs font-bold text-gray-400 uppercase">Okay</span>
+          </button>
+          <button type="button" data-mood="sad" class="mood-btn flex flex-col items-center gap-2 p-4 rounded-2xl hover:bg-blue-500/20 transition group">
+            <span class="text-4xl group-hover:scale-125 transition">😔</span>
+            <span class="text-xs font-bold text-gray-400 uppercase">Sad</span>
+          </button>
+          <button type="button" data-mood="anxious" class="mood-btn flex flex-col items-center gap-2 p-4 rounded-2xl hover:bg-amber-500/20 transition group">
+            <span class="text-4xl group-hover:scale-125 transition">😰</span>
+            <span class="text-xs font-bold text-gray-400 uppercase">Anxious</span>
+          </button>
         </div>
+        <p id="moodSaved" class="text-emerald-400 text-sm mt-4 hidden">Mood logged successfully!</p>
+      </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-            <!-- Mood Check-in -->
-            <div class="bg-gray-50 rounded-[40px] p-10 border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-500">
-                <h3 class="text-2xl font-bold text-gray-800 mb-6">How are you feeling?</h3>
-                <div class="grid grid-cols-4 gap-4">
-                    <button class="flex flex-col items-center gap-2 p-4 rounded-3xl hover:bg-white hover:shadow-md transition group">
-                        <span class="text-4xl group-hover:scale-125 transition">😊</span>
-                        <span class="text-xs font-bold text-gray-400 uppercase">Great</span>
-                    </button>
-                    <button class="flex flex-col items-center gap-2 p-4 rounded-3xl hover:bg-white hover:shadow-md transition group">
-                        <span class="text-4xl group-hover:scale-125 transition">😐</span>
-                        <span class="text-xs font-bold text-gray-400 uppercase">Okay</span>
-                    </button>
-                    <button class="flex flex-col items-center gap-2 p-4 rounded-3xl hover:bg-white hover:shadow-md transition group">
-                        <span class="text-4xl group-hover:scale-125 transition">😔</span>
-                        <span class="text-xs font-bold text-gray-400 uppercase">Low</span>
-                    </button>
-                    <button class="flex flex-col items-center gap-2 p-4 rounded-3xl hover:bg-white hover:shadow-md transition group">
-                        <span class="text-4xl group-hover:scale-125 transition">😫</span>
-                        <span class="text-xs font-bold text-gray-400 uppercase">Stressed</span>
-                    </button>
-                </div>
-                <div class="mt-8 bg-indigo-600 text-white p-6 rounded-3xl shadow-lg shadow-indigo-100">
-                    <p class="text-sm font-medium italic">"Based on your check-ins, we recommend a 5-minute breathing exercise today."</p>
-                </div>
-            </div>
-
-            <!-- Meditation / Audio -->
-            <div class="bg-indigo-900 rounded-[40px] p-10 text-white relative overflow-hidden">
-                <div class="relative z-10">
-                    <h3 class="text-2xl font-bold mb-6">Zen Sessions</h3>
-                    <div class="space-y-4">
-                        <div class="flex items-center justify-between p-4 bg-indigo-800/50 rounded-2xl border border-indigo-700/50">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center"><i class="fas fa-play text-xs"></i></div>
-                                <div>
-                                    <p class="text-sm font-bold">Deep Breathing</p>
-                                    <p class="text-xs text-indigo-300">5 Mins • Calming</p>
-                                </div>
-                            </div>
-                            <i class="fas fa-heart text-indigo-400"></i>
-                        </div>
-                        <div class="flex items-center justify-between p-4 bg-indigo-800/50 rounded-2xl border border-indigo-700/50">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center"><i class="fas fa-play text-xs"></i></div>
-                                <div>
-                                    <p class="text-sm font-bold">Rainforest Sounds</p>
-                                    <p class="text-xs text-indigo-300">15 Mins • Nature</p>
-                                </div>
-                            </div>
-                            <i class="fas fa-heart text-indigo-400"></i>
-                        </div>
-                    </div>
-                    <button class="mt-8 w-full py-4 bg-white text-indigo-900 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-indigo-950">Explore Library</button>
-                </div>
-                <i class="fas fa-moon absolute -bottom-10 -right-10 text-[180px] text-white/5"></i>
-            </div>
-        </div>
-
-        <!-- Mental Health Resources -->
-        <div class="bg-gray-50 rounded-[40px] p-10 border border-gray-100">
-            <div class="flex justify-between items-center mb-8">
-                <h3 class="text-3xl font-black text-gray-900">Recommended Doctors</h3>
-                <a href="#" class="text-indigo-600 font-bold">View All</a>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-4">
-                    <img src="https://i.pravatar.cc/100?u=psych1" class="w-16 h-16 rounded-2xl object-cover shadow-sm">
-                    <div>
-                        <h4 class="font-bold text-gray-900">Dr. Sarah Johnson</h4>
-                        <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">Psychiatrist • 12yrs Exp</p>
-                    </div>
-                    <button class="ml-auto w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center"><i class="fas fa-calendar"></i></button>
-                </div>
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex items-center gap-4">
-                    <img src="https://i.pravatar.cc/100?u=psych2" class="w-16 h-16 rounded-2xl object-cover shadow-sm">
-                    <div>
-                        <h4 class="font-bold text-gray-900">Dr. Michael Chen</h4>
-                        <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">Clinical Psychologist</p>
-                    </div>
-                    <button class="ml-auto w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center"><i class="fas fa-calendar"></i></button>
-                </div>
-            </div>
-        </div>
+      <div class="hms-card animate-scale-in">
+        <h3 class="text-2xl font-bold text-white mb-6">Breathing Exercise</h3>
+        <p class="text-gray-400 mb-4">4-7-8 technique: inhale 4s, hold 7s, exhale 8s</p>
+        <div id="breathCircle" class="w-24 h-24 mx-auto mb-4 rounded-full bg-indigo-500/30 flex items-center justify-center text-white font-bold text-lg">Ready</div>
+        <button type="button" id="startBreathing" class="hms-btn hms-btn-primary w-full">Start 4-7-8 Breathing</button>
       </div>
     </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <button type="button" class="wellbeing-action hms-card text-center hover:border-indigo-500/50 transition" data-activity="meditation">
+        <i class="fas fa-headphones text-3xl text-indigo-400 mb-4 block"></i>
+        <h4 class="text-lg font-bold text-white mb-2">Meditation</h4>
+        <p class="text-gray-400 text-sm">5-min guided session</p>
+      </button>
+      <button type="button" class="wellbeing-action hms-card text-center hover:border-emerald-500/50 transition" data-activity="journal">
+        <i class="fas fa-book-open text-3xl text-emerald-400 mb-4 block"></i>
+        <h4 class="text-lg font-bold text-white mb-2">Journal</h4>
+        <p class="text-gray-400 text-sm">Log your thoughts</p>
+      </button>
+      <div class="hms-card text-center">
+        <i class="fas fa-chart-line text-3xl text-rose-400 mb-4 block"></i>
+        <h4 class="text-lg font-bold text-white mb-2">Stress Level</h4>
+        <input type="range" id="stressSlider" min="1" max="10" value="5" class="w-full mt-2">
+        <p class="text-gray-400 text-sm mt-2">Current: <span id="stressVal">5</span>/10</p>
+        <button type="button" id="saveStress" class="hms-btn hms-btn-secondary w-full mt-3 text-sm">Save</button>
+      </div>
+    </div>
+
+    <% if (logs && logs.length) { %>
+    <div class="hms-card">
+      <h3 class="text-xl font-bold text-white mb-4">Recent Activity</h3>
+      <div class="space-y-2 max-h-48 overflow-y-auto">
+        <% logs.forEach(l => { %>
+          <div class="flex justify-between p-3 bg-white/5 rounded-lg text-sm">
+            <span class="text-white capitalize"><%= l.activity %> <%= l.mood ? '— ' + l.mood : '' %></span>
+            <span class="text-gray-500"><%= new Date(l.created_at).toLocaleDateString() %></span>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+    <% } %>
   </div>
 </div>
 
 <%- include('../partials/footer') %>
+<script>
+async function logWellbeing(payload) {
+  const res = await fetch('/patient/wellbeing/log', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+  return res.json();
+}
+document.querySelectorAll('.mood-btn').forEach(btn => {
+  btn.addEventListener('click', async function() {
+    const data = await logWellbeing({ mood: this.dataset.mood, activity: 'mood' });
+    if (data.success) {
+      document.getElementById('moodSaved').classList.remove('hidden');
+      window.hmsShowToast('Mood', 'Logged: ' + this.dataset.mood, 'success');
+      setTimeout(() => { location.reload(); }, 1200);
+    }
+  });
+});
+document.getElementById('stressSlider').addEventListener('input', function() {
+  document.getElementById('stressVal').textContent = this.value;
+});
+document.getElementById('saveStress').addEventListener('click', async function() {
+  const v = document.getElementById('stressSlider').value;
+  await logWellbeing({ activity: 'tip', stress_level: parseInt(v, 10), notes: 'Stress check-in' });
+  window.hmsShowToast('Saved', 'Stress level recorded', 'success');
+  setTimeout(() => { location.reload(); }, 1200);
+});
+document.querySelectorAll('.wellbeing-action').forEach(btn => {
+  btn.addEventListener('click', async function() {
+    const act = this.dataset.activity;
+    if (act === 'journal') {
+      const notes = prompt('Journal entry:');
+      if (notes) {
+        await logWellbeing({ activity: 'journal', notes });
+        window.hmsShowToast('Journal', 'Entry saved successfully', 'success');
+        setTimeout(() => { location.reload(); }, 1200);
+      }
+    } else {
+      await logWellbeing({ activity: 'meditation', duration_mins: 5 });
+      window.hmsShowToast('Meditation', '5-minute session logged', 'success');
+      setTimeout(() => { location.reload(); }, 1200);
+    }
+  });
+});
+let breathTimer;
+document.getElementById('startBreathing').addEventListener('click', function() {
+  const circle = document.getElementById('breathCircle');
+  let step = 0;
+  const phases = ['Inhale 4s', 'Hold 7s', 'Exhale 8s'];
+  const durations = [4000, 7000, 8000];
+  function next() {
+    circle.textContent = phases[step % 3];
+    circle.classList.toggle('scale-125', step % 3 === 0);
+    setTimeout(() => { 
+      step++; 
+      if (step < 9) {
+        next(); 
+      } else { 
+        circle.textContent = 'Done'; 
+        logWellbeing({ activity: 'breathing', duration_mins: 2 }); 
+        window.hmsShowToast('Breathing', 'Exercise logged successfully', 'success');
+        setTimeout(() => { location.reload(); }, 1500);
+      }
+    }, durations[step % 3]);
+  }
+  next();
+});
+</script>

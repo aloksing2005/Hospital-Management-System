@@ -1,107 +1,127 @@
-<% var title = 'Find Doctors - HMS'; %>
+<% var title = 'Find Doctors - HMS Premium'; %>
 <%- include('../partials/header') %>
 
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-md-3 col-lg-2 sidebar p-0">
-      <div class="p-3 text-white">
-        <h5 class="fw-bold"><i class="fas fa-heartbeat me-2"></i>Patient Panel</h5>
-      </div>
-      <nav class="nav flex-column">
-        <a class="nav-link" href="/patient/dashboard"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
-        <a class="nav-link active" href="/patient/doctors"><i class="fas fa-user-md me-2"></i>Find Doctors</a>
-        <a class="nav-link" href="/patient/appointments"><i class="fas fa-calendar-check me-2"></i>My Appointments</a>
-        <a class="nav-link" href="/patient/prescriptions"><i class="fas fa-file-prescription me-2"></i>Prescriptions</a>
-        <a class="nav-link" href="/patient/symptom-checker"><i class="fas fa-brain me-2"></i>AI Symptom Checker</a>
-        <a class="nav-link" href="/patient/ai-chat"><i class="fas fa-robot me-2"></i>AI Assistant (Book)</a>
-        <a class="nav-link" href="/patient/chat"><i class="fas fa-comments me-2"></i>Chat</a>
-      </nav>
-    </div>
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <%- include('../partials/patient-sidebar', { active: 'doctors' }) %>
 
-    <div class="col-md-9 col-lg-10 p-4">
-      <h2 class="fw-bold mb-4"><i class="fas fa-user-md me-2"></i>Find Doctors</h2>
+  <!-- Main Content -->
+  <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+    <!-- Page Header -->
+      <div class="mb-8 animate-fade-in">
+        <h1 class="text-3xl font-black text-white mb-2">Find Doctors</h1>
+        <p class="text-gray-400 font-medium">Search and book appointments with our healthcare professionals</p>
+      </div>
 
       <!-- Advanced Search -->
-      <div class="card p-4 mb-4">
-        <form action="/patient/doctors" method="GET" class="row g-3">
-          <div class="col-md-3">
-            <label class="form-label text-muted small mb-1">Search Name</label>
-            <input type="text" name="search" class="form-control" placeholder="Doctor's name..." value="<%= search || '' %>">
+      <div class="hms-card mb-8 animate-scale-in">
+        <form action="/patient/doctors" method="GET" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div>
+              <label class="hms-label">Search Name</label>
+              <input type="text" name="search" class="hms-input" placeholder="Doctor's name..." value="<%= search || '' %>">
+            </div>
+            <div>
+              <label class="hms-label">Specialization</label>
+              <select name="specialization" class="hms-input hms-select">
+                <option value="">All Specializations</option>
+                <option value="General Physician" <%= specialization === 'General Physician' ? 'selected' : '' %>>General Physician</option>
+                <option value="Cardiologist" <%= specialization === 'Cardiologist' ? 'selected' : '' %>>Cardiologist</option>
+                <option value="Dermatologist" <%= specialization === 'Dermatologist' ? 'selected' : '' %>>Dermatologist</option>
+                <option value="Neurologist" <%= specialization === 'Neurologist' ? 'selected' : '' %>>Neurologist</option>
+                <option value="Orthopedic" <%= specialization === 'Orthopedic' ? 'selected' : '' %>>Orthopedic</option>
+                <option value="ENT" <%= specialization === 'ENT' ? 'selected' : '' %>>ENT</option>
+                <option value="Pediatrician" <%= specialization === 'Pediatrician' ? 'selected' : '' %>>Pediatrician</option>
+                <option value="Gynecologist" <%= specialization === 'Gynecologist' ? 'selected' : '' %>>Gynecologist</option>
+              </select>
+            </div>
+            <div>
+              <label class="hms-label">Max Fees (₹)</label>
+              <input type="number" name="maxFees" class="hms-input" placeholder="E.g. 1000" value="<%= typeof maxFees !== 'undefined' ? maxFees : '' %>">
+            </div>
+            <div>
+              <label class="hms-label">Min Rating</label>
+              <select name="minRating" class="hms-input hms-select">
+                <option value="">Any</option>
+                <option value="4" <%= typeof minRating !== 'undefined' && minRating === '4' ? 'selected' : '' %>>4+ Stars</option>
+                <option value="3" <%= typeof minRating !== 'undefined' && minRating === '3' ? 'selected' : '' %>>3+ Stars</option>
+              </select>
+            </div>
+            <div>
+              <label class="hms-label">Sort By</label>
+              <select name="sort" class="hms-input hms-select">
+                <option value="">Name A-Z</option>
+                <option value="top_rated" <%= typeof sort !== 'undefined' && sort === 'top_rated' ? 'selected' : '' %>>Top Rated</option>
+                <option value="lowest_fees" <%= typeof sort !== 'undefined' && sort === 'lowest_fees' ? 'selected' : '' %>>Lowest Fees</option>
+              </select>
+            </div>
           </div>
-          <div class="col-md-3">
-            <label class="form-label text-muted small mb-1">Specialization</label>
-            <select name="specialization" class="form-select">
-              <option value="">All Specializations</option>
-              <option value="General Physician" <%= specialization === 'General Physician' ? 'selected' : '' %>>General Physician</option>
-              <option value="Cardiologist" <%= specialization === 'Cardiologist' ? 'selected' : '' %>>Cardiologist</option>
-              <option value="Dermatologist" <%= specialization === 'Dermatologist' ? 'selected' : '' %>>Dermatologist</option>
-              <option value="Neurologist" <%= specialization === 'Neurologist' ? 'selected' : '' %>>Neurologist</option>
-              <option value="Orthopedic" <%= specialization === 'Orthopedic' ? 'selected' : '' %>>Orthopedic</option>
-              <option value="ENT" <%= specialization === 'ENT' ? 'selected' : '' %>>ENT</option>
-              <option value="Pediatrician" <%= specialization === 'Pediatrician' ? 'selected' : '' %>>Pediatrician</option>
-              <option value="Gynecologist" <%= specialization === 'Gynecologist' ? 'selected' : '' %>>Gynecologist</option>
-            </select>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label text-muted small mb-1">Max Fees (₹)</label>
-            <input type="number" name="maxFees" class="form-control" placeholder="E.g. 1000" value="<%= typeof maxFees !== 'undefined' ? maxFees : '' %>">
-          </div>
-          <div class="col-md-2">
-            <label class="form-label text-muted small mb-1">Min Rating</label>
-            <select name="minRating" class="form-select">
-              <option value="">Any</option>
-              <option value="4" <%= typeof minRating !== 'undefined' && minRating === '4' ? 'selected' : '' %>>4+ Stars</option>
-              <option value="3" <%= typeof minRating !== 'undefined' && minRating === '3' ? 'selected' : '' %>>3+ Stars</option>
-            </select>
-          </div>
-          <div class="col-md-2">
-            <label class="form-label text-muted small mb-1">Sort By</label>
-            <select name="sort" class="form-select">
-              <option value="">Name A-Z</option>
-              <option value="top_rated" <%= typeof sort !== 'undefined' && sort === 'top_rated' ? 'selected' : '' %>>Top Rated</option>
-              <option value="lowest_fees" <%= typeof sort !== 'undefined' && sort === 'lowest_fees' ? 'selected' : '' %>>Lowest Fees</option>
-            </select>
-          </div>
-          <div class="col-12 text-end mt-3">
-            <a href="/patient/doctors" class="btn btn-light me-2">Clear</a>
-            <button type="submit" class="btn btn-primary px-4"><i class="fas fa-filter me-2"></i>Apply Filters</button>
+          <div class="flex justify-end gap-3">
+            <a href="/patient/doctors" class="hms-btn hms-btn-secondary">Clear</a>
+            <button type="submit" class="hms-btn hms-btn-primary">
+              <i class="fas fa-filter"></i>
+              Apply Filters
+            </button>
           </div>
         </form>
       </div>
 
       <!-- Doctors Grid -->
-      <div class="row g-4">
-        <% if (doctors.length === 0) { %>
-          <div class="col-12 text-center py-5">
-            <i class="fas fa-search fa-3x text-muted mb-3"></i>
-            <h4 class="text-muted">No doctors found</h4>
-          </div>
-        <% } else { %>
+      <% if (doctors.length === 0) { %>
+        <div class="hms-card text-center py-16 animate-fade-in">
+          <i class="fas fa-search text-5xl text-gray-600 mb-4 block"></i>
+          <h3 class="text-xl font-bold text-white mb-2">No doctors found</h3>
+          <p class="text-gray-400">Try adjusting your search filters</p>
+        </div>
+      <% } else { %>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <% doctors.forEach(doc => { %>
-            <div class="col-md-6 col-lg-4">
-              <div class="card doctor-card h-100 p-4 text-center">
-                <img src="<%= doc.photo || '/images/default-doctor.jpg' %>" alt="<%= doc.name %>" class="mx-auto mb-3">
-                <h5 class="fw-bold"><%= doc.name.startsWith('Dr.') ? doc.name : 'Dr. ' + doc.name %></h5>
-                <span class="badge bg-info mb-2"><%= doc.specialization %></span>
-                <div class="mb-2">
+            <div class="hms-card animate-scale-in">
+              <div class="text-center">
+                <img src="<%= doc.photo || 'https://i.pravatar.cc/150?u=' + doc.id %>" alt="<%= doc.name %>" class="w-24 h-24 rounded-2xl mx-auto mb-4 object-cover shadow-lg">
+                <h3 class="text-xl font-bold text-white mb-2"><%= doc.name.startsWith('Dr.') ? doc.name : 'Dr. ' + doc.name %></h3>
+                <span class="hms-badge hms-badge-primary mb-4 inline-block"><%= doc.specialization %></span>
+                
+                <div class="mb-4">
                   <% if (doc.rating > 0) { %>
-                    <span class="text-warning"><i class="fas fa-star"></i> <%= parseFloat(doc.rating).toFixed(1) %></span>
-                    <small class="text-muted">(<%= doc.review_count %> reviews)</small>
+                    <div class="flex items-center justify-center gap-2">
+                      <div class="flex text-amber-400">
+                        <% for(let i=0; i<5; i++) { %>
+                          <i class="fas fa-star <%= i < Math.floor(doc.rating) ? '' : 'opacity-30' %>"></i>
+                        <% } %>
+                      </div>
+                      <span class="text-white font-semibold"><%= parseFloat(doc.rating).toFixed(1) %></span>
+                      <span class="text-gray-500 text-sm">(<%= doc.review_count %> reviews)</span>
+                    </div>
                   <% } else { %>
-                    <small class="text-muted">No reviews yet</small>
+                    <span class="text-gray-500 text-sm">No reviews yet</span>
                   <% } %>
                 </div>
-                <p class="text-muted small mb-2"><i class="fas fa-map-marker-alt me-1"></i><%= doc.location || 'Location not set' %></p>
-                <p class="text-success fw-bold mb-3"><i class="fas fa-rupee-sign me-1"></i><%= doc.fees %> per visit</p>
-                <p class="text-muted small mb-3"><i class="fas fa-clock me-1"></i><%= doc.available_from %> - <%= doc.available_to %></p>
-                <a href="/patient/doctors/<%= doc.id %>" class="btn btn-primary">
-                  <i class="fas fa-calendar-plus me-2"></i>Book Appointment
+
+                <div class="space-y-3 mb-6">
+                  <div class="flex items-center justify-center gap-2 text-gray-400 text-sm">
+                    <i class="fas fa-map-marker-alt text-indigo-400"></i>
+                    <span><%= doc.location || 'Location not set' %></span>
+                  </div>
+                  <div class="flex items-center justify-center gap-2 text-emerald-400 font-bold">
+                    <i class="fas fa-rupee-sign"></i>
+                    <span><%= doc.fees %> per visit</span>
+                  </div>
+                  <div class="flex items-center justify-center gap-2 text-gray-400 text-sm">
+                    <i class="fas fa-clock text-indigo-400"></i>
+                    <span><%= doc.available_from %> - <%= doc.available_to %></span>
+                  </div>
+                </div>
+
+                <a href="/patient/doctors/<%= doc.id %>" class="hms-btn hms-btn-primary w-full">
+                  <i class="fas fa-calendar-plus"></i>
+                  Book Appointment
                 </a>
               </div>
             </div>
           <% }) %>
-        <% } %>
-      </div>
+        </div>
+      <% } %>
     </div>
   </div>
 </div>

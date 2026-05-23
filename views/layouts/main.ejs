@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title><%= title || 'Hospital Management System' %></title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -17,7 +16,7 @@
       --dark: #2c3e50;
       --light: #ecf0f1;
     }
-    * { font-family: 'Poppins', sans-serif; }
+    * { font-family: 'Inter', sans-serif; }
     body { background: #f8f9fa; }
     .navbar { background: linear-gradient(135deg, var(--primary), #2980b9); }
     .sidebar { min-height: 100vh; background: var(--dark); }
@@ -83,59 +82,41 @@
 
   <%- body %>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="/socket.io/socket.io.js"></script>
   <script>
-    // Socket.IO Connection
-    const socket = io();
-
-    <% if (user) { %>
-      socket.emit('join', { userId: '<%= user.id %>', role: '<%= user.role %>' });
-    <% } %>
-
-    // Real-time notifications
-    socket.on('new-appointment', (data) => {
-      showToast('New Appointment', `${data.patientName} booked with Dr. ${data.doctorName}`, 'info');
-      updateNotificationCount();
-    });
-
-    socket.on('appointment-update', (data) => {
-      showToast('Appointment Update', `Your appointment is now ${data.status}`, 'success');
-    });
-
-    socket.on('doctor-notification', (data) => {
-      showToast('Notification', data.message, 'warning');
-      updateNotificationCount();
-    });
-
-    socket.on('new-prescription', (data) => {
-      showToast('New Prescription', `Dr. ${data.doctorName} generated your prescription`, 'success');
-    });
-
-    socket.on('chat-message', (data) => {
-      if (typeof appendChatMessage === 'function') {
-        appendChatMessage(data.message, 'received', data.fromName);
-      }
-    });
-
     // Toast notification system
     function showToast(title, message, type = 'info') {
       const colors = { success: '#2ecc71', error: '#e74c3c', warning: '#f39c12', info: '#3498db' };
       const toast = document.createElement('div');
       toast.className = 'toast align-items-center text-white border-0 mb-2';
-      toast.style.background = colors[type] || colors.info;
+      toast.style.cssText = `
+        background: ${colors[type] || colors.info};
+        padding: 16px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        animation: slideIn 0.3s ease-out;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-width: 300px;
+      `;
       toast.innerHTML = `
-        <div class="d-flex">
-          <div class="toast-body">
-            <strong>${title}</strong><br>${message}
-          </div>
-          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        <div>
+          <strong>${title}</strong><br>${message}
         </div>
+        <button type="button" style="background:none;border:none;color:white;cursor:pointer;margin-left:16px;font-size:18px;">&times;</button>
       `;
       document.getElementById('toastContainer').appendChild(toast);
-      const bsToast = new bootstrap.Toast(toast, { delay: 5000 });
-      bsToast.show();
-      toast.addEventListener('hidden.bs.toast', () => toast.remove());
+      
+      const closeBtn = toast.querySelector('button');
+      closeBtn.addEventListener('click', () => toast.remove());
+      
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateX(20px)';
+        toast.style.transition = 'all 0.3s ease-out';
+        setTimeout(() => toast.remove(), 300);
+      }, 5000);
     }
 
     let notifCount = 0;
@@ -147,14 +128,6 @@
         badge.style.display = 'inline';
       }
     }
-
-    // Flash messages to toast
-    <% if (success && success.length > 0) { %>
-      showToast('Success', '<%= success[0] %>', 'success');
-    <% } %>
-    <% if (error && error.length > 0) { %>
-      showToast('Error', '<%= error[0] %>', 'error');
-    <% } %>
   </script>
 </body>
 </html>

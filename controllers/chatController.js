@@ -1,49 +1,56 @@
 const { findSpecialization, suggestMedicines, generateSlots } = require("../utils/aiEngine");
+const { analyzeSymptoms } = require("../utils/medicalAI");
 const doctorModel = require("../models/doctorModel");
 const appointmentModel = require("../models/appointmentModel");
+const { notifyUser } = require("../utils/notifyHelper");
 
 // Chatbot state logic will mostly be handled by the client, but the server processes intent.
 exports.processMessage = async (req, res) => {
   try {
-    const { message, step, data } = req.body;
-    // step: 0 = initial (ask symptoms), 1 = symptoms provided (find doctor), 2 = doctor selected (ask date), 3 = date provided (show slots), 4 = slot selected (book)
+    const { message, step, data, sessionData } = req.body;
+    const payload = data || sessionData || {};
 
-    if (step === 0) {
-      return res.json({ 
-        reply: "Hello! I am your AI assistant. Could you describe your symptoms? (e.g., 'I have a headache')", 
-        nextStep: 1 
+    if (step === 0 || step === undefined) {
+      return res.json({
+        reply: "Hello! I am your AI health assistant. Please describe your symptoms (e.g., 'I have fever and cough').",
+        step: 1,
+        nextStep: 1
       });
     }
 
     if (step === 1) {
-      const specialization = findSpecialization(message);
-      const medicines = suggestMedicines(message);
+      const analysis = await analyzeSymptoms(message);
+      const specialization = analysis.recommended_specialty;
+      const medicines = analysis.medicines;
 
-      if (!specialization) {
-        return res.json({
-          reply: "I couldn't detect a specific specialization for your symptoms. Here is a basic suggestion: " + medicines.join(", ") + ". Please try describing it differently.",
-          nextStep: 1
-        });
-      }
-
-      // Find doctors with this specialization
       const doctors = await doctorModel.searchBySpecialization(specialization);
-      if (doctors.length === 0) {
+      const conditions = (analysis.possible_conditions || []).map(c => c.name).join(", ");
+
+      let reply = `Based on your symptoms, possible conditions: ${conditions || "general concern"}.\n`;
+      reply += `Specialist recommended: ${specialization}.\n`;
+      reply += `Suggested care: ${medicines.join(", ")}.\n`;
+      reply += analysis.summary;
+
+      if (!doctors.length) {
         return res.json({
-          reply: `You need a ${specialization}, but currently no doctors are available in this field.`,
-          nextStep: 1
+          reply: reply + `\n\nNo ${specialization} doctors available right now. Visit Find Doctors to browse all specialists.`,
+          step: 1,
+          nextStep: 1,
+          sessionData: { symptoms: message, analysis }
         });
       }
-
-      let docListHtml = `I suggest a ${specialization}. Basic medicine: ${medicines.join(", ")}.<br/>Here are available doctors:<br/>`;
-      doctors.forEach(d => {
-        docListHtml += `<button class="btn btn-sm btn-outline-primary m-1 doc-select-btn" data-id="${d.id}" data-name="${d.name}" data-from="${d.available_from}" data-to="${d.available_to}">Dr. ${d.name} (Fees: ₹${d.fees})</button>`;
-      });
 
       return res.json({
-        reply: docListHtml,
+        reply,
+        step: 2,
         nextStep: 2,
-        symptoms: message
+        doctors: doctors.slice(0, 5).map(d => ({
+          id: d.id || d._id,
+          name: d.name,
+          specialization: d.specialization,
+          fees: d.fees
+        })),
+        sessionData: { symptoms: message, analysis, specialization }
       });
     }
 
@@ -102,15 +109,22 @@ exports.processMessage = async (req, res) => {
         }
       }
 
+      if (io) {
+        await notifyUser(io, patientId, "Appointment Booked", `AI assistant booked your visit with Dr. ${doctor ? doctor.name : "your doctor"}`, "success");
+      }
+
       return res.json({
-        reply: `✅ Appointment booked successfully! Your appointment ID is ${appId}.`,
+        reply: `Appointment booked successfully! ID: ${appId}. Dr. ${doctor.name} on ${date} at ${timeSlot}.`,
+        step: 5,
         nextStep: 5,
         appointment: { doctorId, patientId, id: appId }
       });
     }
 
+    return res.json({ reply: "How can I help with your health today?", step: 1, nextStep: 1 });
+
   } catch (error) {
     console.error(error);
-    res.status(500).json({ reply: "An error occurred.", nextStep: req.body.step });
+    res.status(500).json({ reply: "An error occurred. Please try again.", step: req.body.step || 1 });
   }
 };
