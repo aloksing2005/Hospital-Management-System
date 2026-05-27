@@ -81,6 +81,7 @@ JSON Output:`;
 });
 router.post("/appointments/update/:id", isDoctor, doctorController.updateAppointmentStatus);
 
+router.get("/prescription", isDoctor, doctorController.getPrescriptionsList);
 router.get("/prescription/:id", isDoctor, doctorController.getPrescriptionForm);
 router.post("/prescription", isDoctor, doctorController.savePrescription);
 

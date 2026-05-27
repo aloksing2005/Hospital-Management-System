@@ -106,6 +106,28 @@ exports.updateAppointmentStatus = async (req, res) => {
   }
 };
 
+exports.getPrescriptionsList = async (req, res) => {
+  try {
+    const doctor = await doctorModel.findByUserId(req.session.user.id);
+    if (!doctor) {
+      req.flash("error", "Doctor profile not found");
+      return res.redirect("/doctor/dashboard");
+    }
+
+    const prescriptions = await prescriptionModel.getPrescriptionsByDoctor(doctor.id);
+
+    res.render("doctor/prescriptions", {
+      doctor,
+      prescriptions,
+      active: "prescription",
+      user: req.session.user
+    });
+  } catch (err) {
+    req.flash("error", "Failed to retrieve prescriptions: " + err.message);
+    res.redirect("/doctor/dashboard");
+  }
+};
+
 exports.getPrescriptionForm = async (req, res) => {
   try {
     const appointment = await appointmentModel.getAppointmentById(req.params.id);

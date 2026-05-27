@@ -133,6 +133,7 @@ async function run() {
     "/doctor/dashboard",
     "/doctor/profile",
     "/doctor/appointments",
+    "/doctor/prescription",
     "/doctor/anatomy",
     "/doctor/chat"
   ];

@@ -1,0 +1,150 @@
+<% var title = 'Prescriptions History - HMS Premium'; %>
+<%- include('../partials/header') %>
+
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <%- include('../partials/doctor-sidebar', { active: 'prescription' }) %>
+
+  <!-- Main Content -->
+  <div class="flex-1 overflow-y-auto p-6 lg:p-8 hms-page-transition bg-slate-950">
+    <!-- Welcome Header & Search bar -->
+    <div class="mb-8 animate-fade-in flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div>
+        <h1 class="text-3xl font-black text-white mb-2">Prescriptions Registry</h1>
+        <p class="text-gray-400 font-medium">Manage and audit historical medical prescriptions you've issued.</p>
+      </div>
+
+      <!-- Real-time Premium Search Filter -->
+      <div class="relative w-full md:w-80 group">
+        <div class="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl blur opacity-25 group-hover:opacity-40 transition duration-300"></div>
+        <div class="relative bg-slate-900 border border-white/10 rounded-xl flex items-center px-4 py-2.5 transition duration-300 hover:border-indigo-500/30">
+          <i class="fas fa-search text-gray-500 mr-3 text-sm"></i>
+          <input 
+            type="text" 
+            id="prescriptionSearch" 
+            placeholder="Search by patient or diagnosis..." 
+            class="bg-transparent border-none outline-none text-white text-sm w-full placeholder-gray-500 focus:ring-0"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Prescriptions Hub -->
+    <% if (prescriptions.length === 0) { %>
+      <div class="hms-glass-premium text-center py-20 animate-scale-in rounded-[24px] border border-white/10">
+        <div class="w-16 h-16 bg-slate-900 border border-white/5 text-gray-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl">
+          <i class="fas fa-file-medical text-3xl"></i>
+        </div>
+        <h3 class="text-xl font-bold text-white mb-2">No Prescriptions Issued</h3>
+        <p class="text-gray-400 max-w-sm mx-auto mb-6">You haven't generated any prescriptions yet. Issue a new one directly from the appointments portal.</p>
+        <a href="/doctor/appointments" class="hms-btn hms-btn-primary inline-flex items-center gap-2">
+          <i class="fas fa-calendar-check"></i>
+          <span>Go to Appointments</span>
+        </a>
+      </div>
+    <% } else { %>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="prescriptionGrid">
+        <% prescriptions.forEach((p, index) => { %>
+          <div 
+            class="hms-glass-premium hms-hover-lift hover:border-indigo-500/30 rounded-[24px] p-6 relative overflow-hidden group shadow-xl transition-all duration-300 animate-scale-in prescription-card"
+            data-patient="<%= p.patient_name.toLowerCase() %>"
+            data-disease="<%= p.disease.toLowerCase() %>"
+            style="animation-delay: <%= index * 50 %>ms;"
+          >
+            <div class="absolute -right-12 -top-12 w-28 h-28 rounded-full bg-indigo-500/10 blur-2xl pointer-events-none group-hover:bg-indigo-500/20 transition-all"></div>
+            
+            <div class="flex justify-between items-start mb-4">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-indigo-500/20 text-indigo-400 rounded-xl flex items-center justify-center text-xl shadow-inner shadow-indigo-500/10">
+                  <i class="fas fa-user"></i>
+                </div>
+                <div>
+                  <h3 class="text-lg font-bold text-white"><%= p.patient_name %></h3>
+                  <p class="text-gray-500 text-xs font-semibold uppercase tracking-wider">Patient</p>
+                </div>
+              </div>
+              <span class="text-[10px] font-bold text-indigo-400 uppercase tracking-widest bg-indigo-500/10 px-2.5 py-1 rounded-lg">
+                Rx ID: <%= String(p.id).substring(String(p.id).length - 6) %>
+              </span>
+            </div>
+
+            <div class="space-y-4 mb-6">
+              <div class="bg-white/5 border border-white/5 rounded-xl p-3">
+                <span class="text-gray-500 text-xs font-bold uppercase tracking-wider block mb-1">Diagnosis</span>
+                <p class="text-white font-semibold text-sm"><%= p.disease %></p>
+              </div>
+
+              <div>
+                <span class="text-gray-500 text-xs font-bold uppercase tracking-wider block mb-2">Prescribed Medicines</span>
+                <div class="flex flex-wrap gap-2">
+                  <% p.medicines.split(',').forEach(med => { %>
+                    <span class="inline-flex items-center gap-1.5 bg-slate-900 border border-white/5 text-gray-300 text-xs px-2.5 py-1 rounded-lg">
+                      <i class="fas fa-pills text-indigo-400 text-[10px]"></i>
+                      <span><%= med.trim() %></span>
+                    </span>
+                  <% }) %>
+                </div>
+              </div>
+
+              <% if (p.created_at) { %>
+                <div class="flex justify-between items-center text-xs text-gray-500 pt-2 border-t border-white/5">
+                  <span>Issued On:</span>
+                  <span class="font-bold text-gray-400"><%= new Date(p.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) %></span>
+                </div>
+              <% } %>
+            </div>
+
+            <a href="<%= p.file_path %>" target="_blank" class="hms-btn hms-btn-primary w-full inline-flex items-center justify-center gap-2 py-3 rounded-xl transition duration-300 hover:scale-[1.02]">
+              <i class="fas fa-download"></i>
+              <span>Download PDF</span>
+            </a>
+          </div>
+        <% }) %>
+      </div>
+
+      <!-- No Search Results Fallback -->
+      <div id="noResults" class="hidden hms-glass-premium text-center py-16 rounded-[24px] border border-white/10">
+        <i class="fas fa-search text-4xl text-gray-600 mb-4 block"></i>
+        <h3 class="text-lg font-bold text-white mb-1">No matching prescriptions</h3>
+        <p class="text-gray-400 text-sm">Try adjusting your search keywords</p>
+      </div>
+    <% } %>
+  </div>
+</div>
+
+<script>
+  // Live prescription search filtering logic
+  const searchInput = document.getElementById('prescriptionSearch');
+  if (searchInput) {
+    searchInput.addEventListener('input', function(e) {
+      const query = e.target.value.toLowerCase().trim();
+      const cards = document.querySelectorAll('.prescription-card');
+      const grid = document.getElementById('prescriptionGrid');
+      const noResults = document.getElementById('noResults');
+      let hasVisible = false;
+
+      cards.forEach(card => {
+        const patient = card.getAttribute('data-patient') || '';
+        const disease = card.getAttribute('data-disease') || '';
+        if (patient.includes(query) || disease.includes(query)) {
+          card.classList.remove('hidden');
+          hasVisible = true;
+        } else {
+          card.classList.add('hidden');
+        }
+      });
+
+      if (grid && noResults) {
+        if (hasVisible) {
+          grid.classList.remove('hidden');
+          noResults.classList.add('hidden');
+        } else {
+          grid.classList.add('hidden');
+          noResults.classList.remove('hidden');
+        }
+      }
+    });
+  }
+</script>
+
+<%- include('../partials/footer') %>
