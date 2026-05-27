@@ -38,20 +38,37 @@
     if (e.key === 'Enter') sendMessage();
   });
 
-  function appendMsg(text, isUser) {
-    const chatBox = document.getElementById('chatBox');
-    const div = document.createElement('div');
-    div.className = 'chat-message mb-3 ' + (isUser ? 'user-msg text-right' : 'bot-msg');
-    const formatted = escapeHtml(text).replace(/\n/g, '<br>');
-    div.innerHTML = '<div class="' + (isUser ? 'bg-indigo-600 ml-auto' : 'bg-white/10') + ' p-4 rounded-2xl inline-block max-w-[80%]"><p class="text-white text-sm leading-relaxed">' + formatted + '</p></div>';
-    chatBox.appendChild(div);
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
-
   function escapeHtml(s) {
     const d = document.createElement('div');
     d.textContent = s;
     return d.innerHTML;
+  }
+
+  function formatResponse(text) {
+    let html = escapeHtml(text);
+    // Parse bold text **bold**
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    // Parse single asterisks *bold* or _italic_
+    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    // Parse list items starting with * or -
+    html = html.replace(/^\s*[-*+]\s+(.*?)$/gm, '<li class="mb-1">$1</li>');
+    // Wrap consecutive list items in <ul>
+    html = html.replace(/(<li class="mb-1">.*?<\/li>)+/gs, '<ul class="list-disc pl-5 my-2">$1</ul>');
+    // Parse headers
+    html = html.replace(/^### (.*?)$/gm, '<h5 class="text-indigo-300 font-bold mt-3 mb-1 text-base">$1</h5>');
+    html = html.replace(/^## (.*?)$/gm, '<h4 class="text-indigo-400 font-extrabold mt-4 mb-2 text-lg">$1</h4>');
+    
+    return html.replace(/\n/g, '<br>');
+  }
+
+  function appendMsg(text, isUser) {
+    const chatBox = document.getElementById('chatBox');
+    const div = document.createElement('div');
+    div.className = 'chat-message mb-3 ' + (isUser ? 'user-msg text-right' : 'bot-msg');
+    const formatted = isUser ? escapeHtml(text).replace(/\n/g, '<br>') : formatResponse(text);
+    div.innerHTML = '<div class="' + (isUser ? 'bg-indigo-600 ml-auto' : 'bg-white/10 backdrop-blur-md border border-white/5') + ' p-4 rounded-2xl inline-block max-w-[80%] text-left"><div class="text-white text-sm leading-relaxed">' + formatted + '</div></div>';
+    chatBox.appendChild(div);
+    chatBox.scrollTop = chatBox.scrollHeight;
   }
 
   async function sendMessage() {
@@ -71,14 +88,14 @@
       const chatBox = document.getElementById('chatBox');
       if (chatBox.lastChild) chatBox.removeChild(chatBox.lastChild);
 
-      if (data.reply) appendMsg(data.reply.replace(/<[^>]+>/g, ''), false);
+      if (data.reply) appendMsg(data.reply, false);
       chatStep = data.step !== undefined ? data.step : (data.nextStep || chatStep + 1);
       if (data.sessionData) sessionData = data.sessionData;
 
       if (data.doctors && data.doctors.length) {
-        let docList = 'Recommended doctors — visit Find Doctors to book:\n';
+        let docList = '### Recommended Doctors\n';
         data.doctors.forEach(d => {
-          docList += '• Dr. ' + d.name + ' (' + d.specialization + ') — ₹' + d.fees + '\n';
+          docList += '* Dr. **' + d.name + '** (' + d.specialization + ') — ₹' + d.fees + '\n';
         });
         appendMsg(docList, false);
       }

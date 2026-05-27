@@ -1,5 +1,69 @@
 <% var title = 'My Appointments - HMS Premium'; %>
 <%- include('../partials/header') %>
+<style>
+  /* Futuristic telemetry pulse and visual breathing room */
+  .telemetry-card {
+    background: rgba(15, 23, 42, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(12px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .telemetry-card:hover {
+    background: rgba(30, 41, 59, 0.5);
+    border-color: rgba(99, 102, 241, 0.3);
+    box-shadow: 0 8px 30px rgba(99, 102, 241, 0.1);
+    transform: translateY(-2px);
+  }
+  .telemetry-pulse-dot {
+    position: relative;
+  }
+  .telemetry-pulse-dot::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    opacity: 0;
+    animation: telemetry-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+  @keyframes telemetry-ping {
+    0% { transform: scale(0.8); opacity: 0.5; }
+    100% { transform: scale(2); opacity: 0; }
+  }
+
+  /* Animated heartbeat background glow */
+  .heartbeat-bg-glow {
+    position: relative;
+  }
+  .heartbeat-bg-glow::before {
+    content: '';
+    position: absolute;
+    right: -30px;
+    bottom: -30px;
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: rgba(99, 102, 241, 0.03);
+    filter: blur(40px);
+    pointer-events: none;
+    animation: heartbeat-glow-pulse 4s ease-in-out infinite;
+    z-index: 0;
+  }
+  @keyframes heartbeat-glow-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.3; }
+    50% { transform: scale(1.2); opacity: 0.7; }
+  }
+
+  /* Checklist transitions */
+  .checklist-item {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .checklist-item.checked {
+    background: rgba(16, 185, 129, 0.08) !important;
+    border-color: rgba(16, 185, 129, 0.25) !important;
+    box-shadow: 0 4px 20px rgba(16, 185, 129, 0.04);
+  }
+</style>
 
 <%
   // Compute appointment metrics dynamically
@@ -338,69 +402,71 @@
       <!-- Preparation & Diagnostics Checklist Sidebar -->
       <div class="xl:col-span-1 space-y-6">
         <!-- Diagnostic Status HUD -->
-        <div class="hms-card p-6 border border-indigo-500/10">
-          <h3 class="text-md font-black text-white flex items-center gap-2 mb-4">
-            <i class="fas fa-user-shield text-indigo-400"></i> Consultation Prep Center
-          </h3>
-          <p class="text-xs text-gray-400 font-medium mb-5 leading-relaxed">Ensure your local telemetry systems and hardware components are fully authenticated before your call starts.</p>
+        <div class="hms-card p-6 border border-indigo-500/20 relative overflow-hidden heartbeat-bg-glow shadow-xl">
+          <div class="hud-grid-overlay"></div>
           
-          <div class="space-y-3 mb-6">
+          <h3 class="text-md font-black text-white flex items-center gap-2 mb-4 relative z-10">
+            <i class="fas fa-shield-halved text-indigo-400"></i> Consultation Prep Center
+          </h3>
+          <p class="text-xs text-gray-400 font-medium mb-5 leading-relaxed relative z-10">Ensure your local telemetry systems and hardware components are fully authenticated before your call starts.</p>
+          
+          <div class="space-y-4 mb-6 relative z-10">
             <!-- Camera Detector -->
-            <div class="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5">
+            <div class="telemetry-card flex items-center justify-between p-3.5 rounded-xl border border-white/5 shadow-md">
               <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 text-sm" id="camIcon">
+                <div class="w-9 h-9 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 text-sm transition-transform duration-300" id="camIcon">
                   <i class="fas fa-video"></i>
                 </div>
                 <div>
-                  <p class="text-xs font-bold text-white">Camera Device</p>
-                  <p class="text-[10px] text-gray-500 font-semibold" id="camDesc">Permissions pending...</p>
+                  <p class="text-xs font-bold text-white leading-none mb-1">Camera Device</p>
+                  <p class="text-[10px] text-gray-400 font-medium" id="camDesc">Permissions pending...</p>
                 </div>
               </div>
-              <div id="camStatusDot" class="w-2 h-2 rounded-full bg-gray-500 animate-pulse"></div>
+              <div id="camStatusDot" class="w-2.5 h-2.5 rounded-full bg-gray-500 telemetry-pulse-dot text-gray-500"></div>
             </div>
             
             <!-- Microphone Detector -->
-            <div class="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5">
+            <div class="telemetry-card flex items-center justify-between p-3.5 rounded-xl border border-white/5 shadow-md">
               <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 text-sm" id="micIcon">
+                <div class="w-9 h-9 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 text-sm transition-transform duration-300" id="micIcon">
                   <i class="fas fa-microphone"></i>
                 </div>
                 <div>
-                  <p class="text-xs font-bold text-white">Microphone Input</p>
-                  <p class="text-[10px] text-gray-500 font-semibold" id="micDesc">Permissions pending...</p>
+                  <p class="text-xs font-bold text-white leading-none mb-1">Microphone Input</p>
+                  <p class="text-[10px] text-gray-400 font-medium" id="micDesc">Permissions pending...</p>
                 </div>
               </div>
-              <div id="micStatusDot" class="w-2 h-2 rounded-full bg-gray-500 animate-pulse"></div>
+              <div id="micStatusDot" class="w-2.5 h-2.5 rounded-full bg-gray-500 telemetry-pulse-dot text-gray-500"></div>
             </div>
 
             <!-- Encrypted Signal Sync -->
-            <div class="flex items-center justify-between p-3 rounded-xl bg-white/5 border border-white/5">
+            <div class="telemetry-card flex items-center justify-between p-3.5 rounded-xl border border-white/5 shadow-md">
               <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 text-sm">
+                <div class="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400 text-sm">
                   <i class="fas fa-server"></i>
                 </div>
                 <div>
-                  <p class="text-xs font-bold text-white">Encrypted Server Connection</p>
+                  <p class="text-xs font-bold text-white leading-none mb-1">Encrypted Signal Sync</p>
                   <p class="text-[10px] text-emerald-400 font-semibold">Active & Secured</p>
                 </div>
               </div>
-              <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+              <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 telemetry-pulse-dot text-emerald-500"></div>
             </div>
           </div>
 
-          <button onclick="requestHardwareAccess()" class="hms-btn hms-btn-primary w-full text-xs font-bold mb-4 py-2.5 flex items-center justify-center gap-2" id="reqHardwareBtn">
+          <button onclick="requestHardwareAccess()" class="hms-btn hms-btn-primary w-full text-xs font-black py-3.5 flex items-center justify-center gap-2 relative z-10 tracking-widest uppercase rounded-xl hover:scale-[1.02] transition-all cursor-pointer shadow-lg shadow-indigo-500/10 hover:shadow-indigo-500/20 active:scale-95" id="reqHardwareBtn">
             <i class="fas fa-shield-alt"></i> Run Diagnostics Pass
           </button>
 
-          <hr class="border-white/5 my-4">
+          <hr class="border-white/5 my-4 relative z-10">
 
           <!-- Telehealth widgets visual shortcut -->
-          <div class="grid grid-cols-2 gap-3">
-            <a href="/patient/vitals" class="p-3 rounded-xl bg-slate-900 border border-white/5 hover:border-indigo-500/30 text-center transition-all group">
+          <div class="grid grid-cols-2 gap-3 relative z-10">
+            <a href="/patient/vitals" class="p-3 rounded-xl bg-slate-950/80 border border-white/5 hover:border-indigo-500/30 text-center transition-all group shadow-md">
               <i class="fas fa-heartbeat text-rose-500 text-lg mb-1.5 block group-hover:scale-110 transition-transform"></i>
               <span class="text-[9px] font-extrabold text-white uppercase tracking-wider block">Vitals HUD</span>
             </a>
-            <a href="/patient/ai-consultation" class="p-3 rounded-xl bg-slate-900 border border-white/5 hover:border-indigo-500/30 text-center transition-all group">
+            <a href="/patient/ai-consultation" class="p-3 rounded-xl bg-slate-950/80 border border-white/5 hover:border-indigo-500/30 text-center transition-all group shadow-md">
               <i class="fas fa-brain text-emerald-400 text-lg mb-1.5 block group-hover:scale-110 transition-transform"></i>
               <span class="text-[9px] font-extrabold text-white uppercase tracking-wider block">Bio Suite</span>
             </a>
@@ -408,32 +474,45 @@
         </div>
 
         <!-- Consultation Preparation Checklist -->
-        <div class="hms-card p-6 border border-white/5">
-          <h3 class="text-xs font-black text-white uppercase tracking-wider flex items-center gap-2 mb-3">
+        <div class="hms-card p-6 border border-white/5 relative overflow-hidden shadow-xl">
+          <div class="hud-grid-overlay"></div>
+          
+          <h3 class="text-xs font-black text-white uppercase tracking-widest flex items-center gap-2 mb-2 relative z-10">
             <i class="fas fa-list-check text-indigo-400"></i> Pre-Consultation Checklist
           </h3>
-          <p class="text-[11px] text-gray-500 font-medium mb-4">Check these items to finalize patient reports prior to consultation call.</p>
+          <p class="text-[11px] text-gray-500 font-medium mb-4 relative z-10">Check these items to finalize patient reports prior to consultation call.</p>
           
-          <div class="space-y-3" id="checklistForm">
-            <label class="flex items-start gap-3 p-2.5 rounded-lg bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors cursor-pointer select-none">
-              <input type="checkbox" id="chkSymptoms" class="mt-0.5 rounded border-white/10 bg-slate-950 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-slate-900" onchange="saveChecklistState()">
+          <!-- Progressive Completion Visual -->
+          <div class="mb-5 relative z-10">
+            <div class="flex justify-between items-center text-[9px] mb-2 font-mono text-gray-400">
+              <span class="font-bold tracking-wider">PREPARATION SYNC</span>
+              <span id="checklistProgressText" class="text-indigo-400 font-black">0% COMPLETE</span>
+            </div>
+            <div class="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-white/5">
+              <div id="checklistProgressBar" class="h-full bg-gradient-to-r from-indigo-500 to-emerald-400 transition-all duration-500 w-0" style="width: 0%"></div>
+            </div>
+          </div>
+          
+          <div class="space-y-3 relative z-10" id="checklistForm">
+            <label class="checklist-item flex items-start gap-3.5 p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all cursor-pointer select-none group">
+              <input type="checkbox" id="chkSymptoms" class="mt-1 rounded border-white/20 bg-slate-950 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-slate-900 w-4 h-4 cursor-pointer" onchange="updateChecklistProgress()">
               <div>
-                <span class="text-xs font-bold text-white block">Symptoms Catalogued</span>
-                <span class="text-[10px] text-gray-500 font-medium">Chief concerns accurately logged.</span>
+                <span class="text-xs font-bold text-white block group-hover:text-indigo-400 transition-colors">Symptoms Catalogued</span>
+                <span class="text-[10px] text-gray-400 font-medium mt-0.5 block leading-normal">Chief concerns accurately logged.</span>
               </div>
             </label>
-            <label class="flex items-start gap-3 p-2.5 rounded-lg bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors cursor-pointer select-none">
-              <input type="checkbox" id="chkMeds" class="mt-0.5 rounded border-white/10 bg-slate-950 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-slate-900" onchange="saveChecklistState()">
+            <label class="checklist-item flex items-start gap-3.5 p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all cursor-pointer select-none group">
+              <input type="checkbox" id="chkMeds" class="mt-1 rounded border-white/20 bg-slate-950 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-slate-900 w-4 h-4 cursor-pointer" onchange="updateChecklistProgress()">
               <div>
-                <span class="text-xs font-bold text-white block">Active Prescriptions Synced</span>
-                <span class="text-[10px] text-gray-500 font-medium">Logged medication safety review list.</span>
+                <span class="text-xs font-bold text-white block group-hover:text-indigo-400 transition-colors">Active Prescriptions Synced</span>
+                <span class="text-[10px] text-gray-400 font-medium mt-0.5 block leading-normal">Logged medication safety review list.</span>
               </div>
             </label>
-            <label class="flex items-start gap-3 p-2.5 rounded-lg bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors cursor-pointer select-none">
-              <input type="checkbox" id="chkVitals" class="mt-0.5 rounded border-white/10 bg-slate-950 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-slate-900" onchange="saveChecklistState()">
+            <label class="checklist-item flex items-start gap-3.5 p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-all cursor-pointer select-none group">
+              <input type="checkbox" id="chkVitals" class="mt-1 rounded border-white/20 bg-slate-950 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-slate-900 w-4 h-4 cursor-pointer" onchange="updateChecklistProgress()">
               <div>
-                <span class="text-xs font-bold text-white block">Telemetry Connected</span>
-                <span class="text-[10px] text-gray-500 font-medium">Webcam PPG and heart vitals primed.</span>
+                <span class="text-xs font-bold text-white block group-hover:text-indigo-400 transition-colors">Telemetry Connected</span>
+                <span class="text-[10px] text-gray-400 font-medium mt-0.5 block leading-normal">Webcam PPG and heart vitals primed.</span>
               </div>
             </label>
           </div>
@@ -704,16 +783,39 @@
     }
   };
 
-  // Pre-Consultation checklist state savers
-  window.saveChecklistState = function() {
-    const chkSymptoms = document.getElementById('chkSymptoms').checked;
-    const chkMeds = document.getElementById('chkMeds').checked;
-    const chkVitals = document.getElementById('chkVitals').checked;
+  // Pre-Consultation checklist state savers and progress estimators
+  window.updateChecklistProgress = function() {
+    const chkSymptoms = document.getElementById('chkSymptoms');
+    const chkMeds = document.getElementById('chkMeds');
+    const chkVitals = document.getElementById('chkVitals');
+    if (!chkSymptoms || !chkMeds || !chkVitals) return;
+
+    const symptomsChecked = chkSymptoms.checked;
+    const medsChecked = chkMeds.checked;
+    const vitalsChecked = chkVitals.checked;
+    
+    // Toggle checked class for premium green feedback
+    chkSymptoms.closest('.checklist-item').classList.toggle('checked', symptomsChecked);
+    chkMeds.closest('.checklist-item').classList.toggle('checked', medsChecked);
+    chkVitals.closest('.checklist-item').classList.toggle('checked', vitalsChecked);
+    
+    // Calculate progress percentage
+    let checkedCount = 0;
+    if (symptomsChecked) checkedCount++;
+    if (medsChecked) checkedCount++;
+    if (vitalsChecked) checkedCount++;
+    
+    const progressPercent = Math.round((checkedCount / 3) * 100);
+    const progressText = document.getElementById('checklistProgressText');
+    const progressBar = document.getElementById('checklistProgressBar');
+    
+    if (progressText) progressText.textContent = `${progressPercent}% COMPLETE`;
+    if (progressBar) progressBar.style.width = `${progressPercent}%`;
     
     localStorage.setItem('hms_appt_checklist', JSON.stringify({
-      chkSymptoms,
-      chkMeds,
-      chkVitals
+      chkSymptoms: symptomsChecked,
+      chkMeds: medsChecked,
+      chkVitals: vitalsChecked
     }));
   };
 
@@ -722,12 +824,17 @@
       const saved = localStorage.getItem('hms_appt_checklist');
       if (saved) {
         const data = JSON.parse(saved);
-        document.getElementById('chkSymptoms').checked = !!data.chkSymptoms;
-        document.getElementById('chkMeds').checked = !!data.chkMeds;
-        document.getElementById('chkVitals').checked = !!data.chkVitals;
+        const chkSymptoms = document.getElementById('chkSymptoms');
+        const chkMeds = document.getElementById('chkMeds');
+        const chkVitals = document.getElementById('chkVitals');
+        
+        if (chkSymptoms) chkSymptoms.checked = !!data.chkSymptoms;
+        if (chkMeds) chkMeds.checked = !!data.chkMeds;
+        if (chkVitals) chkVitals.checked = !!data.chkVitals;
       }
+      updateChecklistProgress();
     } catch (e) {
-      // Ignored gracefully
+      console.error('Error loading checklist state:', e);
     }
   }
 

@@ -1,143 +1,445 @@
-<% var title = title || 'Command Center'; %>
+<% var title = title || 'Command Center - HMS Premium'; %>
 <%- include('../partials/header') %>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-<div class="container-fluid py-4">
-  <div class="row">
-    <%- include('../partials/admin-sidebar', { active: 'command' }) %>
-    <div class="col-md-9 col-lg-10 p-3 p-lg-4">
-      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <%- include('../partials/admin-sidebar', { active: 'command' }) %>
+
+  <!-- Main Content -->
+  <div class="flex-1 overflow-y-auto p-6 lg:p-8 hms-page-transition">
+      <!-- Title header -->
+      <div class="flex flex-wrap justify-between items-center gap-3 mb-8">
         <div>
-          <h2 class="fw-bold text-white mb-1"><i class="fas fa-satellite-dish me-2 text-indigo-400"></i>Command Center</h2>
-          <p class="text-white-50 mb-0 small">Risk signals, emergency queue, and live operations</p>
+          <h1 class="text-3xl font-black text-white mb-2"><i class="fas fa-satellite-dish mr-2 text-indigo-400"></i>Command Center</h1>
+          <p class="text-gray-400 font-medium">Risk signals, emergency queue, and live telemetry operations.</p>
         </div>
-        <span class="badge bg-success bg-opacity-25 text-success border border-success px-3 py-2 rounded-pill">Live</span>
+        <span class="hms-badge hms-badge-success flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          Live Stream active
+        </span>
       </div>
 
-      <div class="row g-3 mb-4">
-        <div class="col-md-3 col-6">
-          <div class="cyber-card p-4 h-100">
-            <p class="text-white-50 small mb-1">Patients</p>
-            <h3 class="text-white fw-black mb-0"><%= stats.patients || 0 %></h3>
-          </div>
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <!-- Stat 1: Patients -->
+        <div class="hms-glass-premium hms-hover-lift hover:border-indigo-500/30 rounded-[24px] p-6 relative overflow-hidden group shadow-xl transition-all duration-300">
+          <div class="absolute -right-12 -top-12 w-28 h-28 rounded-full bg-indigo-500/10 blur-2xl pointer-events-none group-hover:bg-indigo-500/20 transition-all"></div>
+          <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total Patients</p>
+          <h3 class="text-3xl font-black text-white mb-0"><%= stats.patients || 0 %></h3>
         </div>
-        <div class="col-md-3 col-6">
-          <div class="cyber-card p-4 h-100 border-start border-warning border-3">
-            <p class="text-white-50 small mb-1">Pending visits</p>
-            <h3 class="text-warning fw-black mb-0"><%= stats.pending_appts || 0 %></h3>
-          </div>
+
+        <!-- Stat 2: Pending -->
+        <div class="hms-glass-premium hms-hover-lift hms-hover-lift-amber hover:border-amber-500/30 rounded-[24px] p-6 relative overflow-hidden group shadow-xl transition-all duration-300">
+          <div class="absolute -right-12 -top-12 w-28 h-28 rounded-full bg-amber-500/10 blur-2xl pointer-events-none group-hover:bg-amber-500/20 transition-all"></div>
+          <p class="text-xs font-bold text-amber-400 uppercase tracking-widest mb-1">Pending Visits</p>
+          <h3 class="text-3xl font-black text-amber-500 mb-0"><%= stats.pending_appts || 0 %></h3>
         </div>
-        <div class="col-md-3 col-6">
-          <div class="cyber-card p-4 h-100">
-            <p class="text-white-50 small mb-1">Today</p>
-            <h3 class="text-cyan fw-black mb-0"><%= stats.appts_today || 0 %></h3>
-          </div>
+
+        <!-- Stat 3: Today -->
+        <div class="hms-glass-premium hms-hover-lift hms-hover-lift-cyan hover:border-cyan-500/30 rounded-[24px] p-6 relative overflow-hidden group shadow-xl transition-all duration-300">
+          <div class="absolute -right-12 -top-12 w-28 h-28 rounded-full bg-cyan-500/10 blur-2xl pointer-events-none group-hover:bg-cyan-500/20 transition-all"></div>
+          <p class="text-xs font-bold text-cyan-400 uppercase tracking-widest mb-1">Today's Visits</p>
+          <h3 class="text-3xl font-black text-cyan-400 mb-0"><%= stats.appts_today || 0 %></h3>
         </div>
-        <div class="col-md-3 col-6">
-          <div class="cyber-card p-4 h-100 border-start border-danger border-3">
-            <p class="text-white-50 small mb-1">Ambulance queue</p>
-            <h3 class="text-danger fw-black mb-0"><%= pendingAmbulance || 0 %></h3>
-          </div>
+
+        <!-- Stat 4: Ambulance Queue -->
+        <div class="hms-glass-premium hms-hover-lift hover:border-rose-500/30 rounded-[24px] p-6 relative overflow-hidden group shadow-xl transition-all duration-300">
+          <div class="absolute -right-12 -top-12 w-28 h-28 rounded-full bg-rose-500/10 blur-2xl pointer-events-none group-hover:bg-rose-500/20 transition-all"></div>
+          <p class="text-xs font-bold text-rose-400 uppercase tracking-widest mb-1">Ambulance Q</p>
+          <h3 class="text-3xl font-black text-rose-500 mb-0"><%= pendingAmbulance || 0 %></h3>
         </div>
       </div>
 
-      <div class="row g-4">
-        <div class="col-lg-7">
-          <div class="cyber-card p-4">
-            <h5 class="text-white fw-bold mb-3">Patient risk snapshot</h5>
-            <p class="text-white-50 small">Heuristic risk from visit patterns (fetch per patient via API).</p>
-            <div class="table-responsive mt-3">
-              <table class="table table-dark table-hover align-middle rounded-3 overflow-hidden">
-                <thead>
-                  <tr class="text-indigo-300 small text-uppercase">
-                    <th>Patient</th><th>Visits</th><th>Rx</th><th>Risk</th>
+      <!-- ICU High-Telemetry central Command Ward -->
+      <div class="hms-glass-premium hms-hover-lift rounded-[30px] p-6 relative overflow-hidden shadow-2xl mb-8 animate-fade-in">
+         <div class="hud-grid-overlay"></div>
+         <div class="flex flex-col xl:flex-row gap-6 relative z-10">
+           <!-- Beds Section -->
+           <div class="w-full xl:w-8/12">
+             <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+               <i class="fas fa-heartbeat text-rose-500 animate-pulse"></i> ICU Ward High-Telemetry
+             </h3>
+             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+               <!-- Bed 101 -->
+               <div id="icuBed101" class="bg-slate-950/70 rounded-2xl border border-white/10 p-5 transition-all duration-300 relative overflow-hidden">
+                 <div class="flex justify-between items-start mb-3">
+                   <div>
+                     <span class="text-[10px] font-mono text-gray-500 uppercase">ICU BED #101</span>
+                     <h4 class="text-sm font-black text-white" id="bedPatient101">Patient: Rahul Sharma</h4>
+                   </div>
+                   <span class="hms-badge hms-badge-success text-[10px]" id="bedStatusBadge101">SINUS RHYTHM</span>
+                 </div>
+                 <!-- Live ECG Canvas -->
+                 <canvas id="canvasECG101" class="w-full h-20 bg-slate-950 rounded-lg border border-white/5" style="min-height: 80px;"></canvas>
+                 <div class="grid grid-cols-3 gap-2 mt-4 text-center font-mono">
+                   <div class="bg-white/5 p-2 rounded-xl">
+                     <span class="text-[9px] text-gray-500 block uppercase">HR (BPM)</span>
+                     <span class="text-xs font-bold text-white" id="valHR101">74</span>
+                   </div>
+                   <div class="bg-white/5 p-2 rounded-xl">
+                     <span class="text-[9px] text-gray-500 block uppercase">SpO2 (%)</span>
+                     <span class="text-xs font-bold text-emerald-400" id="valSPO2101">98%</span>
+                   </div>
+                   <div class="bg-white/5 p-2 rounded-xl">
+                     <span class="text-[9px] text-gray-500 block uppercase">TEMP (°F)</span>
+                     <span class="text-xs font-bold text-white" id="valTEMP101">98.4</span>
+                   </div>
+                 </div>
+               </div>
+
+               <!-- Bed 102 -->
+               <div id="icuBed102" class="bg-slate-950/70 rounded-2xl border border-white/10 p-5 transition-all duration-300 relative overflow-hidden hud-alarm-active">
+                 <div class="flex justify-between items-start mb-3">
+                   <div>
+                     <span class="text-[10px] font-mono text-gray-500 uppercase">ICU BED #102</span>
+                     <h4 class="text-sm font-black text-white" id="bedPatient102">Patient: Priya Singh</h4>
+                   </div>
+                   <span class="hms-badge hms-badge-danger text-[10px]" id="bedStatusBadge102">ARRHYTHMIA</span>
+                 </div>
+                 <!-- Live ECG Canvas -->
+                 <canvas id="canvasECG102" class="w-full h-20 bg-slate-950 rounded-lg border border-white/5" style="min-height: 80px;"></canvas>
+                 <div class="grid grid-cols-3 gap-2 mt-4 text-center font-mono">
+                   <div class="bg-white/5 p-2 rounded-xl">
+                     <span class="text-[9px] text-gray-500 block uppercase">HR (BPM)</span>
+                     <span class="text-xs font-bold text-rose-500" id="valHR102">142</span>
+                   </div>
+                   <div class="bg-white/5 p-2 rounded-xl">
+                     <span class="text-[9px] text-gray-500 block uppercase">SpO2 (%)</span>
+                     <span class="text-xs font-bold text-rose-400" id="valSPO2102">91%</span>
+                   </div>
+                   <div class="bg-white/5 p-2 rounded-xl">
+                     <span class="text-[9px] text-gray-500 block uppercase">TEMP (°F)</span>
+                     <span class="text-xs font-bold text-white" id="valTEMP102">101.2</span>
+                   </div>
+                 </div>
+               </div>
+             </div>
+           </div>
+
+           <!-- Control console Section -->
+           <div class="w-full xl:w-4/12 flex flex-col justify-between border-t xl:border-t-0 xl:border-l border-white/10 pt-6 xl:pt-0 xl:pl-6">
+             <div>
+               <h3 class="text-lg font-black text-white mb-2"><i class="fas fa-sliders-h text-indigo-400"></i> Event Injector Panel</h3>
+               <p class="text-xs text-gray-400 mb-6 leading-normal">Simulate vital distress signals to test hospital-wide emergency responder telemetry channels.</p>
+
+               <div class="space-y-4">
+                 <div>
+                   <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-2">Select Target Ward Bed</label>
+                   <select id="selTargetBed" class="w-full bg-slate-800 border border-white/10 text-white rounded-xl px-4 py-3 text-xs focus:border-indigo-500 focus:outline-none transition-all">
+                     <option value="101">ICU BED #101 (Rahul Sharma)</option>
+                     <option value="102">ICU BED #102 (Priya Singh)</option>
+                   </select>
+                 </div>
+
+                 <div>
+                   <label class="text-[10px] font-bold text-gray-500 uppercase tracking-wider block mb-2">Inject Arrhythmia / Distress Event</label>
+                   <div class="flex flex-col gap-2">
+                     <button type="button" onclick="injectTelemetryEvent('normal')" class="w-full px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-600/10">
+                       <i class="fas fa-heartbeat"></i> Inject Normal Sinus Rhythm
+                     </button>
+                     <button type="button" onclick="injectTelemetryEvent('arrhythmia')" class="w-full px-4 py-3 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-rose-600/10">
+                       <i class="fas fa-radiation"></i> Inject Tachycardia (Arrhythmia)
+                     </button>
+                     <button type="button" onclick="injectTelemetryEvent('bradycardia')" class="w-full px-4 py-3 bg-amber-600 hover:bg-amber-700 text-white text-xs font-black rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-amber-600/10">
+                       <i class="fas fa-tachometer-alt"></i> Inject Severe Bradycardia
+                     </button>
+                   </div>
+                 </div>
+               </div>
+             </div>
+             
+             <div class="mt-6 p-4 bg-white/5 rounded-2xl border border-white/5 text-[10px] text-gray-400 flex items-center gap-2.5">
+               <i class="fas fa-shield-virus text-indigo-400 text-sm animate-pulse"></i>
+               <span>E2E Live Telemetry linked. Staff active siren channels enabled.</span>
+             </div>
+           </div>
+         </div>
+      </div>
+
+      <!-- Main Visual Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <!-- Risk Table -->
+        <div class="lg:col-span-7 hms-glass-premium hms-hover-lift rounded-[24px] p-6 relative overflow-hidden shadow-xl transition-all">
+          <h3 class="text-xl font-bold text-white mb-2 flex items-center gap-2">
+            <i class="fas fa-biohazard text-indigo-400"></i> Patient Risk Snapshot
+          </h3>
+          <p class="text-gray-400 text-sm mb-6">Heuristic risk from visit patterns (live telemetry analyzed via neural audit API).</p>
+          
+          <div class="hms-table-container">
+            <table class="hms-table w-full">
+              <thead>
+                <tr class="border-b border-white/10">
+                  <th class="text-left py-3 px-4 text-xs font-black uppercase text-gray-400 tracking-wider">Patient Name</th>
+                  <th class="text-left py-3 px-4 text-xs font-black uppercase text-gray-400 tracking-wider">Visits</th>
+                  <th class="text-left py-3 px-4 text-xs font-black uppercase text-gray-400 tracking-wider">Rx Count</th>
+                  <th class="text-left py-3 px-4 text-xs font-black uppercase text-gray-400 tracking-wider">Risk Level</th>
+                </tr>
+              </thead>
+              <tbody id="riskRows">
+                <% patientsTop.forEach(function (p) { %>
+                  <tr data-pid="<%= p.id %>" class="border-b border-white/5 hover:bg-white/5 transition-all">
+                    <td class="py-3 px-4 font-bold text-white text-sm"><%= p.name %></td>
+                    <td class="py-3 px-4 text-gray-300 text-sm font-semibold"><%= p.appt_n %></td>
+                    <td class="py-3 px-4 text-gray-300 text-sm font-semibold"><%= p.rx_n %></td>
+                    <td class="py-3 px-4"><span class="hms-badge bg-gray-700 text-gray-300 risk-badge"><i class="fas fa-spinner animate-spin mr-1"></i>Analyzing</span></td>
                   </tr>
-                </thead>
-                <tbody id="riskRows">
-                  <% patientsTop.forEach(function (p) { %>
-                    <tr data-pid="<%= p.id %>">
-                      <td class="fw-semibold"><%= p.name %></td>
-                      <td><%= p.appt_n %></td>
-                      <td><%= p.rx_n %></td>
-                      <td><span class="badge bg-secondary risk-badge">…</span></td>
-                    </tr>
-                  <% }) %>
-                </tbody>
-              </table>
-            </div>
+                <% }) %>
+              </tbody>
+            </table>
           </div>
         </div>
-        <div class="col-lg-5">
-          <div class="cyber-card p-4 mb-4">
-            <h5 class="text-white fw-bold mb-3">Throughput</h5>
-            <canvas id="opsChart" height="220"></canvas>
+
+        <!-- Ops Analytics and Logs -->
+        <div class="lg:col-span-5 flex flex-col gap-6">
+          <!-- Throughput Chart -->
+          <div class="hms-glass-premium hms-hover-lift rounded-[24px] p-6 relative overflow-hidden shadow-xl transition-all">
+            <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+              <i class="fas fa-chart-bar text-cyan-400"></i> Operation Throughput
+            </h3>
+            <canvas id="opsChart" height="220" class="max-h-[220px]"></canvas>
           </div>
-          <div class="cyber-card p-4">
-            <h5 class="text-white fw-bold mb-3">Activity</h5>
+
+          <!-- Live Activities Log -->
+          <div class="hms-glass-premium hms-hover-lift rounded-[24px] p-6 relative overflow-hidden shadow-xl transition-all flex-grow">
+            <h3 class="text-xl font-bold text-white mb-4 flex items-center gap-2">
+              <i class="fas fa-stream text-purple-400"></i> Live Activity Feed
+            </h3>
             <% if (!activity || !activity.length) { %>
-              <p class="text-white-50 small mb-0">Connect Socket.IO clients to stream live audit events (hooks can push to <code>__HMS_ACTIVITY_LOG__</code>).</p>
+              <div class="p-4 bg-white/5 rounded-xl border border-white/5 text-center text-gray-400 text-sm">
+                <i class="fas fa-network-wired mb-2 text-2xl text-purple-400/40"></i>
+                <p>Connect Socket.IO stream to monitor live clinical audit actions.</p>
+              </div>
             <% } else { %>
-              <ul class="list-unstyled small text-white-50 mb-0">
+              <ul class="space-y-3 max-h-[180px] overflow-y-auto pr-1">
                 <% activity.forEach(function (a) { %>
-                  <li class="mb-2"><%= a.msg || a %></li>
+                  <li class="p-3 bg-white/5 hover:bg-white/8 rounded-xl border border-white/5 text-xs text-gray-300 flex items-start gap-2.5 transition-all">
+                    <span class="w-1.5 h-1.5 rounded-full bg-purple-400 mt-1.5 shrink-0 animate-pulse"></span>
+                    <span class="leading-relaxed"><%= a.msg || a %></span>
+                  </li>
                 <% }) %>
               </ul>
             <% } %>
           </div>
         </div>
       </div>
-    </div>
   </div>
 </div>
 
 <%- include('../partials/footer') %>
+
 <script>
 (function () {
   function initCommandCenter() {
     var ctx = document.getElementById('opsChart');
     if (ctx && window.Chart) {
-    new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['Patients', 'Pending', 'Today', 'Ambulance Q'],
-        datasets: [{
-          label: 'Operations',
-          data: [
-            <%= stats.patients || 0 %>,
-            <%= stats.pending_appts || 0 %>,
-            <%= stats.appts_today || 0 %>,
-            <%= pendingAmbulance || 0 %>
-          ],
-          backgroundColor: ['#6366f1aa', '#f59e0baa', '#22d3eeaa', '#f43f5eaa'],
-          borderRadius: 8
-        }]
-      },
-      options: {
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.1)' } },
-          y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.1)' }, beginAtZero: true }
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['Patients', 'Pending', 'Today', 'Ambulance Q'],
+          datasets: [{
+            label: 'Operations',
+            data: [
+              <%= stats.patients || 0 %>,
+              <%= stats.pending_appts || 0 %>,
+              <%= stats.appts_today || 0 %>,
+              <%= pendingAmbulance || 0 %>
+            ],
+            backgroundColor: ['rgba(99, 102, 241, 0.65)', 'rgba(245, 158, 11, 0.65)', 'rgba(34, 211, 238, 0.65)', 'rgba(244, 63, 94, 0.65)'],
+            borderColor: ['#6366f1', '#f59e0b', '#22d3ee', '#f43f5e'],
+            borderWidth: 1.5,
+            borderRadius: 12
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { 
+            legend: { display: false }
+          },
+          scales: {
+            x: { 
+              ticks: { color: '#94a3b8', font: { family: 'Inter', weight: 600 } }, 
+              grid: { color: 'rgba(148,163,184,0.05)' } 
+            },
+            y: { 
+              ticks: { color: '#94a3b8', font: { family: 'Inter' } }, 
+              grid: { color: 'rgba(148,163,184,0.05)' }, 
+              beginAtZero: true 
+            }
+          }
         }
+      });
+    }
+    
+      document.querySelectorAll('#riskRows tr[data-pid]').forEach(async function (row) {
+      var id = row.getAttribute('data-pid');
+      try {
+        const res = await fetch('/api/patient-risk/' + id);
+        const d = await res.json();
+        var badge = row.querySelector('.risk-badge');
+        if (!badge || !d.success) return;
+        badge.textContent = d.band + ' (' + d.riskScore + ')';
+        badge.className = 'hms-badge capitalize font-bold';
+        if (d.riskScore >= 75) { 
+          badge.classList.add('hms-badge-danger'); 
+        } else if (d.riskScore >= 45) { 
+          badge.classList.add('hms-badge-warning'); 
+        } else { 
+          badge.classList.add('hms-badge-success'); 
+        }
+      } catch (err) {
+        console.error('Error fetching patient risk:', err);
       }
     });
   }
-  document.querySelectorAll('#riskRows tr[data-pid]').forEach(async function (row) {
-    var id = row.getAttribute('data-pid');
-    try {
-      const res = await fetch('/api/patient-risk/' + id);
-      const d = await res.json();
-      var badge = row.querySelector('.risk-badge');
-      if (!badge || !d.success) return;
-      badge.textContent = d.band + ' (' + d.riskScore + ')';
-      badge.classList.remove('bg-secondary');
-      if (d.riskScore >= 75) { badge.classList.add('bg-danger'); }
-      else if (d.riskScore >= 45) { badge.classList.add('bg-warning', 'text-dark'); }
-      else { badge.classList.add('bg-success'); }
-    } catch (err) {
-      console.error('Error fetching patient risk:', err);
-    }
-  });
-}
 
-document.addEventListener('DOMContentLoaded', initCommandCenter);
+  // --- ICU Ward High-Telemetry Canvas Drawing Engine ---
+  class ECGMonitor {
+    constructor(canvasId, mode) {
+      this.canvas = document.getElementById(canvasId);
+      if (!this.canvas) return;
+      this.ctx = this.canvas.getContext('2d');
+      this.mode = mode; // 'normal', 'arrhythmia', 'bradycardia'
+      this.x = 0;
+      this.points = [];
+      this.width = this.canvas.width = this.canvas.parentElement.clientWidth || 300;
+      this.height = this.canvas.height = 80;
+      
+      this.initPoints();
+      this.animate();
+    }
+
+    initPoints() {
+      for(let i=0; i<this.width; i++) {
+        this.points.push(this.height / 2);
+      }
+    }
+
+    setMode(mode) {
+      this.mode = mode;
+    }
+
+    animate() {
+      if (!this.ctx) return;
+      
+      let target = this.height / 2;
+      let cycleLength = 80; 
+      if (this.mode === 'arrhythmia') {
+        cycleLength = 32;
+      } else if (this.mode === 'bradycardia') {
+        cycleLength = 160;
+      }
+
+      let mod = this.x % cycleLength;
+      
+      if (mod > 10 && mod < 18) {
+        target -= Math.sin((mod - 10) / 8 * Math.PI) * 4;
+      } else if (mod >= 20 && mod < 22) {
+        target += 5;
+      } else if (mod >= 22 && mod < 26) {
+        let factor = (this.mode === 'arrhythmia') ? 35 : 25;
+        target -= Math.sin((mod - 22) / 4 * Math.PI) * factor;
+      } else if (mod >= 26 && mod < 29) {
+        target += 10;
+      } else if (mod >= 34 && mod < 45) {
+        target -= Math.sin((mod - 34) / 11 * Math.PI) * 6;
+      }
+
+      target += (Math.random() - 0.5) * 1.5;
+
+      this.points.shift();
+      this.points.push(target);
+
+      this.ctx.fillStyle = '#020617';
+      this.ctx.fillRect(0, 0, this.width, this.height);
+
+      this.ctx.strokeStyle = 'rgba(16, 185, 129, 0.04)';
+      this.ctx.lineWidth = 1;
+      for (let i = 0; i < this.width; i += 20) {
+        this.ctx.beginPath(); this.ctx.moveTo(i, 0); this.ctx.lineTo(i, this.height); this.ctx.stroke();
+      }
+      for (let j = 0; j < this.height; j += 20) {
+        this.ctx.beginPath(); this.ctx.moveTo(0, j); this.ctx.lineTo(this.width, j); this.ctx.stroke();
+      }
+
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, this.points[0]);
+      for (let i = 1; i < this.points.length; i++) {
+        this.ctx.lineTo(i * (this.width / this.points.length), this.points[i]);
+      }
+      
+      this.ctx.strokeStyle = (this.mode === 'arrhythmia') ? '#f43f5e' : '#10b981';
+      this.ctx.lineWidth = 2.2;
+      this.ctx.stroke();
+
+      this.x++;
+      requestAnimationFrame(() => this.animate());
+    }
+  }
+
+  let monitor101, monitor102;
+  function initIcuMonitors() {
+    monitor101 = new ECGMonitor('canvasECG101', 'normal');
+    monitor102 = new ECGMonitor('canvasECG102', 'arrhythmia');
+  }
+
+  window.injectTelemetryEvent = function(state) {
+    const targetBed = document.getElementById('selTargetBed').value;
+    const bedEl = document.getElementById('icuBed' + targetBed);
+    const badgeEl = document.getElementById('bedStatusBadge' + targetBed);
+    const hrEl = document.getElementById('valHR' + targetBed);
+    const spo2El = document.getElementById('valSPO2' + targetBed);
+    const tempEl = document.getElementById('valTEMP' + targetBed);
+    const monitor = (targetBed === '101') ? monitor101 : monitor102;
+
+    if (!monitor) return;
+
+    if (state === 'normal') {
+      monitor.setMode('normal');
+      bedEl.classList.remove('hud-alarm-active');
+      badgeEl.className = 'hms-badge hms-badge-success text-[10px]';
+      badgeEl.innerText = 'SINUS RHYTHM';
+      hrEl.className = 'text-xs font-bold text-white';
+      hrEl.innerText = '74';
+      spo2El.className = 'text-xs font-bold text-emerald-400';
+      spo2El.innerText = '98%';
+      tempEl.innerText = '98.4';
+      if (typeof window.hmsShowToast === 'function') {
+        window.hmsShowToast('ICU Telemetry', `Bed #${targetBed} rhythm stabilized. Normal Sinus Rhythm injected.`, 'success');
+      }
+    } else if (state === 'arrhythmia') {
+      monitor.setMode('arrhythmia');
+      bedEl.classList.add('hud-alarm-active');
+      badgeEl.className = 'hms-badge hms-badge-danger text-[10px]';
+      badgeEl.innerText = 'ARRHYTHMIA';
+      hrEl.className = 'text-xs font-bold text-rose-500 animate-pulse';
+      hrEl.innerText = '145';
+      spo2El.className = 'text-xs font-bold text-rose-400';
+      spo2El.innerText = '91%';
+      tempEl.innerText = '101.2';
+      if (typeof window.hmsShowToast === 'function') {
+        window.hmsShowToast('EMERGENCY CRITICAL', `Ventricular Tachycardia injected on Bed #${targetBed}! Alarm triggered!`, 'error');
+      }
+    } else {
+      monitor.setMode('bradycardia');
+      bedEl.classList.add('hud-alarm-active');
+      badgeEl.className = 'hms-badge hms-badge-warning text-[10px]';
+      badgeEl.innerText = 'BRADYRHYTHM';
+      hrEl.className = 'text-xs font-bold text-amber-500';
+      hrEl.innerText = '42';
+      spo2El.className = 'text-xs font-bold text-amber-400';
+      spo2El.innerText = '94%';
+      tempEl.innerText = '96.2';
+      if (typeof window.hmsShowToast === 'function') {
+        window.hmsShowToast('ICU Telemetry', `Bradycardia injected on Bed #${targetBed}. Heart rate low.`, 'warning');
+      }
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    initCommandCenter();
+    initIcuMonitors();
+  });
 })();
+</script>

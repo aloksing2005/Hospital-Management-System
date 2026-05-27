@@ -262,34 +262,42 @@ io.on("connection", (socket) => {
       clearInterval(socket.vitalsInterval);
     }
     
-    // Simulate initial vitals
+    // Simulate initial vitals with realistic clinical ranges
     let vitals = {
-      hr: Math.floor(Math.random() * (95 - 75) + 75), // Heart Rate: 75-95
-      spo2: Math.floor(Math.random() * (100 - 95) + 95), // SpO2: 95-100
-      bpSys: Math.floor(Math.random() * (130 - 110) + 110), // BP Systolic
-      bpDia: Math.floor(Math.random() * (85 - 70) + 70), // BP Diastolic
-      temp: (Math.random() * (99.2 - 97.8) + 97.8).toFixed(1) // Temp F
+      hr: Math.floor(Math.random() * (90 - 72) + 72), // Heart Rate: 72-90 BPM
+      spo2: Math.floor(Math.random() * (100 - 97) + 97), // SpO2: 97-100%
+      bpSys: Math.floor(Math.random() * (125 - 115) + 115), // BP Systolic
+      bpDia: Math.floor(Math.random() * (82 - 74) + 74), // BP Diastolic
+      temp: (Math.random() * (98.9 - 97.9) + 97.9).toFixed(1) // Temp F
     };
 
+    // Emit initial vitals sign payload immediately so dashboard/charts display data instantly
+    io.to(userRoom(String(patientId))).emit("vitals-update", { patientId, vitals });
+
     socket.vitalsInterval = setInterval(() => {
-      // Fluctuate values slightly for realism
-      vitals.hr += Math.floor(Math.random() * 5) - 2;
-      vitals.spo2 += Math.floor(Math.random() * 3) - 1;
+      // Fluctuate values slightly every 1 second for fluid organic physiological drift
+      vitals.hr += Math.floor(Math.random() * 3) - 1; // drift by -1, 0, or +1
+      vitals.spo2 += (Math.random() > 0.85) ? (Math.floor(Math.random() * 3) - 1) : 0; // occasionally fluctuate
+      vitals.bpSys += Math.floor(Math.random() * 3) - 1;
+      vitals.bpDia += Math.floor(Math.random() * 3) - 1;
+      vitals.temp = (parseFloat(vitals.temp) + (Math.random() * 0.1 - 0.05)).toFixed(1);
       
-      // Keep within bounds
-      if(vitals.spo2 > 100) vitals.spo2 = 100;
-      if(vitals.spo2 < 85) vitals.spo2 = 85; 
-      if(vitals.hr < 40) vitals.hr = 40;
-      if(vitals.hr > 180) vitals.hr = 180;
+      // Enforce clean, realistic human biometric boundaries
+      if (vitals.hr < 60) vitals.hr = 60;
+      if (vitals.hr > 100) vitals.hr = 100;
+      if (vitals.spo2 < 95) vitals.spo2 = 95;
+      if (vitals.spo2 > 100) vitals.spo2 = 100;
+      if (vitals.bpSys < 110) vitals.bpSys = 110;
+      if (vitals.bpSys > 130) vitals.bpSys = 130;
+      if (vitals.bpDia < 70) vitals.bpDia = 70;
+      if (vitals.bpDia > 85) vitals.bpDia = 85;
+      if (parseFloat(vitals.temp) < 97.8) vitals.temp = "97.8";
+      if (parseFloat(vitals.temp) > 99.2) vitals.temp = "99.2";
 
-      vitals.bpSys += Math.floor(Math.random() * 5) - 2;
-      vitals.bpDia += Math.floor(Math.random() * 5) - 2;
-      vitals.temp = (parseFloat(vitals.temp) + (Math.random() * 0.2 - 0.1)).toFixed(1);
-
-      // Periodically save to DB (every ~10 seconds - 5 ticks)
+      // Periodically save to DB every ~10 seconds (10 ticks at 1-second frequency)
       if (!socket.vitalsTick) socket.vitalsTick = 0;
       socket.vitalsTick++;
-      if (socket.vitalsTick % 5 === 0) {
+      if (socket.vitalsTick % 10 === 0) {
         const { PatientVitals } = require("./config/db");
         PatientVitals.create({
           patient_id: patientId,
@@ -302,7 +310,7 @@ io.on("connection", (socket) => {
       }
 
       io.to(userRoom(String(patientId))).emit("vitals-update", { patientId, vitals });
-    }, 2000);
+    }, 1000);
   });
 
   socket.on("stop-vitals-monitoring", () => {
@@ -366,6 +374,21 @@ app.use("/driver", require("./routes/driverRoutes"));
 app.use("/payment", require("./routes/paymentRoutes"));
 app.use("/consultation", require("./routes/consultationRoutes"));
 app.use("/api", require("./routes/apiRoutes"));
+
+// Diagnostic deep tracing receiver
+app.post("/api/debug/log", (req, res) => {
+  console.log("\x1b[41m\x1b[37m================= FRONTEND RUNTIME TRACE =================\x1b[0m");
+  console.log(`\x1b[33mType:\x1b[0m ${req.body.type || 'INFO'}`);
+  console.log(`\x1b[31mMessage:\x1b[0m ${req.body.message}`);
+  if (req.body.stack) {
+    console.log("\x1b[36mStack Trace:\x1b[0m");
+    console.log(req.body.stack);
+  }
+  console.log(`\x1b[32mURL:\x1b[0m ${req.body.url}`);
+  console.log(`\x1b[35mUser:\x1b[0m ${req.session?.user ? JSON.stringify(req.session.user) : 'Guest'}`);
+  console.log("\x1b[41m\x1b[37m==========================================================\x1b[0m");
+  res.json({ success: true });
+});
 
 // Home Route - FIXED: No redirect loops
 app.get("/", (req, res) => {

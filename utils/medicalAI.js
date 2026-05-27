@@ -212,45 +212,18 @@ function getPrecautions(text = "") {
   return precautionMap.default;
 }
 
-async function analyzeSymptoms(symptomsText = "") {
+const { ChatGoogleGenerativeAI } = require("@langchain/google-genai");
+const { ChatPromptTemplate, MessagesPlaceholder } = require("@langchain/core/prompts");
+const { StringOutputParser } = require("@langchain/core/output_parsers");
+
+async function analyzeSymptoms(symptomsText = "", history = []) {
   const text = String(symptomsText).trim();
+  
+  // Base local data fallback
   const specialty = findSpecialization(text) || "General Physician";
   const medicines = suggestMedicines(text);
   const conditions = detectConditions(text);
   const precautions = getPrecautions(text);
-
-  let recommendedDoctors = [];
-  try {
-    // 3-Stage Doctor Match Fallback
-    // Stage 1: Case-insensitive search using the specialty
-    let doctors = await doctorModel.searchDoctorsAdvanced({
-      specialization: specialty,
-      sort: "rating"
-    });
-    
-    // Stage 2: Broad keyword search using the specialty
-    if (!doctors || doctors.length === 0) {
-      doctors = await doctorModel.searchDoctorsAdvanced({
-        search: specialty,
-        sort: "rating"
-      });
-    }
-    
-    // Stage 3: Fetch any active doctors from the hospital inventory to avoid empty widgets
-    if (!doctors || doctors.length === 0) {
-      doctors = await doctorModel.getAllDoctors();
-    }
-    
-    recommendedDoctors = (doctors || []).slice(0, 3).map(d => ({
-      doctor_id: d._id || d.id,
-      name: d.name,
-      specialization: d.specialization || "General Physician",
-      fees: d.fees
-    }));
-  } catch (e) {
-    recommendedDoctors = [];
-  }
-
   const summary = [
     `Based on your reported symptoms, possible conditions include: ${conditions.map(c => c.name).join(", ")}.`,
     `Recommended specialist: ${specialty}.`,
@@ -258,7 +231,7 @@ async function analyzeSymptoms(symptomsText = "") {
     "This is an AI-assisted guide — please consult a licensed doctor for diagnosis."
   ].join(" ");
 
-  return {
+  const localAnalysis = {
     symptoms: text,
     possible_conditions: conditions.map(c => ({
       name: c.name,
@@ -268,9 +241,104 @@ async function analyzeSymptoms(symptomsText = "") {
     medicines,
     precautions,
     recommended_specialty: specialty,
-    recommended_doctors: recommendedDoctors,
+    recommended_doctors: [],
     summary
   };
+
+  const hasApiKey = process.env.GEMINI_API_KEY && 
+                    process.env.GEMINI_API_KEY !== "your_gemini_api_key_here" && 
+                    process.env.GEMINI_API_KEY.trim() !== "";
+
+  let finalAnalysis = localAnalysis;
+
+  if (hasApiKey) {
+    try {
+      const model = new ChatGoogleGenerativeAI({
+        apiKey: process.env.GEMINI_API_KEY,
+        model: "gemini-1.5-flash",
+        maxOutputTokens: 1000,
+      });
+
+      const prompt = ChatPromptTemplate.fromMessages([
+        ["system", `You are an expert AI clinical medical assistant. Provide clear, professional, and highly accurate medical advice.
+Always output structured JSON matching the requested fields without any wrapping text or markdown blocks.
+Crucially, if the patient provides biometric or optical scan results (Blood Pressure, Heart Rate, SpO2, Stress Level), you MUST analyze each metric individually:
+1. Explain what the value means clinically (normal, elevated, low).
+2. Compare them against standard ranges (Heart Rate: 60-100 BPM is normal; SpO2: 95-100% is normal; Blood Pressure: 120/80 is ideal, >130 systolic or >80 diastolic is elevated; Stress: 1-50 is normal, 51-100 is elevated/high).
+3. If any metrics are elevated or high, provide soothing and reassuring advice, including breathing exercises, physical rest, hydration, or activating Solfeggio binaural frequencies.
+4. In the "summary" key of your JSON, write a comforting, highly empathetic, and bilingual (mix of Hindi/Hinglish and English where appropriate, e.g. "Aapka blood pressure 135/88 thoda elevated hai...") explanation of the vitals and recommended next steps, so that the patient feels reassured when it is read aloud or displayed.`],
+        new MessagesPlaceholder("history"),
+        ["human", `Analyze the following symptoms/telemetry and respond ONLY with a valid JSON object containing:
+- recommended_specialty: Choose from "General Physician", "Cardiologist", "ENT", "Dermatologist", "Ophthalmologist", "Dentist", "Neurologist", "Orthopedic", "Gastroenterologist", "Endocrinologist", "Pediatrician", "Gynecologist" based on symptoms.
+- possible_conditions: Array of objects with keys "name", "description", "severity" (low, moderate, or high).
+- medicines: Array of safe self-care OTC medicines or clinical actions (e.g. Paracetamol, ORS).
+- precautions: Array of advice steps.
+- summary: A professional and comforting summary paragraph advising doctor consultation, explaining the captured vitals details bilingually and empathetically.
+
+Patient symptoms/input: "{input}"`]
+      ]);
+
+      const chain = prompt.pipe(model).pipe(new StringOutputParser());
+
+      const response = await chain.invoke({ 
+        input: text,
+        history: history
+      });
+      
+      // Clean possible markdown code blocks if any
+      let cleanedResponse = response.trim();
+      if (cleanedResponse.startsWith("```json")) {
+        cleanedResponse = cleanedResponse.substring(7, cleanedResponse.length - 3).trim();
+      } else if (cleanedResponse.startsWith("```")) {
+        cleanedResponse = cleanedResponse.substring(3, cleanedResponse.length - 3).trim();
+      }
+
+      const parsed = JSON.parse(cleanedResponse);
+      if (parsed.recommended_specialty) {
+        finalAnalysis = {
+          symptoms: text,
+          possible_conditions: parsed.possible_conditions || localAnalysis.possible_conditions,
+          medicines: parsed.medicines || localAnalysis.medicines,
+          precautions: parsed.precautions || localAnalysis.precautions,
+          recommended_specialty: parsed.recommended_specialty,
+          recommended_doctors: [],
+          summary: parsed.summary || localAnalysis.summary
+        };
+      }
+    } catch (err) {
+      console.warn("⚠️ Google Gemini API error, falling back to local NLP engine:", err.message);
+    }
+  }
+
+  // Common: Populate recommended doctors based on recommended_specialty
+  try {
+    let doctors = await doctorModel.searchDoctorsAdvanced({
+      specialization: finalAnalysis.recommended_specialty,
+      sort: "rating"
+    });
+    
+    if (!doctors || doctors.length === 0) {
+      doctors = await doctorModel.searchDoctorsAdvanced({
+        search: finalAnalysis.recommended_specialty,
+        sort: "rating"
+      });
+    }
+    
+    if (!doctors || doctors.length === 0) {
+      doctors = await doctorModel.getAllDoctors();
+    }
+    
+    finalAnalysis.recommended_doctors = (doctors || []).slice(0, 3).map(d => ({
+      doctor_id: d._id || d.id,
+      name: d.name,
+      specialization: d.specialization || "General Physician",
+      fees: d.fees
+    }));
+  } catch (e) {
+    finalAnalysis.recommended_doctors = [];
+  }
+
+  return finalAnalysis;
 }
 
 module.exports = { analyzeSymptoms, detectConditions };

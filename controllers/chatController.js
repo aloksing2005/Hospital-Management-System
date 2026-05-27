@@ -4,13 +4,19 @@ const doctorModel = require("../models/doctorModel");
 const appointmentModel = require("../models/appointmentModel");
 const { notifyUser } = require("../utils/notifyHelper");
 
+const { ChatGoogleGenerativeAI } = require("@langchain/google-genai");
+const { ChatPromptTemplate, MessagesPlaceholder } = require("@langchain/core/prompts");
+const { StringOutputParser } = require("@langchain/core/output_parsers");
+
 // Chatbot state logic will mostly be handled by the client, but the server processes intent.
 exports.processMessage = async (req, res) => {
   try {
     const { message, step, data, sessionData } = req.body;
     const payload = data || sessionData || {};
 
+    // Initialize conversation buffer memory on session if not present or resetting
     if (step === 0 || step === undefined) {
+      req.session.aiChatHistory = [];
       return res.json({
         reply: "Hello! I am your AI health assistant. Please describe your symptoms (e.g., 'I have fever and cough').",
         step: 1,
@@ -18,18 +24,63 @@ exports.processMessage = async (req, res) => {
       });
     }
 
+    // Step 1: Analyze symptoms and recommend specialist
     if (step === 1) {
       const analysis = await analyzeSymptoms(message);
       const specialization = analysis.recommended_specialty;
       const medicines = analysis.medicines;
-
       const doctors = await doctorModel.searchBySpecialization(specialization);
       const conditions = (analysis.possible_conditions || []).map(c => c.name).join(", ");
 
-      let reply = `Based on your symptoms, possible conditions: ${conditions || "general concern"}.\n`;
-      reply += `Specialist recommended: ${specialization}.\n`;
-      reply += `Suggested care: ${medicines.join(", ")}.\n`;
-      reply += analysis.summary;
+      const hasApiKey = process.env.GEMINI_API_KEY && 
+                        process.env.GEMINI_API_KEY !== "your_gemini_api_key_here" && 
+                        process.env.GEMINI_API_KEY.trim() !== "";
+
+      let reply = "";
+
+      if (hasApiKey) {
+        try {
+          const model = new ChatGoogleGenerativeAI({
+            apiKey: process.env.GEMINI_API_KEY,
+            model: "gemini-1.5-flash",
+            maxOutputTokens: 1000,
+          });
+
+          const prompt = ChatPromptTemplate.fromMessages([
+            ["system", "You are a professional and caring AI medical assistant in our Hospital Management System. The patient has provided symptoms, and you should provide a warm, empathetic summary of possible concerns, recommended specialist specialty, and general self-care steps. Advise consulting a doctor. Do not list specific doctors yet."],
+            new MessagesPlaceholder("history"),
+            ["human", `My symptoms: "{input}"
+            
+Additional clinical details for reference:
+- Specialty Recommended: ${specialization}
+- Possible Conditions: ${conditions}
+- Suggested OTC Care: ${medicines.join(", ")}
+- Clinical Summary: ${analysis.summary}`]
+          ]);
+
+          const chain = prompt.pipe(model).pipe(new StringOutputParser());
+
+          const historyMessages = (req.session.aiChatHistory || []).map(msg => 
+            msg.role === "user" ? ["human", msg.text] : ["ai", msg.text]
+          );
+
+          reply = await chain.invoke({
+            input: message,
+            history: historyMessages
+          });
+
+          // Save memory
+          req.session.aiChatHistory = req.session.aiChatHistory || [];
+          req.session.aiChatHistory.push({ role: "user", text: message });
+          req.session.aiChatHistory.push({ role: "assistant", text: reply });
+
+        } catch (err) {
+          console.warn("⚠️ Conversational Gemini chain failed, using structured fallback:", err.message);
+          reply = `Based on your symptoms, possible conditions include: ${conditions || "general concerns"}.\nRecommended specialist: ${specialization}.\nSuggested self-care: ${medicines.join(", ")}.\n\n${analysis.summary}`;
+        }
+      } else {
+        reply = `Based on your symptoms, possible conditions include: ${conditions || "general concerns"}.\nRecommended specialist: ${specialization}.\nSuggested self-care: ${medicines.join(", ")}.\n\n${analysis.summary}`;
+      }
 
       if (!doctors.length) {
         return res.json({
@@ -51,6 +102,60 @@ exports.processMessage = async (req, res) => {
           fees: d.fees
         })),
         sessionData: { symptoms: message, analysis, specialization }
+      });
+    }
+
+    // Step 2 & onwards: Chatbot is fully conversational, supporting patient inquiries with ConversationBufferMemory!
+    if (step >= 2) {
+      const hasApiKey = process.env.GEMINI_API_KEY && 
+                        process.env.GEMINI_API_KEY !== "your_gemini_api_key_here" && 
+                        process.env.GEMINI_API_KEY.trim() !== "";
+
+      let reply = "";
+
+      if (hasApiKey) {
+        try {
+          const model = new ChatGoogleGenerativeAI({
+            apiKey: process.env.GEMINI_API_KEY,
+            model: "gemini-1.5-flash",
+            maxOutputTokens: 1000,
+          });
+
+          const prompt = ChatPromptTemplate.fromMessages([
+            ["system", "You are a professional, helpful, and empathetic AI health companion. Answer general patient inquiries, questions about their current symptom analysis, precautions, or guidelines. Be clear, reassuring, and professional. Keep response under 150 words. Always advise seeking clinical diagnosis if their condition deteriorates."],
+            new MessagesPlaceholder("history"),
+            ["human", "{input}"]
+          ]);
+
+          const chain = prompt.pipe(model).pipe(new StringOutputParser());
+
+          const historyMessages = (req.session.aiChatHistory || []).map(msg => 
+            msg.role === "user" ? ["human", msg.text] : ["ai", msg.text]
+          );
+
+          reply = await chain.invoke({
+            input: message,
+            history: historyMessages
+          });
+
+          // Save memory
+          req.session.aiChatHistory = req.session.aiChatHistory || [];
+          req.session.aiChatHistory.push({ role: "user", text: message });
+          req.session.aiChatHistory.push({ role: "assistant", text: reply });
+
+        } catch (err) {
+          console.warn("⚠️ Follow-up conversational Gemini chain failed, using fallback:", err.message);
+          reply = "I understand. Please monitor your health closely and schedule a consultation with one of our recommended specialists.";
+        }
+      } else {
+        reply = "I understand. Please monitor your health closely and schedule a consultation with one of our recommended specialists.";
+      }
+
+      return res.json({
+        reply,
+        step: 2,
+        nextStep: 2,
+        sessionData: payload
       });
     }
 

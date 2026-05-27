@@ -19,6 +19,8 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
+    "@langchain/core": "^1.1.48",
+    "@langchain/google-genai": "^2.1.31",
     "agora-access-token": "^2.0.4",
     "bcryptjs": "^2.4.3",
     "canvas": "^2.11.2",

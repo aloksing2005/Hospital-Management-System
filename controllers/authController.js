@@ -95,7 +95,7 @@ exports.logout = (req, res) => {
   req.session.destroy(() => {
     res.clearCookie("hms.sid");
     res.clearCookie("connect.sid");
-    res.redirect("/login");
+    res.redirect("/");
   });
 };
 

@@ -9,6 +9,98 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/css/hms-premium.css">
   
+  <style>
+    @keyframes animate-mesh {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    .hms-bg-mesh {
+      background: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+                  radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.15) 0%, transparent 45%),
+                  radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.08) 0%, transparent 50%),
+                  radial-gradient(circle at 30% 80%, rgba(244, 63, 94, 0.05) 0%, transparent 35%),
+                  #030712;
+      background-size: 200% 200%;
+      animation: animate-mesh 22s ease infinite;
+      min-height: 100vh;
+    }
+
+    [data-theme="light"] .hms-bg-mesh {
+      background: radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+                  radial-gradient(circle at 90% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 45%),
+                  radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.05) 0%, transparent 50%),
+                  #f8fafc;
+      background-size: 100% 100%;
+      animation: none;
+    }
+    
+    .hms-glass-premium {
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    [data-theme="light"] .hms-glass-premium {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(0, 0, 0, 0.06);
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.08);
+    }
+    
+    .hms-hover-lift {
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    .hms-hover-lift:hover {
+      transform: translateY(-5px) scale(1.01);
+      border-color: rgba(99, 102, 241, 0.35);
+      box-shadow: 0 20px 40px rgba(99, 102, 241, 0.12), 0 0 20px rgba(99, 102, 241, 0.08);
+    }
+    
+    .hms-hover-lift-cyan:hover {
+      border-color: rgba(14, 165, 233, 0.35);
+      box-shadow: 0 20px 40px rgba(14, 165, 233, 0.12), 0 0 20px rgba(14, 165, 233, 0.08);
+    }
+
+    .hms-hover-lift-rose:hover {
+      border-color: rgba(244, 63, 94, 0.35);
+      box-shadow: 0 20px 40px rgba(244, 63, 94, 0.12), 0 0 20px rgba(244, 63, 94, 0.08);
+    }
+
+    .hms-hover-lift-amber:hover {
+      border-color: rgba(245, 158, 11, 0.35);
+      box-shadow: 0 20px 40px rgba(245, 158, 11, 0.12), 0 0 20px rgba(245, 158, 11, 0.08);
+    }
+    
+    @keyframes ecg-sweep {
+      0% { stroke-dashoffset: 800; }
+      100% { stroke-dashoffset: 0; }
+    }
+    .ecg-line {
+      stroke-dasharray: 800;
+      animation: ecg-sweep 4s linear infinite;
+    }
+
+    /* Premium inputs focusing */
+    .hms-input-modern {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      color: #fff;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .hms-input-modern:focus {
+      border-color: #6366f1;
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.25);
+      background: rgba(15, 23, 42, 0.85);
+    }
+  </style>
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -28,7 +120,7 @@
     }
   </script>
 </head>
-<body class="hms-bg selection:bg-indigo-500/30">
+<body class="hms-bg-mesh selection:bg-indigo-500/30">
   <% if (typeof user !== 'undefined' && user) { %>
     <nav class="hms-navbar flex items-center justify-between px-6 lg:px-8">
       <div class="flex items-center gap-4">
@@ -56,7 +148,7 @@
             <i class="fas fa-bell"></i>
             <span id="hmsNotifBadge" class="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-1 <%= (typeof unreadNotifications !== 'undefined' && unreadNotifications > 0) ? '' : 'hidden' %>"><%= (typeof unreadNotifications !== 'undefined' && unreadNotifications > 0) ? unreadNotifications : '' %></span>
           </button>
-          <div id="hmsNotifPanel" class="hidden absolute right-0 top-full mt-2 w-80 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl z-50 max-h-96 overflow-hidden">
+          <div id="hmsNotifPanel" class="absolute right-0 top-full mt-2 w-80 hms-glass-premium rounded-2xl shadow-2xl opacity-0 invisible transition-all duration-300 transform translate-y-2 scale-95 z-50 max-h-96 overflow-hidden">
             <div class="p-3 border-b border-white/10 flex justify-between items-center">
               <span class="text-white font-bold text-sm">Notifications</span>
               <a href="<%= user.role === 'patient' ? '/patient/notifications' : '/' + user.role + '/dashboard' %>" class="text-indigo-400 text-xs font-bold">View all</a>
@@ -72,7 +164,7 @@
             <span class="hidden lg:block text-sm font-semibold truncate max-w-[120px]"><%= user.name %></span>
             <i class="fas fa-chevron-down text-xs"></i>
           </button>
-          <div class="absolute right-0 top-full mt-2 w-52 bg-slate-900/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl opacity-0 invisible transition-all duration-200 z-50" id="userMenuDropdown">
+          <div class="absolute right-0 top-full mt-2 w-52 hms-glass-premium rounded-2xl shadow-2xl opacity-0 invisible transition-all duration-300 transform translate-y-2 scale-95 z-50" id="userMenuDropdown">
             <div class="p-2">
               <div class="px-3 py-2 mb-1">
                 <p class="text-white font-bold text-sm truncate"><%= user.name %></p>
@@ -176,7 +268,6 @@
   </div>
   <% } %>
 
-  <div class="toast-container" id="toastContainer"></div>
   <div id="globalLoader" class="fixed inset-0 bg-black/50 z-[10000] hidden items-center justify-center">
     <div class="bg-white rounded-xl p-6 shadow-2xl flex items-center gap-4">
       <div class="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
@@ -225,9 +316,15 @@
 
     // Show loader on page navigation
     document.addEventListener('DOMContentLoaded', function () {
+      window.hmsIsNavigating = false;
+      window.addEventListener('beforeunload', function () {
+        window.hmsIsNavigating = true;
+      });
+
       const links = document.querySelectorAll('a[href]:not([target="_blank"]):not([href^="#"]):not([href^="javascript:"])');
       links.forEach(function (link) {
         link.addEventListener('click', function () {
+          window.hmsIsNavigating = true;
           window.hmsShowLoader();
         });
       });
@@ -242,19 +339,69 @@
   <script src="/socket.io/socket.io.js"></script>
   <script>
     (function () {
+      window.hmsSendDebugLog = function (type, message, stack) {
+        try {
+          fetch('/api/debug/log', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              type: type,
+              message: message,
+              stack: stack || null,
+              url: window.location.href
+            })
+          }).catch(function() {});
+        } catch (e) {}
+      };
+
       // Global error handler
       window.addEventListener('error', function (event) {
-        console.error('Global error:', event.error);
+        console.error('Global error raw event:', event);
+        if (window.hmsIsNavigating) return;
+
+        let msg = '';
+        let stack = '';
+        if (event.error) {
+          msg = event.error.message || String(event.error);
+          stack = event.error.stack || '';
+        } else {
+          msg = event.message || 'Script resource/element execution failure: ' + (event.filename || 'unknown src');
+        }
+
+        if (!msg || typeof msg !== 'string') return;
+        const lower = msg.toLowerCase();
+        if (lower.indexOf('abort') !== -1 || lower.indexOf('fetch') !== -1 || lower.indexOf('network') !== -1 || lower.indexOf('script error') !== -1) return;
+
+        window.hmsSendDebugLog('CRITICAL_EXCEPTION', msg, stack);
+
         if (typeof window.hmsShowToast === 'function') {
-          window.hmsShowToast('Error', 'An unexpected error occurred', 'error');
+          window.hmsShowToast('CRITICAL EXCEPTION', `<pre class="text-[10px] font-mono whitespace-pre-wrap max-h-32 overflow-y-auto leading-tight text-white/90 bg-black/40 p-2 rounded">${stack || msg}</pre>`, 'error');
         }
       });
 
       // Global unhandled promise rejection handler
       window.addEventListener('unhandledrejection', function (event) {
-        console.error('Unhandled promise rejection:', event.reason);
+        console.error('Unhandled promise rejection raw event:', event);
+        if (window.hmsIsNavigating) return;
+
+        const reason = event.reason;
+        let msg = '';
+        let stack = '';
+        if (reason) {
+          msg = reason.message || String(reason);
+          stack = reason.stack || '';
+        } else {
+          msg = 'Unhandled promise rejection (empty reason)';
+        }
+
+        if (!msg || typeof msg !== 'string') return;
+        const lower = msg.toLowerCase();
+        if (lower.indexOf('abort') !== -1 || lower.indexOf('fetch') !== -1 || lower.indexOf('network') !== -1) return;
+
+        window.hmsSendDebugLog('UNHANDLED_REJECTION', msg, stack);
+
         if (typeof window.hmsShowToast === 'function') {
-          window.hmsShowToast('Error', 'An unexpected error occurred', 'error');
+          window.hmsShowToast('UNHANDLED REJECTION', `<pre class="text-[10px] font-mono whitespace-pre-wrap max-h-32 overflow-y-auto leading-tight text-white/90 bg-black/40 p-2 rounded">${stack || msg}</pre>`, 'error');
         }
       });
 
@@ -422,7 +569,9 @@
         try { saved = localStorage.getItem('hmsTheme') || 'dark'; } catch (e) {}
         applyTheme(saved === 'light' ? 'light' : 'dark');
         function toggle() {
-          var cur = document.getElementById('hmsRoot').getAttribute('data-theme');
+          var root = document.getElementById('hmsRoot');
+          if (!root) return;
+          var cur = root.getAttribute('data-theme');
           applyTheme(cur === 'light' ? 'dark' : 'light');
         }
         var b1 = document.getElementById('hmsThemeToggle');

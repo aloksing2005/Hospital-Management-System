@@ -1,91 +1,144 @@
-<div class="w-64 lg:w-72 flex-shrink-0">
-  <div class="hms-sidebar h-full flex flex-col">
+<div id="hmsSidebarContainer" class="w-64 lg:w-72 flex-shrink-0 transition-all duration-300">
+  <div id="hmsSidebar" class="hms-sidebar h-full flex flex-col relative">
+    
+    <!-- Collapse Toggle Button -->
+    <div class="hidden lg:flex justify-end pr-2 pt-1 mb-2">
+      <button type="button" id="sidebarCollapseBtn" class="w-7 h-7 rounded-lg bg-white/5 hover:bg-indigo-600 border border-white/10 hover:border-indigo-500 flex items-center justify-center text-white transition-all shadow-md cursor-pointer" title="Toggle Sidebar">
+        <i class="fas fa-chevron-left text-[10px]" id="sidebarCollapseIcon"></i>
+      </button>
+    </div>
+
     <!-- Logo Section -->
-    <div class="mb-8 text-center px-4">
-      <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-indigo-500/30">
-        <i class="fas fa-heartbeat text-2xl text-white"></i>
+    <div class="mb-6 text-center px-4 sidebar-logo-block">
+      <div class="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-indigo-500/30 transition-all duration-300">
+        <i class="fas fa-heartbeat text-xl text-white"></i>
       </div>
-      <h5 class="text-white font-black tracking-tight text-lg">Patient Hub</h5>
-      <p class="text-gray-500 text-xs font-medium mt-1">Health Portal</p>
+      <h5 class="text-white font-black tracking-tight text-base sidebar-logo-text">Patient Hub</h5>
+      <p class="text-gray-500 text-[10px] font-medium mt-1 sidebar-logo-text">Health Portal</p>
     </div>
     
     <!-- Navigation -->
-    <nav class="space-y-1 flex-1 px-3">
-      <a class="hms-nav-link <%= active === 'dashboard' ? 'active' : '' %>" href="/patient/dashboard">
+    <nav class="space-y-1 flex-1 px-3 overflow-y-auto scrollbar-none">
+      <a class="hms-nav-link <%= active === 'dashboard' ? 'active' : '' %>" href="/patient/dashboard" title="Dashboard">
         <i class="fas fa-th-large"></i>
         <span>Dashboard</span>
       </a>
-      <a class="hms-nav-link <%= active === 'doctors' ? 'active' : '' %>" href="/patient/doctors">
+      <a class="hms-nav-link <%= active === 'doctors' ? 'active' : '' %>" href="/patient/doctors" title="Find Doctors">
         <i class="fas fa-user-md"></i>
         <span>Find Doctors</span>
       </a>
-      <a class="hms-nav-link <%= active === 'appointments' ? 'active' : '' %>" href="/patient/appointments">
+      <a class="hms-nav-link <%= active === 'appointments' ? 'active' : '' %>" href="/patient/appointments" title="Appointments">
         <i class="fas fa-calendar-check"></i>
         <span>Appointments</span>
       </a>
-      <a class="hms-nav-link <%= active === 'prescriptions' ? 'active' : '' %>" href="/patient/prescriptions">
+      <a class="hms-nav-link <%= active === 'prescriptions' ? 'active' : '' %>" href="/patient/prescriptions" title="Prescriptions">
         <i class="fas fa-file-prescription"></i>
         <span>Prescriptions</span>
       </a>
-      <a class="hms-nav-link <%= active === 'lab-reports' ? 'active' : '' %>" href="/patient/lab-reports">
+      <a class="hms-nav-link <%= active === 'lab-reports' ? 'active' : '' %>" href="/patient/lab-reports" title="Lab Reports">
         <i class="fas fa-flask"></i>
         <span>Lab Reports</span>
       </a>
-      <a class="hms-nav-link <%= active === 'ambulance' ? 'active' : '' %>" href="/patient/ambulance">
-        <i class="fas fa-ambulance"></i>
+      <a class="hms-nav-link <%= active === 'ambulance' ? 'active' : '' %>" href="/patient/ambulance" title="Emergency">
+        <i class="fas fa-ambulance text-rose-400 animate-pulse"></i>
         <span>Emergency</span>
       </a>
-      <a class="hms-nav-link <%= active === 'vitals' ? 'active' : '' %>" href="/patient/vitals">
+      <a class="hms-nav-link <%= active === 'vitals' ? 'active' : '' %>" href="/patient/vitals" title="Vitals">
         <i class="fas fa-wave-square"></i>
         <span>Vitals</span>
       </a>
-      <a class="hms-nav-link <%= active === 'notifications' ? 'active' : '' %>" href="/patient/notifications">
+      <a class="hms-nav-link <%= active === 'notifications' ? 'active' : '' %>" href="/patient/notifications" title="Notifications">
         <i class="fas fa-bell"></i>
         <span>Notifications</span>
         <% if (typeof unreadNotifications !== 'undefined' && unreadNotifications > 0) { %>
-          <span class="ml-auto bg-rose-500 text-white text-xs font-bold px-2 py-0.5 rounded-full"><%= unreadNotifications %></span>
+          <span class="ml-auto bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full sidebar-logo-text"><%= unreadNotifications %></span>
         <% } %>
       </a>
-      <a class="hms-nav-link <%= active === 'bills' ? 'active' : '' %>" href="/patient/bills">
+      <a class="hms-nav-link <%= active === 'bills' ? 'active' : '' %>" href="/patient/bills" title="Billing">
         <i class="fas fa-file-invoice-dollar"></i>
         <span>Billing</span>
       </a>
-      <a class="hms-nav-link <%= active === 'pharmacy' ? 'active' : '' %>" href="/patient/pharmacy">
+      <a class="hms-nav-link <%= active === 'pharmacy' ? 'active' : '' %>" href="/patient/pharmacy" title="Pharmacy">
         <i class="fas fa-pills"></i>
         <span>Pharmacy</span>
       </a>
-      <a class="hms-nav-link <%= active === 'wellbeing' ? 'active' : '' %>" href="/patient/wellbeing">
-        <i class="fas fa-spa"></i>
+      <a class="hms-nav-link <%= active === 'wellbeing' ? 'active' : '' %>" href="/patient/wellbeing" title="Wellbeing">
+        <i class="fas fa-spa text-teal-400"></i>
         <span>Wellbeing</span>
       </a>
-      <a class="hms-nav-link <%= active === 'parking' ? 'active' : '' %>" href="/patient/parking">
+      <a class="hms-nav-link <%= active === 'parking' ? 'active' : '' %>" href="/patient/parking" title="Parking">
         <i class="fas fa-parking"></i>
         <span>Parking</span>
       </a>
-      <a class="hms-nav-link <%= active === 'insurance' ? 'active' : '' %>" href="/patient/insurance">
+      <a class="hms-nav-link <%= active === 'insurance' ? 'active' : '' %>" href="/patient/insurance" title="Insurance">
         <i class="fas fa-shield-alt"></i>
         <span>Insurance</span>
       </a>
-      <a class="hms-nav-link <%= active === 'ai-consultation' ? 'active' : '' %>" href="/patient/ai-consultation">
-        <i class="fas fa-video"></i>
+      <a class="hms-nav-link <%= active === 'ai-consultation' ? 'active' : '' %>" href="/patient/ai-consultation" title="AI Video Call">
+        <i class="fas fa-video text-indigo-400 animate-pulse"></i>
         <span>AI Video Call</span>
       </a>
-      <a class="hms-nav-link <%= active === 'ai-chat' ? 'active' : '' %>" href="/patient/ai-chat">
-        <i class="fas fa-robot"></i>
+      <a class="hms-nav-link <%= active === 'ai-chat' ? 'active' : '' %>" href="/patient/ai-chat" title="AI Chat">
+        <i class="fas fa-robot text-purple-400"></i>
         <span>AI Chat</span>
       </a>
-      <a class="hms-nav-link <%= active === 'analytics' ? 'active' : '' %>" href="/patient/analytics">
-        <i class="fas fa-chart-line"></i>
+      <a class="hms-nav-link <%= active === 'analytics' ? 'active' : '' %>" href="/patient/analytics" title="Analytics">
+        <i class="fas fa-chart-line text-cyan-400"></i>
         <span>Analytics</span>
       </a>
     </nav>
 
     <!-- Logout -->
-    <div class="mt-auto pt-8 border-t border-gray-700 px-3">
-      <a href="/logout" class="hms-nav-link text-rose-400 hover:bg-rose-500/10 hover:text-rose-300">
+    <div class="mt-auto pt-4 border-t border-white/5 px-3">
+      <a href="/logout" class="hms-nav-link text-rose-400 hover:bg-rose-500/10 hover:text-rose-300" title="Logout">
         <i class="fas fa-sign-out-alt"></i>
         <span>Logout</span>
       </a>
     </div>
   </div>
 </div>
+
+<script>
+  (function () {
+    const container = document.getElementById("hmsSidebarContainer");
+    const sidebar = document.getElementById("hmsSidebar");
+    const btn = document.getElementById("sidebarCollapseBtn");
+    const icon = document.getElementById("sidebarCollapseIcon");
+    
+    if (sidebar && btn && icon && container) {
+      // Load saved state
+      const isCollapsed = localStorage.getItem("hms-sidebar-collapsed") === "true";
+      if (isCollapsed) {
+        sidebar.classList.add("collapsed");
+        container.classList.remove("w-64", "lg:w-72");
+        container.classList.add("w-20");
+        icon.className = "fas fa-chevron-right text-[10px]";
+        
+        // Hide logo text helper
+        document.querySelectorAll(".sidebar-logo-text").forEach(el => el.classList.add("hidden"));
+        document.querySelector(".sidebar-logo-block")?.classList.add("mb-2");
+      }
+      
+      btn.addEventListener("click", function () {
+        const collapsed = sidebar.classList.toggle("collapsed");
+        if (collapsed) {
+          container.classList.remove("w-64", "lg:w-72");
+          container.classList.add("w-20");
+          icon.className = "fas fa-chevron-right text-[10px]";
+          localStorage.setItem("hms-sidebar-collapsed", "true");
+          
+          document.querySelectorAll(".sidebar-logo-text").forEach(el => el.classList.add("hidden"));
+          document.querySelector(".sidebar-logo-block")?.classList.add("mb-2");
+        } else {
+          container.classList.remove("w-20");
+          container.classList.add("w-64", "lg:w-72");
+          icon.className = "fas fa-chevron-left text-[10px]";
+          localStorage.setItem("hms-sidebar-collapsed", "false");
+          
+          document.querySelectorAll(".sidebar-logo-text").forEach(el => el.classList.remove("hidden"));
+          document.querySelector(".sidebar-logo-block")?.classList.remove("mb-2");
+        }
+      });
+    }
+  })();
+</script>

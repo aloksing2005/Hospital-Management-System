@@ -2,152 +2,522 @@
 <%- include('../partials/header') %>
 <%- include('../partials/incoming-call-modal') %>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  /* Premium Cyberpunk Holographic Card Styling */
+  .hms-cybercard-glow {
+    position: relative;
+    animation: hms-card-float 6s ease-in-out infinite;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 27, 75, 0.8) 50%, rgba(15, 23, 42, 0.9) 100%) !important;
+    border: 2px solid rgba(99, 102, 241, 0.25) !important;
+    box-shadow: 0 0 30px rgba(99, 102, 241, 0.1), inset 0 0 20px rgba(255, 255, 255, 0.05) !important;
+  }
+  .hms-cybercard-glow:hover {
+    transform: translateY(-8px) scale(1.02) rotate(0.5deg) !important;
+    border-color: rgba(99, 102, 241, 0.5) !important;
+    box-shadow: 0 10px 40px rgba(99, 102, 241, 0.25), inset 0 0 30px rgba(255, 255, 255, 0.1) !important;
+  }
+  @keyframes hms-card-float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-6px) rotate(0.3deg); }
+  }
+
+  /* Scoped Print Classes for Flawless Printing */
+  @media print {
+    @page {
+      size: A4 portrait;
+      margin: 0;
+    }
+    body.hms-printing-active {
+      background: #020617 !important;
+      background-color: #020617 !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      overflow: hidden !important;
+      height: 100vh !important;
+    }
+    body.hms-printing-active * {
+      visibility: hidden !important;
+    }
+    body.hms-printing-active #healthCardToPrint,
+    body.hms-printing-active #healthCardToPrint * {
+      visibility: visible !important;
+    }
+    body.hms-printing-active #healthCardToPrint {
+      position: absolute !important;
+      left: 50% !important;
+      top: 40% !important;
+      transform: translate(-50%, -50%) scale(1.2) !important;
+      transform-origin: center !important;
+      width: 500px !important;
+      height: 310px !important;
+      border: 2px solid #6366f1 !important; /* solid Indigo border for defined printable shape */
+      background: linear-gradient(135deg, #020617 0%, #0f172a 100%) !important;
+      background-color: #020617 !important;
+      color: white !important;
+      border-radius: 28px !important;
+      box-shadow: none !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+      padding: 24px !important;
+      display: flex !important;
+      flex-direction: column !important;
+      justify-content: space-between !important;
+    }
+    /* Hide decorative items in print */
+    body.hms-printing-active #healthCardToPrint .hud-shine-sweep,
+    body.hms-printing-active #healthCardToPrint .hud-grid-overlay {
+      display: none !important;
+    }
+  }
+</style>
 
 <div class="flex h-screen">
   <!-- Sidebar -->
   <%- include('../partials/patient-sidebar', { active: 'dashboard' }) %>
 
   <!-- Main Content -->
-  <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+  <div class="flex-1 overflow-y-auto p-6 lg:p-8 hms-page-transition">
       <!-- Welcome Header -->
-      <div class="mb-8 animate-fade-in">
-        <h1 class="text-3xl font-black text-white mb-2">Welcome back, <%= user.name %></h1>
-        <p class="text-gray-400 font-medium">Here's your health summary for today.</p>
+      <div class="mb-8 animate-fade-in flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 class="text-3xl font-black text-white mb-2">Welcome back, <%= user.name %></h1>
+          <p class="text-gray-400 font-medium">Here's your health summary for today.</p>
+        </div>
+        <div class="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-xl border border-white/10 shrink-0 self-start md:self-auto">
+          <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
+          <span class="text-sm font-bold text-gray-300">Biometric Uplink stable</span>
+        </div>
       </div>
 
-      <!-- Health Score Card -->
-      <div class="hms-card mb-8 animate-scale-in">
-        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
-          <div class="flex items-center gap-6">
-            <div class="relative w-20 h-20">
-              <svg class="w-full h-full transform -rotate-90">
-                <circle cx="40" cy="40" r="36" stroke="currentColor" stroke-width="8" fill="transparent" class="text-gray-700" />
-                <circle cx="40" cy="40" r="36" stroke="currentColor" stroke-width="8" fill="transparent" class="<%= healthScore > 80 ? 'text-emerald-400' : 'text-amber-400' %>" stroke-dasharray="226" stroke-dashoffset="<%= 226 - (226 * healthScore) / 100 %>" />
-              </svg>
-              <span class="absolute inset-0 flex items-center justify-center text-2xl font-black text-white"><%= healthScore %></span>
+      <!-- Neural HUD Diagnostic Core & Health Score Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+         <!-- Health Score -->
+         <div class="hms-glass-premium hms-hover-lift rounded-[24px] p-6 flex flex-col justify-between shadow-xl animate-scale-in">
+           <div>
+             <div class="flex items-center justify-between mb-4">
+               <span class="text-xs font-black uppercase tracking-wider text-indigo-400">Health Diagnostics</span>
+               <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
+             </div>
+             <div class="flex items-center gap-6 my-6">
+               <div class="relative w-24 h-24">
+                 <svg class="w-full h-full transform -rotate-90">
+                   <circle cx="48" cy="48" r="40" stroke="currentColor" stroke-width="8" fill="transparent" class="text-gray-700" />
+                   <circle cx="48" cy="48" r="40" stroke="currentColor" stroke-width="8" fill="transparent" class="<%= healthScore > 80 ? 'text-emerald-400' : 'text-amber-400' %>" stroke-dasharray="251" stroke-dashoffset="<%= 251 - (251 * healthScore) / 100 %>" />
+                 </svg>
+                 <span class="absolute inset-0 flex items-center justify-center text-3xl font-black text-white"><%= healthScore %></span>
+               </div>
+               <div>
+                 <span class="text-xs font-bold text-gray-400 uppercase tracking-widest">Global Status</span>
+                 <h3 class="text-xl font-black text-white mt-1"><%= healthScore > 80 ? 'EXCELLENT' : 'STABLE' %></h3>
+                 <p class="text-xs text-gray-500 mt-0.5">Biometrics within standard bounds.</p>
+               </div>
+             </div>
+           </div>
+           <div class="p-3 bg-white/5 rounded-xl border border-white/5 text-xs text-gray-400 flex items-center gap-2">
+             <i class="fas fa-fingerprint text-indigo-400 text-sm"></i>
+             <span>Identity Secure (AES-256 Enabled)</span>
+           </div>
+         </div>
+
+         <!-- Neural X-Ray HUD Scanner -->
+         <div class="lg:col-span-2 hms-glass-premium hms-hover-lift rounded-[24px] p-6 relative overflow-hidden shadow-xl animate-scale-in animate-delay-100 flex flex-col md:flex-row gap-6 border border-white/10 shadow-[0_0_50px_rgba(99,102,241,0.05)]">
+           <div class="hud-grid-overlay"></div>
+           <!-- Scanner Display Panel -->
+           <div class="w-full md:w-1/2 relative bg-slate-950/90 rounded-2xl border border-white/10 h-56 md:h-auto overflow-hidden flex items-center justify-center group/scan shadow-inner shadow-indigo-500/10">
+             <div class="hud-laser-line hidden" id="hudLaser"></div>
+             <!-- Scanning Canvas drawing -->
+             <canvas id="hudScannerCanvas" class="w-full h-full object-cover max-h-64" style="min-height: 220px;"></canvas>
+             <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent pointer-events-none"></div>
+             
+             <!-- Glowing corner brackets -->
+             <div class="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-indigo-500/40 pointer-events-none transition-all duration-300 group-hover/scan:border-indigo-400"></div>
+             <div class="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-indigo-500/40 pointer-events-none transition-all duration-300 group-hover/scan:border-indigo-400"></div>
+             <div class="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-indigo-500/40 pointer-events-none transition-all duration-300 group-hover/scan:border-indigo-400"></div>
+             <div class="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-indigo-500/40 pointer-events-none transition-all duration-300 group-hover/scan:border-indigo-400"></div>
+             
+             <!-- Scanners status badge -->
+             <div class="absolute top-3 left-3 bg-slate-900/90 text-white font-mono text-[9px] px-2.5 py-1.5 rounded-lg border border-indigo-500/30 tracking-widest flex items-center gap-1.5 uppercase shadow-lg shadow-black/50 z-20">
+               <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" id="scanStatusIndicator"></span>
+               <span id="scanStatusText">HUD: STANDBY</span>
+             </div>
+           </div>
+
+           <!-- Scanner Command Controls & Insights -->
+           <div class="w-full md:w-1/2 flex flex-col justify-between relative z-10 py-1">
+             <div>
+               <div class="flex items-center gap-2 mb-1.5">
+                 <div class="w-2.5 h-2.5 rounded-full bg-indigo-500 animate-pulse"></div>
+                 <h4 class="text-lg font-black text-white tracking-tight flex items-center gap-2"><i class="fas fa-microscope text-indigo-400"></i>Neural Diagnostics Core</h4>
+               </div>
+               <p class="text-xs text-gray-400 mb-4 leading-relaxed font-medium">Select target biological vector and trigger automated deep neural scanner pass.</p>
+               
+               <div class="grid grid-cols-2 gap-2 mb-4">
+                 <button type="button" onclick="setScanMode('xray')" id="btnModeXray" class="px-3 py-2.5 bg-indigo-600 text-white border border-indigo-400/30 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 hover:scale-105 cursor-pointer shadow-lg shadow-indigo-600/20">
+                   <i class="fas fa-lungs"></i> Chest X-Ray
+                 </button>
+                 <button type="button" onclick="setScanMode('mri')" id="btnModeMri" class="px-3 py-2.5 bg-white/5 text-gray-400 border border-white/10 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 hover:bg-white/10 hover:text-white hover:scale-105 cursor-pointer">
+                   <i class="fas fa-brain"></i> Brain MRI
+                 </button>
+               </div>
+
+               <!-- Active Scanned Insights Panel -->
+               <div class="p-4 bg-slate-950/70 border border-white/5 rounded-2xl text-xs space-y-2.5 mb-4 shadow-inner">
+                 <div class="flex justify-between font-mono">
+                   <span class="text-gray-500 font-medium">Anomaly Index:</span>
+                   <span id="txtAnomalyIndex" class="text-emerald-400 font-bold tracking-wider">0.01% (NOMINAL)</span>
+                 </div>
+                 <div class="flex justify-between font-mono">
+                   <span class="text-gray-500 font-medium">Scan Resolution:</span>
+                   <span class="text-indigo-400 font-bold">4096px px-HUD</span>
+                 </div>
+                 <div id="txtScanResult" class="text-gray-400 leading-relaxed border-t border-white/5 pt-2.5 italic text-[11px] min-h-[56px] font-medium">
+                   Ready to initiate diagnostic analysis.
+                 </div>
+               </div>
+             </div>
+
+             <button type="button" onclick="triggerNeuralScan()" id="btnStartScan" class="hms-btn hms-btn-primary w-full text-xs font-black tracking-wider uppercase py-3.5 rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-xl shadow-indigo-600/10 hover:shadow-indigo-600/20 hover:scale-[1.02] active:scale-95 transition-all">
+               <i class="fas fa-satellite-dish" id="scanIcon"></i>
+               <span id="scanBtnText">Initiate Neural Scan</span>
+             </button>
+           </div>
+         </div>
+      </div>
+
+      <!-- Quantum Genomic DNA Sequence Auditor HUD -->
+      <div class="hms-glass-premium hms-hover-lift rounded-[24px] p-6 relative overflow-hidden shadow-xl mb-8 border border-white/10 shadow-[0_0_50px_rgba(99,102,241,0.05)] animate-fade-in flex flex-col lg:flex-row gap-6">
+        <div class="hud-grid-overlay"></div>
+        <!-- DNA rotating helix canvas -->
+        <div class="w-full lg:w-1/3 relative bg-slate-950/90 rounded-2xl border border-white/10 h-56 lg:h-auto overflow-hidden flex items-center justify-center group/dna shadow-inner shadow-cyan-500/10">
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent pointer-events-none"></div>
+          
+          <!-- Glowing corner brackets -->
+          <div class="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-cyan-500/40 pointer-events-none transition-all duration-300 group-hover/dna:border-cyan-400"></div>
+          <div class="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-cyan-500/40 pointer-events-none transition-all duration-300 group-hover/dna:border-cyan-400"></div>
+          <div class="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-cyan-500/40 pointer-events-none transition-all duration-300 group-hover/dna:border-cyan-400"></div>
+          <div class="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-cyan-500/40 pointer-events-none transition-all duration-300 group-hover/dna:border-cyan-400"></div>
+          
+          <!-- Canvas drawing rotating helix -->
+          <canvas id="dnaCanvas" class="w-full h-full object-cover max-h-64" style="min-height: 220px;"></canvas>
+          
+          <!-- Badge -->
+          <div class="absolute top-3 left-3 bg-slate-900/90 text-white font-mono text-[9px] px-2.5 py-1.5 rounded-lg border border-cyan-500/30 tracking-widest flex items-center gap-1.5 uppercase shadow-lg shadow-black/50 z-20">
+            <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" id="dnaStatusIndicator"></span>
+            <span id="dnaStatusText">GENE: LINKED (FOXO3/SIRT1)</span>
+          </div>
+        </div>
+
+        <!-- Genomic HUD audit panel & selectors -->
+        <div class="w-full lg:w-2/3 flex flex-col justify-between relative z-10 py-1">
+          <div>
+            <div class="flex items-center gap-2 mb-1.5">
+              <div class="w-2.5 h-2.5 rounded-full bg-cyan-500 animate-pulse"></div>
+              <h4 class="text-lg font-black text-white tracking-tight flex items-center gap-2">
+                <i class="fas fa-dna text-cyan-400"></i>Quantum Genomic DNA Sequence Auditor HUD
+              </h4>
             </div>
-            <div>
-              <span class="text-xs font-black uppercase tracking-wider text-indigo-400 block mb-1">Health Score</span>
-              <h3 class="text-xl font-bold text-white"><%= healthScore > 80 ? 'Excellent' : 'Stable' %></h3>
+            <p class="text-xs text-gray-400 mb-4 leading-relaxed font-medium">Decompile and analyze your local nucleotide sequence structures, identifying premium epigenetic longevity markers and neuro-resilience indicators.</p>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4 font-sans">
+              <button type="button" onclick="selectGenomicProfile('longevity')" id="btnProfileLongevity" class="px-3 py-2 bg-cyan-600 text-white border border-cyan-400/30 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-1 hover:scale-105 cursor-pointer shadow-lg shadow-cyan-600/20">
+                <i class="fas fa-hourglass-half"></i> Longevity Factors
+              </button>
+              <button type="button" onclick="selectGenomicProfile('cognitive')" id="btnProfileCognitive" class="px-3 py-2 bg-white/5 text-gray-400 border border-white/10 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-1 hover:bg-white/10 hover:text-white hover:scale-105 cursor-pointer">
+                <i class="fas fa-brain"></i> BDNF Resilience
+              </button>
+              <button type="button" onclick="selectGenomicProfile('cardio')" id="btnProfileCardio" class="px-3 py-2 bg-white/5 text-gray-400 border border-white/10 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-1 hover:bg-white/10 hover:text-white hover:scale-105 cursor-pointer">
+                <i class="fas fa-heart"></i> NOS3 Vascular
+              </button>
+              <button type="button" onclick="selectGenomicProfile('metabolic')" id="btnProfileMetabolic" class="px-3 py-2 bg-white/5 text-gray-400 border border-white/10 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-1 hover:bg-white/10 hover:text-white hover:scale-105 cursor-pointer">
+                <i class="fas fa-bolt"></i> Metabolic Rate
+              </button>
+            </div>
+
+            <!-- Dynamic scrolling base pair display stream -->
+            <div class="p-4 bg-slate-950/70 border border-white/5 rounded-2xl text-xs mb-4 shadow-inner">
+              <div class="flex justify-between items-center mb-2 pb-2 border-b border-white/5 font-mono text-[10px]">
+                <span class="text-gray-500 uppercase tracking-wider font-bold">Base Pair Telemetry Stream:</span>
+                <span id="txtDnaSpeed" class="text-cyan-400 font-bold tracking-wider">SYNCED (60 FPS)</span>
+              </div>
+              
+              <!-- scrolling nucleotide pairs -->
+              <div id="genePairSequence" class="font-mono text-cyan-400/80 tracking-widest text-[13px] overflow-hidden whitespace-nowrap text-center py-2 bg-black/40 rounded-lg border border-cyan-500/10 min-h-[38px] select-all shadow-inner">
+                A-T • G-C • C-G • T-A • T-A • C-G • G-C • A-T • T-A • G-C • C-G • T-A • G-C • A-T
+              </div>
+              
+              <div class="mt-2.5 flex justify-between font-mono text-[11px] leading-relaxed">
+                <span class="text-gray-500 font-medium">Gene Locus Target:</span>
+                <span id="dnaLocusText" class="text-cyan-400 font-bold">FOXO3 Chromosome 6 (rs2802292)</span>
+              </div>
+              <div id="txtDnaAuditResult" class="text-gray-400 leading-relaxed border-t border-white/5 pt-2 mt-2 italic text-[11px] min-h-[48px] font-medium">
+                Genomic sequence synced with active biomarkers. Ready to decompile and audit DNA double-helix structures.
+              </div>
             </div>
           </div>
-          <div class="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-xl border border-white/10">
-            <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-            <span class="text-sm font-bold text-gray-300">System Online</span>
-          </div>
+
+          <button type="button" onclick="triggerDnaDecompile()" id="btnDnaDecompile" class="hms-btn hms-btn-primary w-full text-xs font-black tracking-wider uppercase py-3.5 rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-xl shadow-cyan-600/10 hover:shadow-cyan-600/20 hover:scale-[1.02] active:scale-95 transition-all bg-gradient-to-r from-cyan-600 to-indigo-600 border-none font-sans">
+            <i class="fas fa-terminal" id="dnaIcon"></i>
+            <span id="dnaBtnText">Decompile Nucleotide Sequence</span>
+          </button>
         </div>
       </div>
 
       <!-- Live Vitals Grid -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div class="hms-card animate-scale-in">
+        
+        <!-- Heart Rate -->
+        <div class="hms-glass-premium hms-hover-lift hover:border-rose-500/30 rounded-[24px] p-6 relative overflow-hidden group shadow-xl">
+          <div class="absolute -right-8 -top-8 w-20 h-20 rounded-full bg-rose-500/5 blur-2xl pointer-events-none group-hover:bg-rose-500/10 transition-all"></div>
+          
           <div class="flex justify-between items-start mb-4">
-            <div class="w-12 h-12 bg-rose-500/20 text-rose-400 rounded-xl flex items-center justify-center">
-              <i class="fas fa-heartbeat text-xl"></i>
+            <div class="w-12 h-12 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
+              <i class="fas fa-heartbeat text-xl animate-pulse"></i>
             </div>
-            <span class="hms-badge hms-badge-danger animate-pulse-custom">LIVE</span>
+            <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-rose-500/20 border border-rose-500/30 text-rose-400 tracking-wider animate-pulse">Live HUD</span>
           </div>
-          <div class="hms-stat-value text-3xl">72 <span class="text-lg text-gray-400">BPM</span></div>
-          <div class="hms-stat-label">Heart Rate</div>
+          
+          <div class="text-3xl font-black text-white tracking-tight hms-stat-value flex items-baseline gap-1" id="hudHeartRate">
+            72 <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">BPM</span>
+          </div>
+          <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1 hms-stat-label">Heart Rate</div>
+          
+          <!-- Animated ECG Heartbeat Line Trace underneath the stats -->
+          <div class="w-full h-8 mt-3 pointer-events-none opacity-40 group-hover:opacity-75 transition-opacity">
+            <svg viewBox="0 0 300 40" class="w-full h-full stroke-rose-500 fill-none stroke-[2]">
+              <path class="ecg-line" d="M 0 20 L 50 20 L 60 10 L 70 30 L 80 20 L 140 20 L 150 5 L 160 35 L 170 20 L 220 20 L 230 10 L 240 30 L 250 20 L 300 20" />
+            </svg>
+          </div>
         </div>
-        <div class="hms-card animate-scale-in animate-delay-100">
+
+        <!-- SpO2 Level -->
+        <div class="hms-glass-premium hms-hover-lift-cyan rounded-[24px] p-6 relative overflow-hidden group shadow-xl">
+          <div class="absolute -right-8 -top-8 w-20 h-20 rounded-full bg-cyan-500/5 blur-2xl pointer-events-none group-hover:bg-cyan-500/10 transition-all"></div>
+          
           <div class="flex justify-between items-start mb-4">
-            <div class="w-12 h-12 bg-cyan-500/20 text-cyan-400 rounded-xl flex items-center justify-center">
+            <div class="w-12 h-12 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
               <i class="fas fa-wind text-xl"></i>
             </div>
-            <span class="hms-badge hms-badge-info animate-pulse-custom">LIVE</span>
+            <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-cyan-500/20 border border-cyan-500/30 text-cyan-400 tracking-wider animate-pulse">Live HUD</span>
           </div>
-          <div class="hms-stat-value text-3xl">98 <span class="text-lg text-gray-400">%</span></div>
-          <div class="hms-stat-label">SpO2 Level</div>
+          
+          <div class="text-3xl font-black text-white tracking-tight hms-stat-value flex items-baseline gap-1" id="hudSpo2">
+            98 <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">%</span>
+          </div>
+          <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1 hms-stat-label">SpO2 Level</div>
+          
+          <!-- Animated rotating loading/wind ring overlay -->
+          <div class="absolute right-6 bottom-4 w-12 h-12 border border-dashed border-cyan-500/20 rounded-full animate-[spin_10s_linear_infinite] flex items-center justify-center pointer-events-none">
+            <div class="w-8 h-8 border border-cyan-500/30 rounded-full border-t-transparent animate-[spin_3s_linear_infinite_reverse]"></div>
+          </div>
         </div>
-        <div class="hms-card animate-scale-in animate-delay-200">
+
+        <!-- Blood Pressure -->
+        <div class="hms-glass-premium hms-hover-lift hover:border-indigo-500/30 rounded-[24px] p-6 relative overflow-hidden group shadow-xl">
+          <div class="absolute -right-8 -top-8 w-20 h-20 rounded-full bg-indigo-500/5 blur-2xl pointer-events-none group-hover:bg-indigo-500/10 transition-all"></div>
+          
           <div class="flex justify-between items-start mb-4">
-            <div class="w-12 h-12 bg-indigo-500/20 text-indigo-400 rounded-xl flex items-center justify-center">
+            <div class="w-12 h-12 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
               <i class="fas fa-tint text-xl"></i>
             </div>
-            <span class="hms-badge hms-badge-primary">STABLE</span>
+            <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 tracking-wider">Stable</span>
           </div>
-          <div class="hms-stat-value text-3xl">120/80</div>
-          <div class="hms-stat-label">Blood Pressure</div>
+          
+          <div class="text-3xl font-black text-white tracking-tight hms-stat-value flex items-baseline gap-1" id="hudBloodPressure">
+            120/80 <span class="text-xs text-gray-400 font-bold uppercase tracking-wider font-semibold"></span>
+          </div>
+          <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1 hms-stat-label">Blood Pressure</div>
+          
+          <!-- Cyberpunk HUD grid accent line -->
+          <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden mt-6 border border-white/5 relative z-10 pointer-events-none">
+            <div class="h-full w-2/3 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full animate-pulse"></div>
+          </div>
         </div>
-        <div class="hms-card animate-scale-in animate-delay-300">
+
+        <!-- Body Temp -->
+        <div class="hms-glass-premium hms-hover-lift-amber rounded-[24px] p-6 relative overflow-hidden group shadow-xl">
+          <div class="absolute -right-8 -top-8 w-20 h-20 rounded-full bg-amber-500/5 blur-2xl pointer-events-none group-hover:bg-amber-500/10 transition-all"></div>
+          
           <div class="flex justify-between items-start mb-4">
-            <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center">
+            <div class="w-12 h-12 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
               <i class="fas fa-thermometer-half text-xl"></i>
             </div>
-            <span class="hms-badge hms-badge-warning">NORMAL</span>
+            <span class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase bg-amber-500/20 border border-amber-500/30 text-amber-400 tracking-wider">Normal</span>
           </div>
-          <div class="hms-stat-value text-3xl">98.6 <span class="text-lg text-gray-400">°F</span></div>
-          <div class="hms-stat-label">Body Temp</div>
+          
+          <div class="text-3xl font-black text-white tracking-tight hms-stat-value flex items-baseline gap-1" id="hudBodyTemp">
+            98.6 <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">°F</span>
+          </div>
+          <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1 hms-stat-label">Body Temp</div>
+          
+          <!-- Mini thermometer filling effect -->
+          <div class="w-full h-1 bg-white/5 rounded-full overflow-hidden mt-6 border border-white/5 relative z-10 pointer-events-none">
+            <div class="h-full w-[45%] bg-gradient-to-r from-amber-500 to-orange-500 rounded-full"></div>
+          </div>
         </div>
+
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Main Content Area -->
         <div class="lg:col-span-2 space-y-6">
-          <!-- Digital Health ID Card -->
-          <div class="hms-card animate-fade-in relative overflow-hidden group">
-            <div class="flex items-center justify-between mb-6">
+          <!-- Digital Health ID Card (Wallet HUD style) -->
+          <div class="hms-glass-premium hms-hover-lift rounded-[32px] p-6 lg:p-8 animate-fade-in relative overflow-hidden shadow-2xl mb-8 group">
+            <div class="hud-grid-overlay"></div>
+            
+            <div class="flex items-center justify-between mb-6 relative z-10">
               <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                <i class="fas fa-id-card text-indigo-400"></i> Digital Health Card
+                <i class="fas fa-id-card text-indigo-400"></i> Cyberpunk Health ID
               </h3>
-              <button onclick="printHealthCard()" class="px-3.5 py-1.5 bg-white/5 hover:bg-indigo-600 border border-white/10 hover:border-indigo-500 rounded-xl text-xs font-bold text-gray-300 hover:text-white transition-all flex items-center gap-1.5">
-                <i class="fas fa-print"></i> Print Pass
+              <button onclick="printHealthCard()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 border border-indigo-500/30 rounded-xl text-xs font-black text-white transition-all flex items-center gap-1.5 shadow-lg shadow-indigo-600/20 cursor-pointer hover:scale-105">
+                <i class="fas fa-print"></i> Print Wallet Pass
               </button>
             </div>
 
-            <!-- The Smart Card -->
-            <div id="healthCardToPrint" class="relative w-full max-w-md mx-auto aspect-[1.586/1] bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 border border-white/15 rounded-[24px] p-6 shadow-2xl overflow-hidden flex flex-col justify-between text-white group-hover:border-indigo-500/40 transition-colors">
-              <!-- Radial Ambient Glow inside card -->
-              <div class="absolute -right-20 -top-20 w-48 h-48 rounded-full bg-indigo-500/15 blur-3xl pointer-events-none"></div>
-              <div class="absolute -left-20 -bottom-20 w-48 h-48 rounded-full bg-purple-500/10 blur-3xl pointer-events-none"></div>
+            <!-- The Smart Card Container -->
+            <div class="w-full max-w-2xl mx-auto relative">
+              <div id="healthCardToPrint" class="hms-cybercard-glow relative w-full aspect-[1.618/1] rounded-[28px] p-6 lg:p-8 overflow-hidden flex flex-col justify-between text-white transition-all duration-300">
+                <!-- Cyberpunk Holographic Shine Line Sweep -->
+                <div class="hud-shine-sweep"></div>
+                
+                <!-- Radial Ambient Glow inside card -->
+                <div class="absolute -right-20 -top-20 w-56 h-56 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none"></div>
+                <div class="absolute -left-20 -bottom-20 w-56 h-56 rounded-full bg-purple-500/15 blur-3xl pointer-events-none"></div>
 
-              <!-- Card Header -->
-              <div class="flex justify-between items-start relative z-10">
-                <div class="flex items-center gap-2">
-                  <div class="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-sm shadow-md">
-                    <i class="fas fa-heartbeat"></i>
+                <!-- Card Header -->
+                <div class="flex justify-between items-start relative z-10">
+                  <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-lg shadow-md shadow-indigo-500/30">
+                      <i class="fas fa-heartbeat animate-pulse"></i>
+                    </div>
+                    <div>
+                      <h4 class="text-sm font-black tracking-widest uppercase opacity-95">HMS PREMIUM</h4>
+                      <span class="text-[9px] uppercase tracking-widest text-indigo-300 font-bold font-mono">Health Pass Link</span>
+                    </div>
                   </div>
-                  <div>
-                    <h4 class="text-xs font-black tracking-widest uppercase opacity-90">HMS Premium</h4>
-                    <span class="text-[9px] uppercase tracking-wider text-indigo-300 font-bold">Digital Health Pass</span>
+                  <div class="flex items-center gap-1.5 bg-emerald-500/15 border border-emerald-500/30 px-3 py-1 rounded-full shadow-inner">
+                    <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+                    <span class="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Active</span>
                   </div>
                 </div>
-                <div class="flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
-                  <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
-                  <span class="text-[8px] font-bold text-emerald-400 uppercase tracking-widest">Active</span>
+
+                <!-- Card Body / Details & QR -->
+                <div class="grid grid-cols-12 items-end gap-4 relative z-10 mt-auto">
+                  <!-- Info Section -->
+                  <div class="col-span-8 space-y-4">
+                    <div>
+                      <span class="text-[9px] text-gray-500 uppercase tracking-widest block mb-0.5 font-bold font-mono">Verified Cardholder</span>
+                      <p class="text-xl font-black tracking-tight text-white leading-none uppercase"><%= user.name %></p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                      <div>
+                        <span class="text-[8px] text-gray-500 uppercase tracking-widest block font-bold font-mono">Blood Group</span>
+                        <p class="text-xs font-black text-gray-200">O+ (OPTIMAL)</p>
+                      </div>
+                      <div>
+                        <span class="text-[8px] text-gray-500 uppercase tracking-widest block font-bold font-mono">Emergency Uplink</span>
+                        <p class="text-xs font-black text-gray-200"><%= user.phone || '9876543210' %></p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- QR Section -->
+                  <div class="col-span-4 flex flex-col items-center justify-center">
+                    <div class="bg-white p-2 rounded-2xl shadow-xl border border-white/10" id="qrcodeContainer" style="width: fit-content;">
+                      <!-- Target for QR Generator -->
+                    </div>
+                    <span class="text-[8px] text-gray-500 font-mono tracking-widest mt-2 uppercase font-bold">PAT-<%= user.id.slice(-6).toUpperCase() %></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Epigenetic Chrono-Nutrition Optimizer HUD -->
+          <div class="hms-glass-premium hms-hover-lift rounded-[24px] p-6 relative overflow-hidden shadow-xl mb-8 border border-white/10 shadow-[0_0_50px_rgba(99,102,241,0.05)] animate-fade-in flex flex-col lg:flex-row gap-6">
+            <div class="hud-grid-overlay"></div>
+            <!-- Chrono circular dial canvas -->
+            <div class="w-full lg:w-1/3 relative bg-slate-950/90 rounded-2xl border border-white/10 h-56 lg:h-auto overflow-hidden flex items-center justify-center group/nutri shadow-inner shadow-amber-500/10">
+              <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent pointer-events-none"></div>
+              
+              <!-- Glowing corner brackets -->
+              <div class="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-amber-500/40 pointer-events-none transition-all duration-300 group-hover/nutri:border-amber-400"></div>
+              <div class="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-amber-500/40 pointer-events-none transition-all duration-300 group-hover/nutri:border-amber-400"></div>
+              <div class="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-amber-500/40 pointer-events-none transition-all duration-300 group-hover/nutri:border-amber-400"></div>
+              <div class="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-amber-500/40 pointer-events-none transition-all duration-300 group-hover/nutri:border-amber-400"></div>
+              
+              <canvas id="nutriCanvas" class="w-full h-full object-cover max-h-64" style="min-height: 220px;"></canvas>
+              
+              <!-- Badge -->
+              <div class="absolute top-3 left-3 bg-slate-900/90 text-white font-mono text-[9px] px-2.5 py-1.5 rounded-lg border border-amber-500/30 tracking-widest flex items-center gap-1.5 uppercase shadow-lg shadow-black/50 z-20">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" id="nutriStatusIndicator"></span>
+                <span id="nutriStatusText">CHRONO: ALIGNED</span>
+              </div>
+            </div>
+
+            <!-- Chrono control panel & selectors -->
+            <div class="w-full lg:w-2/3 flex flex-col justify-between relative z-10 py-1">
+              <div>
+                <div class="flex items-center gap-2 mb-1.5">
+                  <div class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></div>
+                  <h4 class="text-lg font-black text-white tracking-tight flex items-center gap-2 font-sans">
+                    <i class="fas fa-apple-alt text-amber-400"></i>Epigenetic Chrono-Nutrition Optimizer HUD
+                  </h4>
+                </div>
+                <p class="text-xs text-gray-400 mb-4 leading-relaxed font-medium font-sans">Harmonize nutritional intake with circadian rhythms, maximizing epigenetic longevity factors, cellular repair pathways, and glucose homeostasis index mapping.</p>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4 font-sans">
+                  <button type="button" onclick="selectNutritionPeriod('fasting')" id="btnNutriFasting" class="px-3 py-2 bg-amber-600 text-white border border-amber-400/30 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-1 hover:scale-105 cursor-pointer shadow-lg shadow-amber-600/20">
+                    <i class="fas fa-moon"></i> Autophagy Fast
+                  </button>
+                  <button type="button" onclick="selectNutritionPeriod('breakfast')" id="btnNutriBreakfast" class="px-3 py-2 bg-white/5 text-gray-400 border border-white/10 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-1 hover:bg-white/10 hover:text-white hover:scale-105 cursor-pointer">
+                    <i class="fas fa-sun"></i> Cortisol Rise
+                  </button>
+                  <button type="button" onclick="selectNutritionPeriod('noon')" id="btnNutriNoon" class="px-3 py-2 bg-white/5 text-gray-400 border border-white/10 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-1 hover:bg-white/10 hover:text-white hover:scale-105 cursor-pointer">
+                    <i class="fas fa-cloud-sun"></i> Insulin Peak
+                  </button>
+                  <button type="button" onclick="selectNutritionPeriod('evening')" id="btnNutriEvening" class="px-3 py-2 bg-white/5 text-gray-400 border border-white/10 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-1 hover:bg-white/10 hover:text-white hover:scale-105 cursor-pointer">
+                    <i class="fas fa-star"></i> Melatonin Sync
+                  </button>
+                </div>
+
+                <!-- Detailed stats readout -->
+                <div class="p-4 bg-slate-950/70 border border-white/5 rounded-2xl text-xs mb-4 shadow-inner">
+                  <div class="flex justify-between items-center mb-2 pb-2 border-b border-white/5 font-mono text-[10px]">
+                    <span class="text-gray-500 uppercase tracking-wider font-bold">Circadian Rhythm Index Profile:</span>
+                    <span id="txtNutriAlignment" class="text-amber-400 font-bold tracking-wider font-mono">CELLULAR AUTO-REPAIR INDUCED</span>
+                  </div>
+                  
+                  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-2 font-mono text-[11px] leading-relaxed">
+                    <div>
+                      <span class="text-gray-500 block mb-0.5">Gene Pathway</span>
+                      <span id="nutriGeneTarget" class="text-amber-400 font-bold">SIRT1 / AMPK Active</span>
+                    </div>
+                    <div>
+                      <span class="text-gray-500 block mb-0.5">Somatic State</span>
+                      <span id="nutriSomaticState" class="text-emerald-400 font-bold">Autophagy Stage II</span>
+                    </div>
+                    <div>
+                      <span class="text-gray-500 block mb-0.5">Circadian Alignment</span>
+                      <span id="nutriCircadianSync" class="text-amber-400 font-bold">96.8% (OPTIMAL)</span>
+                    </div>
+                    <div>
+                      <span class="text-gray-500 block mb-0.5">Metabolic Status</span>
+                      <span id="nutriMetabolicState" class="text-emerald-400 font-bold">Ketogenesis Triggered</span>
+                    </div>
+                  </div>
+                  
+                  <div id="txtNutriAuditResult" class="text-gray-400 leading-relaxed border-t border-white/5 pt-2 mt-2 italic text-[11px] min-h-[48px] font-medium font-sans">
+                    Circadian window aligned. System has entered the dark repair cycle, activating AMPK epigenetic longevity sequences and accelerating mitochondrial autophagy structures.
+                  </div>
                 </div>
               </div>
 
-              <!-- Card Body / Details & QR -->
-              <div class="grid grid-cols-3 items-end gap-4 mt-4 relative z-10">
-                <!-- Info Section -->
-                <div class="col-span-2 space-y-4">
-                  <div>
-                    <span class="text-[9px] text-gray-400 uppercase tracking-wider block mb-0.5">Cardholder</span>
-                    <p class="text-lg font-black tracking-tight text-white leading-tight uppercase"><%= user.name %></p>
-                  </div>
-
-                  <div class="grid grid-cols-2 gap-2">
-                    <div>
-                      <span class="text-[8px] text-gray-500 uppercase tracking-wider block">Blood Group</span>
-                      <p class="text-xs font-bold text-gray-200">O+ (Demo)</p>
-                    </div>
-                    <div>
-                      <span class="text-[8px] text-gray-500 uppercase tracking-wider block">Emergency</span>
-                      <p class="text-xs font-bold text-gray-200"><%= user.phone || '9876543210' %></p>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- QR Section -->
-                <div class="flex flex-col items-center justify-center">
-                  <div class="bg-white p-1.5 rounded-xl shadow-lg border border-white/10" id="qrcodeContainer">
-                    <!-- Target for QR Generator -->
-                  </div>
-                  <span class="text-[7px] text-gray-500 font-mono tracking-widest mt-1.5">PAT-<%= user.id.slice(-6).toUpperCase() %></span>
-                </div>
-              </div>
+              <button type="button" onclick="triggerNutriScan()" id="btnNutriScan" class="hms-btn hms-btn-primary w-full text-xs font-black tracking-wider uppercase py-3.5 rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-xl shadow-amber-600/10 hover:shadow-amber-600/20 hover:scale-[1.02] active:scale-95 transition-all bg-gradient-to-r from-amber-600 to-orange-600 border-none font-sans">
+                <i class="fas fa-sync-alt" id="nutriIcon"></i>
+                <span id="nutriBtnText">Align Epigenetic Chrono-Cycle</span>
+              </button>
             </div>
           </div>
 
@@ -177,6 +547,32 @@
                 <% }) %>
               </div>
             <% } %>
+          </div>
+
+          <!-- AI Chat Assistant Integration -->
+          <div class="hms-card animate-fade-in relative overflow-hidden group border border-indigo-500/20 hover:border-indigo-500/40 transition-all shadow-lg shadow-indigo-500/5 hover:shadow-indigo-500/10">
+            <!-- Glow background -->
+            <div class="absolute -right-10 -bottom-10 w-32 h-32 rounded-full bg-indigo-500/10 blur-2xl pointer-events-none group-hover:bg-indigo-500/15 transition-all"></div>
+            
+            <div class="flex items-start justify-between gap-4">
+              <div class="flex items-start gap-4">
+                <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center text-white text-xl shadow-lg shrink-0 animate-pulse">
+                  <i class="fas fa-robot"></i>
+                </div>
+                <div>
+                  <h3 class="text-lg font-black text-white mb-1 flex items-center gap-2">
+                    HMS AI Smart Assistant
+                    <span class="px-2 py-0.5 bg-indigo-500/20 border border-indigo-500/30 rounded-full text-[9px] font-black uppercase text-indigo-300 tracking-wider">Online</span>
+                  </h3>
+                  <p class="text-gray-400 text-xs leading-relaxed mb-4 max-w-lg">
+                    Experiencing symptoms or need clinical advice? Describe how you feel, and our Google Gemini-powered AI will suggest safe care steps, recommend specialties, and match you with specialist doctors instantly.
+                  </p>
+                  <a href="/patient/ai-chat" class="hms-btn hms-btn-primary text-xs py-2.5 px-5 inline-flex items-center gap-2">
+                    <i class="fas fa-comments text-xs"></i> Start AI Consultation
+                  </a>
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- AI Health Tip -->
@@ -251,81 +647,1102 @@
 <%- include('../partials/footer') %>
 
 <script>
-  // Generate QR Code dynamically from real patient data
-  document.addEventListener('DOMContentLoaded', function () {
-    const qrcodeContainer = document.getElementById('qrcodeContainer');
-    if (qrcodeContainer) {
-      new QRCode(qrcodeContainer, {
-        text: "HMS_PATIENT_<%= user.id %>",
-        width: 70,
-        height: 70,
-        colorDark : "#0f172a",
-        colorLight : "#ffffff",
-        correctLevel : QRCode.CorrectLevel.H
+  // --- HMS ENTERPRISE LIFECYCLE & PERFORMANCE MANAGER ---
+  const HMSLifecycle = {
+    rafIds: new Set(),
+    intervals: new Set(),
+    timeouts: new Set(),
+    listeners: [],
+    
+    fpsLimit: 60,
+    isLowEndDevice: false,
+    performanceMetrics: {
+      renderedFrames: 0,
+      fps: 60,
+      lastMetricsTime: performance.now()
+    },
+    
+    isInitialized: false,
+    
+    init() {
+      if (this.isInitialized) this.destroy();
+      this.isInitialized = true;
+      
+      // Hardware-capability & low-end governor detection
+      if (navigator.deviceMemory && navigator.deviceMemory < 4) {
+        this.isLowEndDevice = true;
+        this.fpsLimit = 30;
+      }
+      if (navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4) {
+        this.isLowEndDevice = true;
+        this.fpsLimit = 30;
+      }
+      
+      console.log(`⚡ central lifecycle: initialized (GPU Throttling: ${this.isLowEndDevice ? 'ACTIVE (30 FPS limit)' : 'INACTIVE (60 FPS limit)'})`);
+    },
+    
+    requestAnimationFrame(cb) {
+      const id = requestAnimationFrame((timestamp) => {
+        this.rafIds.delete(id);
+        cb(timestamp);
       });
+      this.rafIds.add(id);
+      return id;
+    },
+    
+    cancelAnimationFrame(id) {
+      if (id) {
+        cancelAnimationFrame(id);
+        this.rafIds.delete(id);
+      }
+    },
+    
+    setInterval(cb, delay) {
+      const id = setInterval(cb, delay);
+      this.intervals.add(id);
+      return id;
+    },
+    
+    clearInterval(id) {
+      if (id) {
+        clearInterval(id);
+        this.intervals.delete(id);
+      }
+    },
+    
+    setTimeout(cb, delay) {
+      const id = setTimeout(() => {
+        this.timeouts.delete(id);
+        cb();
+      }, delay);
+      this.timeouts.add(id);
+      return id;
+    },
+    
+    clearTimeout(id) {
+      if (id) {
+        clearTimeout(id);
+        this.timeouts.delete(id);
+      }
+    },
+    
+    addEventListener(element, type, listener, options) {
+      if (!element) return;
+      element.addEventListener(type, listener, options);
+      this.listeners.push({ element, type, listener, options });
+    },
+    
+    destroy() {
+      console.log('⚡ central lifecycle: purging active registry resources...');
+      
+      // Clear RAF loops
+      for (const id of this.rafIds) {
+        cancelAnimationFrame(id);
+      }
+      this.rafIds.clear();
+      
+      // Clear intervals
+      for (const id of this.intervals) {
+        clearInterval(id);
+      }
+      this.intervals.clear();
+      
+      // Clear timeouts
+      for (const id of this.timeouts) {
+        clearTimeout(id);
+      }
+      this.timeouts.clear();
+      
+      // Remove event listeners
+      this.listeners.forEach(({ element, type, listener, options }) => {
+        if (element) {
+          element.removeEventListener(type, listener, options);
+        }
+      });
+      this.listeners = [];
+      
+      // Clean up Socket.IO listeners specifically
+      if (patientDashboardSocket) {
+        patientDashboardSocket.off('vitals-update');
+        patientDashboardSocket.off('appointment-update');
+      }
+      
+      this.isInitialized = false;
     }
-  });
+  };
 
-  function printHealthCard() {
-    const cardHtml = document.getElementById('healthCardToPrint').outerHTML;
-    const printWindow = window.open('', '_blank');
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Print Health Card - HMS Premium</title>
-          <script src="https://cdn.tailwindcss.com"><\/script>
-          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-          <style>
-            @media print {
-              body {
-                background: white;
-                color: black;
-                margin: 0;
-                padding: 0;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                height: 100vh;
-              }
-              #healthCardToPrint {
-                border: 2px solid #e2e8f0 !important;
-                background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%) !important;
-                color: white !important;
-                box-shadow: none !important;
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-                width: 450px !important;
-                height: 280px !important;
-              }
-              .no-print {
-                display: none;
-              }
-            }
-            body {
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: center;
-              min-height: 100vh;
-              background-color: #f8fafc;
-            }
-          </style>
-        </head>
-        <body onload="window.print(); window.close();">
-          <div class="mb-6 text-center no-print">
-            <h1 class="text-xl font-bold text-gray-800">Print Preview</h1>
-            <p class="text-sm text-gray-500 mt-1">If the print dialog does not open automatically, press Ctrl+P</p>
-          </div>
-          \${cardHtml}
-        </body>
-      </html>
-    `);
-    printWindow.document.close();
+  // --- High-DPI & Retina Sharp Scaling Optimizer ---
+  function scaleCanvas(canvas, ctx, width, height) {
+    if (!canvas || !ctx) return;
+    const dpr = window.devicePixelRatio || 1;
+    const maxDpr = HMSLifecycle.isLowEndDevice ? 1 : 2;
+    const activeDpr = Math.min(dpr, maxDpr);
+    
+    canvas.width = width * activeDpr;
+    canvas.height = height * activeDpr;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    
+    ctx.scale(activeDpr, activeDpr);
   }
 
-  const socket = window.hmsSocket ? window.hmsSocket() : null;
-  if (socket) {
-    socket.on('vitals-update', (data) => {
+  // --- Safe Static Fallback for low-end or disabled Canvas contexts ---
+  function drawFallbackStatic(canvasId, text) {
+    const canv = document.getElementById(canvasId);
+    if (!canv) return;
+    const context = canv.getContext('2d');
+    if (!context) {
+      canv.parentElement.innerHTML = `<div class="font-mono text-[10px] text-gray-500 flex items-center justify-center h-full w-full border border-dashed border-gray-700 p-4 text-center uppercase">${text}</div>`;
+      return;
+    }
+    context.fillStyle = '#020617';
+    context.fillRect(0, 0, canv.width, canv.height);
+    context.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    context.font = '10px monospace';
+    context.textAlign = 'center';
+    context.fillText(text, canv.width / 2, canv.height / 2);
+  }
+
+  // --- Dynamic Toast Rate Limiter / Anti-Spam Governor ---
+  let lastToastTime = 0;
+  const TOAST_THROTTLE_LIMIT = 2000;
+  function throttleShowToast(title, message, type) {
+    const now = Date.now();
+    if (now - lastToastTime < TOAST_THROTTLE_LIMIT) return;
+    lastToastTime = now;
+    if (typeof window.hmsShowToast === 'function') {
+      window.hmsShowToast(title, message, type);
+    }
+  }
+
+  // Generate QR Code dynamically from real patient data
+  function initQrCode() {
+    const qrcodeContainer = document.getElementById('qrcodeContainer');
+    if (qrcodeContainer) {
+      qrcodeContainer.innerHTML = ''; // prevent duplicate appends
+      if (typeof QRCode !== 'undefined') {
+        new QRCode(qrcodeContainer, {
+          text: "HMS_PATIENT_<%= user.id %>",
+          width: 70,
+          height: 70,
+          colorDark : "#0f172a",
+          colorLight : "#ffffff",
+          correctLevel : QRCode.CorrectLevel.H
+        });
+      } else {
+        console.warn("QRCode library not loaded yet or offline. Generating fallback text.");
+        qrcodeContainer.innerHTML = `<div class="text-[9px] text-gray-500 font-mono flex items-center justify-center h-full w-full border border-dashed border-gray-300 p-1 text-center">QR CODE STANDBY</div>`;
+      }
+    }
+  }
+
+  function printHealthCard() {
+    // Add print class to body to isolate printing
+    document.body.classList.add('hms-printing-active');
+    
+    // Print original card element to avoid browser canvas-cloning bugs (preserving QR code)
+    window.print();
+    
+    // Clean up
+    setTimeout(() => {
+      document.body.classList.remove('hms-printing-active');
+    }, 500);
+  }
+
+  // --- Neural X-Ray & MRI HUD Scanner Logic ---
+  let activeScanMode = 'xray';
+  let isScanning = false;
+  let scanProgress = 0;
+  let animationId = null;
+  let rotationAngle = 0;
+  let ecgIndex = 0;
+
+  let canvas = null;
+  let ctx = null;
+
+  // --- Quantum Genomic DNA Sequence Auditor HUD Logic ---
+  let dnaCanvas = null;
+  let dnaCtx = null;
+  let dnaAngle = 0;
+  let isDecompiling = false;
+  let decompileProgress = 0;
+  let activeDnaProfile = 'longevity';
+  let dnaSequenceInterval = null;
+  let dnaAnimationId = null;
+  const nucleotidePairs = ['A-T', 'T-A', 'G-C', 'C-G'];
+
+  // --- Epigenetic Chrono-Nutrition Optimizer HUD Logic ---
+  let nutriCanvas = null;
+  let nutriCtx = null;
+  let nutriAnimationId = null;
+  let nutriAngle = 0;
+  let isNutriScanning = false;
+  let nutriProgress = 0;
+  let activeNutriPeriod = 'fasting';
+  let lastNutriFrameTime = 0;
+
+  function initDnaCanvas() {
+    dnaCanvas = document.getElementById('dnaCanvas');
+    if (!dnaCanvas) return;
+    dnaCtx = dnaCanvas.getContext('2d');
+    const parent = dnaCanvas.parentElement;
+    const w = parent.clientWidth || 300;
+    const h = 220;
+    if (w > 0 && h > 0) {
+      scaleCanvas(dnaCanvas, dnaCtx, w, h);
+    }
+  }
+
+  function safeInitDnaCanvas() {
+    try {
+      initDnaCanvas();
+    } catch (e) {
+      console.warn("DNA Canvas failed to mount:", e.message);
+      drawFallbackStatic('dnaCanvas', 'DNA HELIX MAP ACTIVE (SOFTWARE GOVERNOR)');
+    }
+  }
+
+  let lastDnaFrameTime = 0;
+  function renderDnaLoop(timestamp) {
+    if (!dnaCtx || !dnaCanvas) return;
+    
+    // Performance Frame Throttling Check
+    const elapsed = timestamp - lastDnaFrameTime;
+    const frameInterval = 1000 / HMSLifecycle.fpsLimit;
+    if (lastDnaFrameTime && elapsed < frameInterval) {
+      dnaAnimationId = HMSLifecycle.requestAnimationFrame(renderDnaLoop);
+      return;
+    }
+    lastDnaFrameTime = timestamp - (elapsed % frameInterval);
+    
+    dnaCtx.clearRect(0, 0, dnaCanvas.width, dnaCanvas.height);
+    
+    // Tech background grid lines
+    dnaCtx.strokeStyle = 'rgba(6, 182, 212, 0.05)';
+    dnaCtx.lineWidth = 1;
+    for(let i=0; i<dnaCanvas.width; i+=15) {
+      dnaCtx.beginPath(); dnaCtx.moveTo(i, 0); dnaCtx.lineTo(i, dnaCanvas.height); dnaCtx.stroke();
+    }
+    for(let j=0; j<dnaCanvas.height; j+=15) {
+      dnaCtx.beginPath(); dnaCtx.moveTo(0, j); dnaCtx.lineTo(dnaCanvas.width, j); dnaCtx.stroke();
+    }
+    
+    // Rotate DNA speed
+    const baseSpeed = 0.015;
+    const boostSpeed = isDecompiling ? 0.08 : 0;
+    dnaAngle += (baseSpeed + boostSpeed);
+    
+    const centerX = dnaCanvas.width / 2;
+    const radius = 50;
+    const spacing = 14;
+    const pointsCount = Math.floor((dnaCanvas.height - 40) / spacing);
+    
+    // Draw the helix rungs (horizontal connections) first so nodes render on top
+    for (let i = 0; i < pointsCount; i++) {
+      const y = 20 + i * spacing;
+      const angle = i * 0.4 + dnaAngle;
+      
+      const cosVal = Math.cos(angle);
+      const x1 = centerX + cosVal * radius;
+      const x2 = centerX - cosVal * radius;
+      
+      // Determine colors based on active profile and status
+      let basePairColor = 'rgba(6, 182, 212, 0.2)';
+      if (isDecompiling) {
+        basePairColor = `rgba(6, 182, 212, ${0.4 + Math.sin(decompileProgress * Math.PI) * 0.4})`;
+      } else if (activeDnaProfile === 'cognitive') {
+        basePairColor = 'rgba(168, 85, 247, 0.2)';
+      } else if (activeDnaProfile === 'cardio') {
+        basePairColor = 'rgba(244, 63, 94, 0.2)';
+      } else if (activeDnaProfile === 'metabolic') {
+        basePairColor = 'rgba(234, 179, 8, 0.2)';
+      }
+      
+      // Draw rung line
+      dnaCtx.strokeStyle = basePairColor;
+      dnaCtx.lineWidth = 2;
+      dnaCtx.beginPath();
+      dnaCtx.moveTo(x1, y);
+      dnaCtx.lineTo(x2, y);
+      dnaCtx.stroke();
+    }
+    
+    // Draw the backbone nodes (nucleotides)
+    for (let i = 0; i < pointsCount; i++) {
+      const y = 20 + i * spacing;
+      const angle = i * 0.4 + dnaAngle;
+      
+      const cosVal = Math.cos(angle);
+      const sinVal = Math.sin(angle); // depth representation: -1 is background, 1 is foreground
+      
+      const x1 = centerX + cosVal * radius;
+      const x2 = centerX - cosVal * radius;
+      
+      // Scale node radius and opacity for realistic 3D depth effect
+      const depthScale1 = (sinVal + 1) / 2; // ranges from 0 to 1
+      const depthScale2 = (-sinVal + 1) / 2; // opposite phase
+      
+      const r1 = 4.5 + depthScale1 * 4;
+      const r2 = 4.5 + depthScale2 * 4;
+      
+      const op1 = 0.25 + depthScale1 * 0.75;
+      const op2 = 0.25 + depthScale2 * 0.75;
+      
+      // Node 1 & 2 Colors
+      let c1 = `rgba(6, 182, 212, ${op1})`;       // Cyan (Adenine / Thymine)
+      let c2 = `rgba(99, 102, 241, ${op2})`;      // Indigo (Guanine / Cytosine)
+      
+      if (activeDnaProfile === 'cognitive') {
+        c1 = `rgba(168, 85, 247, ${op1})`;        // Purple
+        c2 = `rgba(236, 72, 153, ${op2})`;        // Pink
+      } else if (activeDnaProfile === 'cardio') {
+        c1 = `rgba(244, 63, 94, ${op1})`;         // Rose
+        c2 = `rgba(99, 102, 241, ${op2})`;        // Indigo
+      } else if (activeDnaProfile === 'metabolic') {
+        c1 = `rgba(234, 179, 8, ${op1})`;         // Amber
+        c2 = `rgba(16, 185, 129, ${op2})`;        // Emerald
+      }
+      
+      // Draw Node 1
+      dnaCtx.fillStyle = c1;
+      dnaCtx.shadowBlur = isDecompiling ? 12 : 3;
+      dnaCtx.shadowColor = c1;
+      dnaCtx.beginPath();
+      dnaCtx.arc(x1, y, r1, 0, Math.PI * 2);
+      dnaCtx.fill();
+      
+      // Draw Node 2
+      dnaCtx.fillStyle = c2;
+      dnaCtx.shadowColor = c2;
+      dnaCtx.beginPath();
+      dnaCtx.arc(x2, y, r2, 0, Math.PI * 2);
+      dnaCtx.fill();
+      
+      dnaCtx.shadowBlur = 0; // Reset shadow
+    }
+    
+    // Decompiling diagnostics text rendering
+    if (isDecompiling) {
+      decompileProgress += 0.005;
+      if (decompileProgress >= 1.0) {
+        completeDnaDecompile();
+      }
+      
+      // Neon target sweeps and progress bars on canvas
+      dnaCtx.fillStyle = 'rgba(6, 182, 212, 0.9)';
+      dnaCtx.font = '8px monospace';
+      dnaCtx.textAlign = 'left';
+      dnaCtx.fillText(`DECOMPILING SEQUENCE: ${Math.floor(decompileProgress * 100)}%`, 15, 22);
+      dnaCtx.fillText(`VOLTAGE RATE: 4.88 eV`, 15, 34);
+      
+      // Glowing target box
+      dnaCtx.strokeStyle = 'rgba(6, 182, 212, 0.4)';
+      dnaCtx.strokeRect(10, 10, dnaCanvas.width - 20, dnaCanvas.height - 20);
+    } else {
+      dnaCtx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+      dnaCtx.font = '9px monospace';
+      dnaCtx.textAlign = 'center';
+      dnaCtx.fillText('GENOMIC TELEMETRY FEED ACTIVE', centerX, dnaCanvas.height - 10);
+    }
+    
+    dnaAnimationId = HMSLifecycle.requestAnimationFrame(renderDnaLoop);
+  }
+
+  function startDnaSequenceScroller() {
+    if (dnaSequenceInterval) {
+      clearInterval(dnaSequenceInterval);
+      HMSLifecycle.intervals.delete(dnaSequenceInterval);
+    }
+    
+    const seqContainer = document.getElementById('genePairSequence');
+    if (!seqContainer) return;
+    
+    const updateRate = isDecompiling ? 60 : 300;
+    
+    dnaSequenceInterval = HMSLifecycle.setInterval(() => {
+      let currentSeq = seqContainer.innerText.split(' • ');
+      if (currentSeq.length === 0 || currentSeq[0] === '') return;
+      currentSeq.shift();
+      const newPair = nucleotidePairs[Math.floor(Math.random() * nucleotidePairs.length)];
+      currentSeq.push(newPair);
+      seqContainer.innerText = currentSeq.join(' • ');
+    }, updateRate);
+  }
+
+  function selectGenomicProfile(profile) {
+    if (isDecompiling) return;
+    activeDnaProfile = profile;
+    
+    // Update button styling
+    const profiles = ['longevity', 'cognitive', 'cardio', 'metabolic'];
+    profiles.forEach(p => {
+      const btn = document.getElementById(`btnProfile${p.charAt(0).toUpperCase() + p.slice(1)}`);
+      if (btn) {
+        if (p === profile) {
+          btn.className = 'px-3 py-2 bg-cyan-600 text-white border border-cyan-400/30 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-1 hover:scale-105 cursor-pointer shadow-lg shadow-cyan-600/20';
+        } else {
+          btn.className = 'px-3 py-2 bg-white/5 text-gray-400 border border-white/10 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-1 hover:bg-white/10 hover:text-white hover:scale-105 cursor-pointer';
+        }
+      }
+    });
+
+    const statusBadge = document.getElementById('dnaStatusText');
+    const locusText = document.getElementById('dnaLocusText');
+    const resultText = document.getElementById('txtDnaAuditResult');
+
+    if (profile === 'longevity') {
+      statusBadge.innerText = 'GENE: LINKED (FOXO3/SIRT1)';
+      locusText.innerText = 'FOXO3 Chromosome 6 (rs2802292)';
+      resultText.innerHTML = 'Genomic sequence synced with active biomarkers. Ready to decompile and audit DNA double-helix structures.';
+    } else if (profile === 'cognitive') {
+      statusBadge.innerText = 'GENE: LINKED (BDNF/COMT)';
+      locusText.innerText = 'BDNF Chromosome 11 (rs6265)';
+      resultText.innerHTML = 'BDNF neuroplasticity indicators mapped. Ready to analyze synaptic core genome markers.';
+    } else if (profile === 'cardio') {
+      statusBadge.innerText = 'GENE: LINKED (NOS3/ACE)';
+      locusText.innerText = 'NOS3 Chromosome 7 (rs1799983)';
+      resultText.innerHTML = 'NOS3 endothelial pathway mapped. Ready to verify arterial elasticity gene variants.';
+    } else if (profile === 'metabolic') {
+      statusBadge.innerText = 'GENE: LINKED (PPARG/FTO)';
+      locusText.innerText = 'PPARG Chromosome 3 (rs1801282)';
+      resultText.innerHTML = 'PPARG energy metabolism indicators mapped. Ready to decompile metabolic lipid clearance genes.';
+    }
+  }
+
+  function triggerDnaDecompile() {
+    if (isDecompiling) return;
+    isDecompiling = true;
+    decompileProgress = 0;
+    
+    document.getElementById('dnaStatusText').innerText = 'GENE: DECOMPILING...';
+    document.getElementById('dnaStatusIndicator').className = 'w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping';
+    document.getElementById('dnaBtnText').innerText = 'AUDITING SEQUENCING CORE...';
+    document.getElementById('dnaIcon').className = 'fas fa-spinner animate-spin text-cyan-400';
+    document.getElementById('txtDnaSpeed').innerText = 'RAPID SEQUENCING SCAN (120 Hz)';
+    document.getElementById('txtDnaSpeed').className = 'text-rose-500 font-bold tracking-wider animate-pulse';
+    
+    startDnaSequenceScroller(); // Instantly speeds up scroller
+  }
+
+  function completeDnaDecompile() {
+    isDecompiling = false;
+    
+    document.getElementById('dnaStatusText').innerText = 'GENE: AUDIT SUCCESS';
+    document.getElementById('dnaStatusIndicator').className = 'w-1.5 h-1.5 rounded-full bg-emerald-400';
+    document.getElementById('dnaBtnText').innerText = 'RE-AUDIT SEQUENCING CORE';
+    document.getElementById('dnaIcon').className = 'fas fa-terminal';
+    document.getElementById('txtDnaSpeed').innerText = 'SYNCED (60 FPS)';
+    document.getElementById('txtDnaSpeed').className = 'text-cyan-400 font-bold tracking-wider';
+    
+    startDnaSequenceScroller(); // Slows back down
+    
+    const resultText = document.getElementById('txtDnaAuditResult');
+    if (activeDnaProfile === 'longevity') {
+      resultText.innerHTML = '<strong>LONGEVITY SEQUENCE OPTIMAL:</strong> FOXO3 G-Allele variant rs2802292 detected. Confers high cell repair efficiency, low systemic inflammation, and excellent somatic preservation.';
+    } else if (activeDnaProfile === 'cognitive') {
+      resultText.innerHTML = '<strong>NEUROLOGICAL PATHWAY RESILIENT:</strong> Val/Val genotype at rs6265 detected. Associated with optimal neuroplasticity, enhanced synaptic density, and outstanding cognitive executive function.';
+    } else if (activeDnaProfile === 'cardio') {
+      resultText.innerHTML = '<strong>CARDIOVASCULAR ELASTICITY HIGH:</strong> NOS3 wildtype allele detected. Associated with high endothelial nitric oxide production, ideal arterial tone, and outstanding oxygen kinetics.';
+    } else if (activeDnaProfile === 'metabolic') {
+      resultText.innerHTML = '<strong>METABOLIC HOMEOSTASIS POWERED:</strong> Pro12Ala mutation at PPARG detected. Enhanced insulin sensitivity and somatic lipid clearance rates, encouraging active thermogenesis.';
+    }
+    
+    if (typeof window.hmsShowToast === 'function') {
+      window.hmsShowToast('Genomic Audit', 'Genomic sequence decompiled and verified successfully!', 'success');
+    }
+  }
+
+  // --- Epigenetic Chrono-Nutrition Optimizer HUD Operations ---
+  function initNutriCanvas() {
+    nutriCanvas = document.getElementById('nutriCanvas');
+    if (!nutriCanvas) return;
+    nutriCtx = nutriCanvas.getContext('2d');
+    if (!nutriCtx) throw new Error("Could not acquire 2D nutrition context");
+    const parent = nutriCanvas.parentElement;
+    const w = parent.clientWidth || 300;
+    const h = 220;
+    if (w > 0 && h > 0) {
+      scaleCanvas(nutriCanvas, nutriCtx, w, h);
+    }
+  }
+
+  function safeInitNutriCanvas() {
+    try {
+      initNutriCanvas();
+    } catch (e) {
+      console.warn("Chrono Canvas failed to mount:", e.message);
+      drawFallbackStatic('nutriCanvas', 'CHRONO DIAL ONLINE (SOFTWARE MODE)');
+    }
+  }
+
+  function selectNutritionPeriod(period) {
+    if (isNutriScanning) return;
+    activeNutriPeriod = period;
+    
+    // Update button styling
+    const periods = ['fasting', 'breakfast', 'noon', 'evening'];
+    periods.forEach(p => {
+      const btn = document.getElementById(`btnNutri${p.charAt(0).toUpperCase() + p.slice(1)}`);
+      if (btn) {
+        if (p === period) {
+          btn.className = 'px-3 py-2 bg-amber-600 text-white border border-amber-400/30 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-1 hover:scale-105 cursor-pointer shadow-lg shadow-amber-600/20';
+        } else {
+          btn.className = 'px-3 py-2 bg-white/5 text-gray-400 border border-white/10 rounded-xl text-[10px] font-black transition-all flex items-center justify-center gap-1 hover:bg-white/10 hover:text-white hover:scale-105 cursor-pointer';
+        }
+      }
+    });
+
+    const statusBadge = document.getElementById('nutriStatusText');
+    const geneText = document.getElementById('nutriGeneTarget');
+    const somaticText = document.getElementById('nutriSomaticState');
+    const syncText = document.getElementById('nutriCircadianSync');
+    const metabolicText = document.getElementById('nutriMetabolicState');
+    const resultText = document.getElementById('txtNutriAuditResult');
+    const alignmentText = document.getElementById('txtNutriAlignment');
+
+    if (period === 'fasting') {
+      statusBadge.innerText = 'CHRONO: ALIGNED';
+      alignmentText.innerText = 'CELLULAR AUTO-REPAIR INDUCED';
+      geneText.innerText = 'SIRT1 / AMPK Active';
+      somaticText.innerText = 'Autophagy Stage II';
+      somaticText.className = 'text-emerald-400 font-bold';
+      syncText.innerText = '96.8% (OPTIMAL)';
+      metabolicText.innerText = 'Ketogenesis Triggered';
+      metabolicText.className = 'text-emerald-400 font-bold';
+      resultText.innerHTML = 'Circadian window aligned. System has entered the dark repair cycle, activating AMPK epigenetic longevity sequences and accelerating mitochondrial autophagy structures.';
+    } else if (period === 'breakfast') {
+      statusBadge.innerText = 'CHRONO: METABOLIC RISE';
+      alignmentText.innerText = 'CORTISOL SENSITIVITY OPTIMAL';
+      geneText.innerText = 'CLOCK / BMAL1 Active';
+      somaticText.innerText = 'Glycogen Uptake Active';
+      somaticText.className = 'text-amber-400 font-bold';
+      syncText.innerText = '91.2% (SYNCHRONIZED)';
+      metabolicText.innerText = 'Insulin Prep Mode';
+      metabolicText.className = 'text-amber-400 font-bold';
+      resultText.innerHTML = 'High morning cortisol rise detected. Recommend high-polyphenol/low-glycemic fueling to stabilize mitochondrial bioenergetics and prevent glucose oscillation.';
+    } else if (period === 'noon') {
+      statusBadge.innerText = 'CHRONO: INSULIN PEAK';
+      alignmentText.innerText = 'METABOLIC VELOCITY MAXIMUM';
+      geneText.innerText = 'PPARA / GLUT4 Synced';
+      somaticText.innerText = 'Thermic Phase Peak';
+      somaticText.className = 'text-amber-400 font-bold';
+      syncText.innerText = '94.5% (STABLE)';
+      metabolicText.innerText = 'Glucose Clearing Active';
+      metabolicText.className = 'text-emerald-400 font-bold';
+      resultText.innerHTML = 'Peak insulin sensitivity window active. Ideal somatic period for complex carbohydrate distribution and lipid integration without hepatic triglyceride strain.';
+    } else if (period === 'evening') {
+      statusBadge.innerText = 'CHRONO: REST MODE';
+      alignmentText.innerText = 'MELATONIN TRANSITION TRIGGERS';
+      geneText.innerText = 'PER2 / CRY1 Active';
+      somaticText.innerText = 'Mitochondrial Sleep Prep';
+      somaticText.className = 'text-indigo-400 font-bold';
+      syncText.innerText = '98.2% (PERFECT)';
+      metabolicText.innerText = 'Autophagy Phase Prep';
+      metabolicText.className = 'text-indigo-400 font-bold';
+      resultText.innerHTML = 'Endogenous melatonin synthesis initiated. Restrict all nutritional intake within this circadian window to avoid shifting peripheral metabolic clocks.';
+    }
+  }
+
+  function triggerNutriScan() {
+    if (isNutriScanning) return;
+    isNutriScanning = true;
+    nutriProgress = 0;
+    
+    document.getElementById('nutriStatusText').innerText = 'CHRONO: ALIGNING...';
+    document.getElementById('nutriStatusIndicator').className = 'w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping';
+    document.getElementById('nutriBtnText').innerText = 'CALIBRATING CIRCADIAN CORE...';
+    document.getElementById('nutriIcon').className = 'fas fa-sync-alt animate-spin text-amber-400';
+  }
+
+  function completeNutriScan() {
+    isNutriScanning = false;
+    
+    document.getElementById('nutriStatusText').innerText = 'CHRONO: ALIGNED';
+    document.getElementById('nutriStatusIndicator').className = 'w-1.5 h-1.5 rounded-full bg-amber-400';
+    document.getElementById('nutriBtnText').innerText = 'Align Epigenetic Chrono-Cycle';
+    document.getElementById('nutriIcon').className = 'fas fa-sync-alt';
+    
+    // Refresh stats for active period
+    selectNutritionPeriod(activeNutriPeriod);
+    
+    throttleShowToast('Circadian Alignment', 'Epigenetic Chrono-Cycle aligned and synchronized successfully!', 'success');
+  }
+
+  function renderNutriLoop(timestamp) {
+    if (!nutriCtx || !nutriCanvas) return;
+    
+    // Performance Frame Throttling Check
+    const elapsed = timestamp - lastNutriFrameTime;
+    const frameInterval = 1000 / HMSLifecycle.fpsLimit;
+    if (lastNutriFrameTime && elapsed < frameInterval) {
+      nutriAnimationId = HMSLifecycle.requestAnimationFrame(renderNutriLoop);
+      return;
+    }
+    lastNutriFrameTime = timestamp - (elapsed % frameInterval);
+    
+    nutriCtx.clearRect(0, 0, nutriCanvas.width, nutriCanvas.height);
+    
+    // Tech background grid lines in amber/orange
+    nutriCtx.strokeStyle = 'rgba(245, 158, 11, 0.04)';
+    nutriCtx.lineWidth = 1;
+    for(let i=0; i<nutriCanvas.width; i+=15) {
+      nutriCtx.beginPath(); nutriCtx.moveTo(i, 0); nutriCtx.lineTo(i, nutriCanvas.height); nutriCtx.stroke();
+    }
+    for(let j=0; j<nutriCanvas.height; j+=15) {
+      nutriCtx.beginPath(); nutriCtx.moveTo(0, j); nutriCtx.lineTo(nutriCanvas.width, j); nutriCtx.stroke();
+    }
+    
+    const centerX = nutriCanvas.width / 2;
+    const centerY = nutriCanvas.height / 2;
+    
+    // Rotate speed
+    const baseSpeed = 0.005;
+    const boostSpeed = isNutriScanning ? 0.05 : 0;
+    nutriAngle += (baseSpeed + boostSpeed);
+    
+    // Draw concentric rings
+    // Ring 1 (Inner)
+    nutriCtx.strokeStyle = 'rgba(245, 158, 11, 0.1)';
+    nutriCtx.lineWidth = 1;
+    nutriCtx.beginPath();
+    nutriCtx.arc(centerX, centerY, 35, 0, Math.PI * 2);
+    nutriCtx.stroke();
+    
+    // Ring 2 (Middle) - dashed
+    nutriCtx.strokeStyle = 'rgba(249, 115, 22, 0.15)';
+    nutriCtx.lineWidth = 1.5;
+    nutriCtx.setLineDash([4, 8]);
+    nutriCtx.beginPath();
+    nutriCtx.arc(centerX, centerY, 55, 0, Math.PI * 2);
+    nutriCtx.stroke();
+    nutriCtx.setLineDash([]);
+    
+    // Ring 3 (Outer) - dotted with ticks
+    nutriCtx.strokeStyle = 'rgba(245, 158, 11, 0.25)';
+    nutriCtx.lineWidth = 1;
+    nutriCtx.beginPath();
+    nutriCtx.arc(centerX, centerY, 75, 0, Math.PI * 2);
+    nutriCtx.stroke();
+    
+    // Draw period anchor nodes on the outer ring
+    const anchorPoints = [
+      { angle: -Math.PI/2, label: 'FAST', active: activeNutriPeriod === 'fasting', color: 'rgba(245, 158, 11, ' },
+      { angle: 0, label: 'RISE', active: activeNutriPeriod === 'breakfast', color: 'rgba(251, 191, 36, ' },
+      { angle: Math.PI/2, label: 'PEAK', active: activeNutriPeriod === 'noon', color: 'rgba(249, 115, 22, ' },
+      { angle: Math.PI, label: 'REST', active: activeNutriPeriod === 'evening', color: 'rgba(217, 119, 6, ' }
+    ];
+    
+    anchorPoints.forEach(pt => {
+      const px = centerX + Math.cos(pt.angle) * 75;
+      const py = centerY + Math.sin(pt.angle) * 75;
+      
+      // Node circle
+      nutriCtx.fillStyle = pt.active ? pt.color + '0.9)' : pt.color + '0.3)';
+      nutriCtx.beginPath();
+      nutriCtx.arc(px, py, pt.active ? 6 : 4, 0, Math.PI * 2);
+      nutriCtx.fill();
+      
+      if (pt.active) {
+        nutriCtx.shadowBlur = 8;
+        nutriCtx.shadowColor = pt.color + '0.8)';
+        nutriCtx.strokeStyle = '#fff';
+        nutriCtx.lineWidth = 1.5;
+        nutriCtx.beginPath();
+        nutriCtx.arc(px, py, 6, 0, Math.PI * 2);
+        nutriCtx.stroke();
+        nutriCtx.shadowBlur = 0; // reset
+      }
+      
+      // Label text
+      nutriCtx.fillStyle = pt.active ? '#fff' : 'rgba(255, 255, 255, 0.4)';
+      nutriCtx.font = pt.active ? 'bold 8px monospace' : '7px monospace';
+      nutriCtx.textAlign = 'center';
+      nutriCtx.fillText(pt.label, px + (Math.cos(pt.angle) * 15), py + (Math.sin(pt.angle) * 12) + 3);
+    });
+    
+    // Draw the main sweeping clock hand (representing time/chrono progression)
+    const handLength = 75;
+    const hx = centerX + Math.cos(nutriAngle) * handLength;
+    const hy = centerY + Math.sin(nutriAngle) * handLength;
+    
+    nutriCtx.strokeStyle = 'rgba(245, 158, 11, 0.7)';
+    nutriCtx.lineWidth = 2;
+    nutriCtx.beginPath();
+    nutriCtx.moveTo(centerX, centerY);
+    nutriCtx.lineTo(hx, hy);
+    nutriCtx.stroke();
+    
+    // Sweep hand tip circle
+    nutriCtx.fillStyle = '#fff';
+    nutriCtx.beginPath();
+    nutriCtx.arc(hx, hy, 3.5, 0, Math.PI * 2);
+    nutriCtx.fill();
+    
+    // Center pin
+    nutriCtx.fillStyle = 'rgba(245, 158, 11, 0.9)';
+    nutriCtx.beginPath();
+    nutriCtx.arc(centerX, centerY, 5, 0, Math.PI * 2);
+    nutriCtx.fill();
+    
+    // Calibration scan overlay
+    if (isNutriScanning) {
+      nutriProgress += 0.006;
+      if (nutriProgress >= 1.0) {
+        completeNutriScan();
+      }
+      
+      // Draw progress arc
+      nutriCtx.strokeStyle = 'rgba(245, 158, 11, 0.5)';
+      nutriCtx.lineWidth = 6;
+      nutriCtx.beginPath();
+      nutriCtx.arc(centerX, centerY, 65, -Math.PI/2, -Math.PI/2 + (Math.PI * 2 * nutriProgress));
+      nutriCtx.stroke();
+      
+      // Floating data readouts
+      nutriCtx.fillStyle = 'rgba(245, 158, 11, 0.95)';
+      nutriCtx.font = '8px monospace';
+      nutriCtx.textAlign = 'center';
+      nutriCtx.fillText(`SYNCHRONIZING DIAL: ${Math.floor(nutriProgress * 100)}%`, centerX, centerY + 95);
+      nutriCtx.fillText(`SIRT1 EXPRESSION RATE: ${(1.2 + nutriProgress * 0.8).toFixed(2)}x`, centerX, centerY - 95);
+    } else {
+      nutriCtx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+      nutriCtx.font = '8px monospace';
+      nutriCtx.textAlign = 'center';
+      nutriCtx.fillText('EPIGENETIC CHRONO-FEED ACTIVE', centerX, centerY + 95);
+    }
+    
+    nutriAnimationId = HMSLifecycle.requestAnimationFrame(renderNutriLoop);
+  }
+
+  function initCanvas() {
+    canvas = document.getElementById('hudScannerCanvas');
+    if (!canvas) return;
+    ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error("Could not acquire 2D scanner context");
+    const parent = canvas.parentElement;
+    const w = parent.clientWidth || 300;
+    const h = 220;
+    if (w > 0 && h > 0) {
+      scaleCanvas(canvas, ctx, w, h);
+    }
+  }
+
+  function safeInitCanvas() {
+    try {
+      initCanvas();
+    } catch (e) {
+      console.warn("Scanner Canvas failed to mount:", e.message);
+      drawFallbackStatic('hudScannerCanvas', 'SCANNER ACTIVE (SOFTWARE GOVERNOR)');
+    }
+  }
+
+  function setScanMode(mode) {
+    if (isScanning) return;
+    activeScanMode = mode;
+    const btnXray = document.getElementById('btnModeXray');
+    const btnMri = document.getElementById('btnModeMri');
+    if (mode === 'xray') {
+      btnXray.className = 'px-3 py-2.5 bg-indigo-600 text-white border border-indigo-400/30 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 hover:scale-105 cursor-pointer shadow-lg shadow-indigo-600/20';
+      btnMri.className = 'px-3 py-2.5 bg-white/5 text-gray-400 border border-white/10 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 hover:bg-white/10 hover:text-white hover:scale-105 cursor-pointer';
+      document.getElementById('txtAnomalyIndex').innerHTML = '0.01% (NOMINAL)';
+      document.getElementById('txtAnomalyIndex').className = 'text-emerald-400 font-bold tracking-wider';
+      document.getElementById('txtScanResult').innerHTML = 'Switched to Chest X-Ray mode. Ready to scan pulmonic regions.';
+    } else {
+      btnMri.className = 'px-3 py-2.5 bg-indigo-600 text-white border border-indigo-400/30 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 hover:scale-105 cursor-pointer shadow-lg shadow-indigo-600/20';
+      btnXray.className = 'px-3 py-2.5 bg-white/5 text-gray-400 border border-white/10 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 hover:bg-white/10 hover:text-white hover:scale-105 cursor-pointer';
+      document.getElementById('txtAnomalyIndex').innerHTML = '0.00% (STANDBY)';
+      document.getElementById('txtAnomalyIndex').className = 'text-gray-400 font-bold tracking-wider';
+      document.getElementById('txtScanResult').innerHTML = 'Switched to Brain MRI mode. Ready to scan cerebral lobes.';
+    }
+  }
+
+  let lastScannerFrameTime = 0;
+  function renderScannerLoop(timestamp) {
+    if (!ctx || !canvas) return;
+    
+    // Performance Frame Throttling Check
+    const elapsed = timestamp - lastScannerFrameTime;
+    const frameInterval = 1000 / HMSLifecycle.fpsLimit;
+    if (lastScannerFrameTime && elapsed < frameInterval) {
+      animationId = HMSLifecycle.requestAnimationFrame(renderScannerLoop);
+      return;
+    }
+    lastScannerFrameTime = timestamp - (elapsed % frameInterval);
+
+    // Frame logging rate monitor
+    HMSLifecycle.performanceMetrics.renderedFrames++;
+    const metricsNow = performance.now();
+    if (metricsNow - HMSLifecycle.performanceMetrics.lastMetricsTime >= 15000) {
+      const seconds = (metricsNow - HMSLifecycle.performanceMetrics.lastMetricsTime) / 1000;
+      const computedFps = HMSLifecycle.performanceMetrics.renderedFrames / seconds;
+      console.log(`📊 HMS Diagnostic HUD: ~${computedFps.toFixed(1)} FPS | Active RAF handles: ${HMSLifecycle.rafIds.size} | Unload Registry handles: ${HMSLifecycle.intervals.size}`);
+      HMSLifecycle.performanceMetrics.renderedFrames = 0;
+      HMSLifecycle.performanceMetrics.lastMetricsTime = metricsNow;
+    }
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // Increment animation states
+    rotationAngle += isScanning ? 0.04 : 0.008;
+    ecgIndex = (ecgIndex + 1.5) % 360;
+    
+    // Draw background tech grid
+    ctx.strokeStyle = 'rgba(99, 102, 241, 0.06)';
+    ctx.lineWidth = 1;
+    for(let i=0; i<canvas.width; i+=15) {
+      ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke();
+    }
+    for(let j=0; j<canvas.height; j+=15) {
+      ctx.beginPath(); ctx.moveTo(0, j); ctx.lineTo(canvas.width, j); ctx.stroke();
+    }
+    
+    // Draw concentric rotating diagnostic rings in center
+    ctx.save();
+    ctx.translate(canvas.width/2, canvas.height/2 - 10);
+    ctx.rotate(rotationAngle);
+    
+    // Outer dashed ring
+    ctx.strokeStyle = isScanning ? 'rgba(239, 68, 68, 0.4)' : 'rgba(99, 102, 241, 0.25)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 10]);
+    ctx.beginPath();
+    ctx.arc(0, 0, 60, 0, Math.PI * 2);
+    ctx.stroke();
+    
+    // Inner dashed ring rotating opposite way
+    ctx.rotate(-rotationAngle * 2.5);
+    ctx.strokeStyle = isScanning ? 'rgba(239, 68, 68, 0.6)' : 'rgba(14, 165, 233, 0.3)';
+    ctx.setLineDash([8, 6]);
+    ctx.beginPath();
+    ctx.arc(0, 0, 45, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+    
+    ctx.setLineDash([]); // Reset dash
+    
+    // Draw crosshair center
+    ctx.strokeStyle = isScanning ? 'rgba(239, 68, 68, 0.3)' : 'rgba(14, 165, 233, 0.2)';
+    ctx.beginPath();
+    ctx.moveTo(canvas.width/2 - 15, canvas.height/2 - 10);
+    ctx.lineTo(canvas.width/2 + 15, canvas.height/2 - 10);
+    ctx.moveTo(canvas.width/2, canvas.height/2 - 25);
+    ctx.lineTo(canvas.width/2, canvas.height/2 + 5);
+    ctx.stroke();
+    
+    // Draw organ structure (always present, but low opacity in standby, glowing/active in scanning)
+    ctx.save();
+    if (activeScanMode === 'xray') {
+      ctx.strokeStyle = isScanning ? 'rgba(14, 165, 233, 0.75)' : 'rgba(14, 165, 233, 0.22)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      // Left Lung
+      ctx.ellipse(canvas.width/2 - 26, canvas.height/2 - 10, 16, 42, 0.08, 0, Math.PI*2);
+      // Right Lung
+      ctx.ellipse(canvas.width/2 + 26, canvas.height/2 - 10, 16, 42, -0.08, 0, Math.PI*2);
+      ctx.stroke();
+      
+      // Trachea
+      ctx.beginPath();
+      ctx.moveTo(canvas.width/2, canvas.height/2 - 55);
+      ctx.lineTo(canvas.width/2, canvas.height/2 - 20);
+      ctx.stroke();
+    } else {
+      ctx.strokeStyle = isScanning ? 'rgba(168, 85, 247, 0.75)' : 'rgba(168, 85, 247, 0.22)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      // Brain outer
+      ctx.arc(canvas.width/2, canvas.height/2 - 10, 36, 0, Math.PI*2);
+      ctx.stroke();
+      // Brain inner lobes
+      ctx.beginPath();
+      ctx.ellipse(canvas.width/2, canvas.height/2 - 7, 18, 26, 0, 0, Math.PI*2);
+      ctx.stroke();
+    }
+    ctx.restore();
+    
+    // Draw ECG crawling heartbeat line at the bottom
+    ctx.strokeStyle = isScanning ? 'rgba(239, 68, 68, 0.65)' : 'rgba(99, 102, 241, 0.35)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    for (let x = 0; x < canvas.width; x++) {
+      let phase = (x + ecgIndex) % 180;
+      let yOffset = 0;
+      if (phase > 40 && phase < 46) yOffset = -5; // P wave
+      else if (phase >= 46 && phase < 50) yOffset = 0;
+      else if (phase === 52) yOffset = -18; // R wave high spike
+      else if (phase === 55) yOffset = 10;  // S wave low spike
+      else if (phase > 57 && phase < 70) yOffset = -3; // T wave
+      
+      let y = canvas.height - 25 + yOffset;
+      if (x === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    
+    // Standby Text or Scanning UI
+    if (!isScanning) {
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.font = '9px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('NEURAL HUD DIAGNOSTIC READY', canvas.width/2, canvas.height/2 + 82);
+    } else {
+      // Progress Scanning mode active!
+      scanProgress += 0.008;
+      if (scanProgress >= 1.0) {
+        completeNeuralScan();
+      }
+      
+      let scanY = canvas.height * (scanProgress % 1.0);
+      
+      // Target lock box
+      if (scanProgress > 0.3 && scanProgress < 0.8) {
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.7)';
+        ctx.lineWidth = 1.5;
+        let targetX = canvas.width/2 + (activeScanMode === 'xray' ? 22 : 6);
+        let targetY = canvas.height/2 + (activeScanMode === 'xray' ? 4 : -20);
+        
+        // Animated corner targets
+        ctx.strokeRect(targetX - 10, targetY - 10, 20, 20);
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.9)';
+        ctx.font = '8px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('TARGET LOCKING', targetX, targetY - 14);
+      }
+      
+      // Floating data readouts
+      ctx.fillStyle = 'rgba(14, 165, 233, 0.95)';
+      ctx.font = '9px monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText(`NEURAL SCAN Y-COORD: ${Math.floor(scanY)}px`, 15, 22);
+      ctx.fillText(`ANOMALY SCAN: ${(scanProgress*100).toFixed(0)}%`, 15, 36);
+      
+      // Sweep Laser line
+      ctx.strokeStyle = 'rgba(14, 165, 233, 0.75)';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(0, scanY);
+      ctx.lineTo(canvas.width, scanY);
+      ctx.stroke();
+      
+      // Draw dynamic laser glow reflection
+      let gradient = ctx.createLinearGradient(0, scanY - 8, 0, scanY + 8);
+      gradient.addColorStop(0, 'rgba(14, 165, 233, 0)');
+      gradient.addColorStop(0.5, 'rgba(14, 165, 233, 0.15)');
+      gradient.addColorStop(1, 'rgba(14, 165, 233, 0)');
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, scanY - 8, canvas.width, 16);
+    }
+    
+    // Loop
+    animationId = HMSLifecycle.requestAnimationFrame(renderScannerLoop);
+  }
+
+  function triggerNeuralScan() {
+    if (isScanning) return;
+    isScanning = true;
+    scanProgress = 0;
+    document.getElementById('scanStatusText').innerText = 'HUD: ACTIVE SCANNING';
+    document.getElementById('scanStatusIndicator').className = 'w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping';
+    document.getElementById('scanBtnText').innerText = 'SCANNING IN PROGRESS...';
+    document.getElementById('scanIcon').className = 'fas fa-spinner animate-spin text-rose-400';
+    
+    const laser = document.getElementById('hudLaser');
+    if (laser) laser.classList.remove('hidden');
+  }
+
+  function completeNeuralScan() {
+    isScanning = false;
+    document.getElementById('scanStatusText').innerText = 'HUD: SCAN COMPLETED';
+    document.getElementById('scanStatusIndicator').className = 'w-1.5 h-1.5 rounded-full bg-emerald-400';
+    document.getElementById('scanBtnText').innerText = 'RE-SCAN NEURAL CORE';
+    document.getElementById('scanIcon').className = 'fas fa-satellite-dish';
+    
+    const laser = document.getElementById('hudLaser');
+    if (laser) laser.classList.add('hidden');
+
+    if (activeScanMode === 'xray') {
+      document.getElementById('txtAnomalyIndex').innerHTML = '0.02% (NOMINAL)';
+      document.getElementById('txtAnomalyIndex').className = 'text-emerald-400 font-bold tracking-wider';
+      document.getElementById('txtScanResult').innerHTML = '<strong>LUNG VENTILATION CONFIRMED:</strong> AI Model flags perfectly clear bronchial chambers with 99.8% structural aeration. No lesions or congestions found.';
+    } else {
+      document.getElementById('txtAnomalyIndex').innerHTML = '0.08% (STABLE - MILD)';
+      document.getElementById('txtAnomalyIndex').className = 'text-amber-400 font-bold tracking-wider';
+      document.getElementById('txtScanResult').innerHTML = '<strong>CEREBRAL BLOOD FLOW NOMINAL:</strong> Scans demonstrate symmetrical grey-white matter borders. Minor visual stress detected in the occipital cortex. Rest advised.';
+    }
+
+    throttleShowToast('Diagnostic Scan', 'Neural target analysis has resolved successfully!', 'success');
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    HMSLifecycle.init();
+    
+    initQrCode();
+    safeInitCanvas();
+    safeInitDnaCanvas();
+    safeInitNutriCanvas();
+    
+    // Start active rendering handles
+    if (ctx && canvas) {
+      animationId = HMSLifecycle.requestAnimationFrame(renderScannerLoop);
+    }
+    if (dnaCtx && dnaCanvas) {
+      dnaAnimationId = HMSLifecycle.requestAnimationFrame(renderDnaLoop);
+    }
+    if (nutriCtx && nutriCanvas) {
+      nutriAnimationId = HMSLifecycle.requestAnimationFrame(renderNutriLoop);
+    }
+    
+    startDnaSequenceScroller();
+    
+    // Centralized resize listener registered to registry
+    HMSLifecycle.addEventListener(window, 'resize', () => {
+      safeInitCanvas();
+      safeInitDnaCanvas();
+      safeInitNutriCanvas();
+    });
+    
+    // Page Visibility API support registered to registry
+    HMSLifecycle.addEventListener(document, 'visibilitychange', () => {
+      if (document.hidden) {
+        console.log('💤 tab hidden: freezing render loops and scrollers');
+        HMSLifecycle.cancelAnimationFrame(animationId);
+        HMSLifecycle.cancelAnimationFrame(dnaAnimationId);
+        HMSLifecycle.cancelAnimationFrame(nutriAnimationId);
+        animationId = null;
+        dnaAnimationId = null;
+        nutriAnimationId = null;
+        
+        if (dnaSequenceInterval) {
+          clearInterval(dnaSequenceInterval);
+          HMSLifecycle.intervals.delete(dnaSequenceInterval);
+          dnaSequenceInterval = null;
+        }
+      } else {
+        console.log('🌞 tab active: resuming render loops and scrollers');
+        if (ctx && canvas && !animationId) {
+          animationId = HMSLifecycle.requestAnimationFrame(renderScannerLoop);
+        }
+        if (dnaCtx && dnaCanvas && !dnaAnimationId) {
+          dnaAnimationId = HMSLifecycle.requestAnimationFrame(renderDnaLoop);
+        }
+        if (nutriCtx && nutriCanvas && !nutriAnimationId) {
+          nutriAnimationId = HMSLifecycle.requestAnimationFrame(renderNutriLoop);
+        }
+        startDnaSequenceScroller();
+      }
+    });
+
+    // Navigation and unmount cleanups registered to registry
+    HMSLifecycle.addEventListener(window, 'beforeunload', () => HMSLifecycle.destroy());
+    HMSLifecycle.addEventListener(window, 'pagehide', () => HMSLifecycle.destroy());
+  });
+
+  const patientDashboardSocket = window.hmsSocket ? window.hmsSocket() : null;
+  if (patientDashboardSocket) {
+    patientDashboardSocket.emit('join', { userId: '<%= user.id %>', role: 'patient' });
+    
+    patientDashboardSocket.on('vitals-update', (data) => {
       if (data.patientId === '<%= user.id %>') {
         const v = data.vitals;
         const hrEl = document.querySelector('.hms-stat-value');
@@ -347,12 +1764,8 @@
       }
     });
 
-    socket.on('appointment-update', (data) => {
-      if (typeof window.hmsShowToast === 'function') {
-        window.hmsShowToast('Update', `Your appointment is now ${data.status}`, 'success');
-      } else {
-        alert(`Your appointment is now ${data.status}`);
-      }
+    patientDashboardSocket.on('appointment-update', (data) => {
+      throttleShowToast('Update', `Your appointment is now ${data.status}`, 'success');
     });
   }
 

@@ -1758,3 +1758,256 @@ body {
 .hms-tag-remove:hover {
     opacity: 0.7;
 }
+
+/* ==========================================================================
+   HMS PREMIUM OVERHAUL ADDITIONS - ULTRA MODERN visual utilities
+   ========================================================================== */
+
+/* Active Sidebar Navigation Item Glow Effects */
+.hms-sidebar .hms-nav-link.active {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(139, 92, 246, 0.08)) !important;
+    border-left: 4px solid var(--primary) !important;
+    box-shadow: inset 0 0 12px rgba(99, 102, 241, 0.06), 0 4px 12px rgba(99, 102, 241, 0.12) !important;
+    color: #fff !important;
+    position: relative;
+}
+
+.hms-sidebar .hms-nav-link.active::after {
+    content: '';
+    position: absolute;
+    right: 16px;
+    width: 6px;
+    height: 6px;
+    background: var(--primary);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--primary), 0 0 20px var(--primary);
+    transition: all 0.3s ease;
+}
+
+.hms-sidebar.collapsed .hms-nav-link.active::after {
+    right: auto;
+    left: 50%;
+    bottom: 4px;
+    transform: translateX(-50%);
+}
+
+/* Premium Card Border Glowing Overlay on Hover */
+.hms-glass-premium {
+    position: relative;
+    overflow: hidden;
+}
+
+.hms-glass-premium::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 5;
+}
+
+.hms-glass-premium:hover::before {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    opacity: 0.9;
+}
+
+/* Highly Polished Loading Skeleton Pulse Animations */
+.hms-skeleton {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.04) 25%, rgba(255, 255, 255, 0.09) 50%, rgba(255, 255, 255, 0.04) 75%);
+    background-size: 200% 100%;
+    animation: hms-shimmer 1.6s infinite linear;
+    border-radius: 8px;
+    display: inline-block;
+}
+
+[data-theme="light"] .hms-skeleton {
+    background: linear-gradient(90deg, rgba(15, 23, 42, 0.04) 25%, rgba(15, 23, 42, 0.08) 50%, rgba(15, 23, 42, 0.04) 75%);
+    background-size: 200% 100%;
+}
+
+@keyframes hms-shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Premium Page Cinematic Entry Transitions */
+.hms-page-transition {
+    animation: hms-fade-in-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes hms-fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(16px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Collapsed Sidebar Layout support */
+.hms-sidebar {
+    background: rgba(15, 23, 42, 0.35);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme="light"] .hms-sidebar {
+    background: rgba(255, 255, 255, 0.7);
+    border-right: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.hms-sidebar.collapsed {
+    width: 80px !important;
+}
+
+.hms-sidebar.collapsed .hms-nav-link {
+    justify-content: center;
+    padding: 0.85rem;
+    gap: 0;
+}
+
+.hms-sidebar.collapsed .hms-nav-link span {
+    display: none !important;
+}
+
+.hms-sidebar.collapsed .sidebar-logo-text {
+    display: none !important;
+}
+
+.hms-sidebar.collapsed .sidebar-logo-block {
+    margin-bottom: 0.5rem !important;
+}
+
+/* Ultra Modern Notification Toast Enhancements */
+.hms-toast {
+    border-radius: var(--radius-xl) !important;
+    background: rgba(15, 23, 42, 0.7) !important;
+    backdrop-filter: blur(24px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(99, 102, 241, 0.05) !important;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+[data-theme="light"] .hms-toast {
+    background: rgba(255, 255, 255, 0.85) !important;
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    box-shadow: 0 10px 40px -10px rgba(31, 38, 135, 0.08) !important;
+}
+
+.hms-toast:hover {
+    transform: translateY(-2px) scale(1.01) !important;
+    border-color: rgba(99, 102, 241, 0.3) !important;
+    box-shadow: 0 15px 45px -5px rgba(0, 0, 0, 0.6), 0 0 25px rgba(99, 102, 241, 0.15) !important;
+}
+
+/* ==========================================================================
+   HMS NEXT-GEN SCI-FI GRAPHICS UTILITIES
+   ========================================================================== */
+
+/* Holographic Laser Sweeper Animation */
+.hud-laser-line {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, var(--secondary), var(--primary), var(--secondary), transparent);
+    box-shadow: 0 0 14px var(--primary), 0 0 24px var(--secondary);
+    animation: hud-laser-sweep 3s infinite ease-in-out;
+    pointer-events: none;
+    z-index: 10;
+}
+
+@keyframes hud-laser-sweep {
+    0% { top: 0%; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+}
+
+/* Holographic Matrix Alignment Grid */
+.hud-grid-overlay {
+    background-size: 20px 20px;
+    background-image: linear-gradient(rgba(99, 102, 241, 0.04) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(99, 102, 241, 0.04) 1px, transparent 1px);
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* Stylized Interactive Clickable Anatomy Organ Vectors */
+.organ-path {
+    fill: rgba(99, 102, 241, 0.15);
+    stroke: rgba(99, 102, 241, 0.45);
+    stroke-width: 1.5px;
+    cursor: pointer;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.organ-path:hover {
+    fill: rgba(14, 165, 233, 0.35);
+    stroke: var(--secondary);
+    filter: drop-shadow(0 0 10px var(--secondary));
+}
+
+.organ-path.active {
+    fill: rgba(139, 92, 246, 0.5);
+    stroke: var(--accent);
+    filter: drop-shadow(0 0 14px var(--accent));
+}
+
+/* Glowing Border Flash Warning Frame for Distressed Beds */
+.hud-alarm-active {
+    border-color: rgba(239, 68, 68, 0.65) !important;
+    animation: hud-border-flash-red 1.3s infinite ease-in-out;
+    box-shadow: 0 0 30px rgba(239, 68, 68, 0.25), inset 0 0 18px rgba(239, 68, 68, 0.12) !important;
+}
+
+@keyframes hud-border-flash-red {
+    0%, 100% { border-color: rgba(239, 68, 68, 0.3); }
+    50% { border-color: rgba(239, 68, 68, 0.9); }
+}
+
+/* Circular diagnostic telemetry scan lines */
+.hud-diagnostic-ring {
+    border: 2px dashed rgba(99, 102, 241, 0.25);
+    border-radius: 50%;
+    animation: hud-spin 12s linear infinite;
+}
+
+@keyframes hud-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Cyberpunk Holographic Shine Line Sweep */
+@keyframes cyber-shine {
+    0% { transform: skewX(-25deg) translateX(-150%); }
+    40%, 100% { transform: skewX(-25deg) translateX(250%); }
+}
+
+.hud-shine-sweep {
+    position: absolute;
+    inset: 0;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+    transform: skewX(-25deg) translateX(-150%);
+    animation: cyber-shine 5s infinite ease-in-out;
+    pointer-events: none;
+    z-index: 5;
+}
+
+
+

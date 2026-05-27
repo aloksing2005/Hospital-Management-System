@@ -31,38 +31,53 @@
 
 <script>
   let incomingCallData = null;
+  let ringtoneAudio = null;
 
-  // Initialize socket
-  const socket = window.hmsSocket ? window.hmsSocket() : null;
-  if (socket) {
-    socket.on('incoming-call', (data) => {
-      incomingCallData = data;
-      document.getElementById('callerName').textContent = `${data.callerName} is calling...`;
-      const modal = document.getElementById('incomingCallModal');
+  function playRingtone() {
+    try {
+      if (!ringtoneAudio) {
+        ringtoneAudio = new Audio('https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg');
+        ringtoneAudio.loop = true;
+      }
+      ringtoneAudio.play().catch(e => console.log('Audio play failed:', e));
+    } catch (err) {
+      console.warn('Ringtone playback error:', err);
+    }
+  }
+
+  function stopRingtone() {
+    try {
+      if (ringtoneAudio) {
+        ringtoneAudio.pause();
+        ringtoneAudio.currentTime = 0;
+      }
+    } catch (err) {
+      console.warn('Ringtone stop error:', err);
+    }
+  }
+
+  function showIncomingCall(data) {
+    incomingCallData = data;
+    const callerNameEl = document.getElementById('callerName');
+    if (callerNameEl) {
+      callerNameEl.textContent = `${data.callerName} is calling...`;
+    }
+    const modal = document.getElementById('incomingCallModal');
+    if (modal) {
       modal.classList.remove('hidden');
       modal.classList.add('flex');
-      
-      // Play ringtone
-      playRingtone();
-    });
-
-    socket.on('call-rejected', (data) => {
-      alert('Call was rejected by the other party');
-      window.location.href = '<%= user.role === "doctor" ? "/doctor/appointments" : "/patient/appointments" %>';
-    });
-
-    socket.on('call-ended', (data) => {
-      alert('Call ended');
-      window.location.href = '<%= user.role === "doctor" ? "/doctor/appointments" : "/patient/appointments" %>';
-    });
+    }
+    
     // Play ringtone
     playRingtone();
   }
 
   function hideIncomingCall() {
     const modal = document.getElementById('incomingCallModal');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
+    if (modal) {
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
     stopRingtone();
   }
 
@@ -83,23 +98,8 @@
     }
   }
 
-  let ringtoneAudio = null;
-  function playRingtone() {
-    if (!ringtoneAudio) {
-      ringtoneAudio = new Audio('https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg');
-      ringtoneAudio.loop = true;
-    }
-    ringtoneAudio.play().catch(e => console.log('Audio play failed:', e));
-  }
-
-  function stopRingtone() {
-    if (ringtoneAudio) {
-      ringtoneAudio.pause();
-      ringtoneAudio.currentTime = 0;
-    }
-  }
-
-  // Socket.IO listeners for incoming calls
+  // Initialize socket
+  const socket = window.hmsSocket ? window.hmsSocket() : null;
   if (socket) {
     socket.on('incoming-call', (data) => {
       showIncomingCall(data);

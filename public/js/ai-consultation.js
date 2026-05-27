@@ -117,6 +117,23 @@
   const fingerprintIcon = document.getElementById("fingerprintIcon");
   const fingerprintText = document.getElementById("fingerprintText");
 
+  function formatResponse(text) {
+    let html = escapeHtml(text);
+    // Parse bold text **bold**
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    // Parse single asterisks *bold* or _italic_
+    html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    // Parse list items starting with * or -
+    html = html.replace(/^\s*[-*+]\s+(.*?)$/gm, '<li class="mb-1">$1</li>');
+    // Wrap consecutive list items in <ul>
+    html = html.replace(/(<li class="mb-1">.*?<\/li>)+/gs, '<ul class="list-disc pl-5 my-2">$1</ul>');
+    // Parse headers
+    html = html.replace(/^### (.*?)$/gm, '<h5 class="text-indigo-300 font-bold mt-3 mb-1 text-base">$1</h5>');
+    html = html.replace(/^## (.*?)$/gm, '<h4 class="text-indigo-400 font-extrabold mt-4 mb-2 text-lg">$1</h4>');
+    
+    return html.replace(/\n/g, '<br>');
+  }
+
   function addChat(role, text) {
     if (!aiChatBox) return;
     const div = document.createElement("div");
@@ -128,7 +145,7 @@
         ? "bg-indigo-600/90 text-white font-semibold shadow-lg shadow-indigo-600/20 border border-indigo-500/20" 
         : "bg-slate-900/90 border border-white/10 text-gray-200");
         
-    wrapper.innerHTML = escapeHtml(text);
+    wrapper.innerHTML = role === "user" ? escapeHtml(text).replace(/\n/g, '<br>') : formatResponse(text);
     div.appendChild(wrapper);
     aiChatBox.appendChild(div);
     aiChatBox.scrollTop = aiChatBox.scrollHeight;
@@ -743,7 +760,45 @@
     // Set initial values and progress fills
     fetchAndStreamTelemetry();
 
-    vitalsInterval = setInterval(fetchAndStreamTelemetry, 1500);
+    // Direct real-time WebSocket connection integration
+    if (window.__HMS_SOCKET__) {
+      const socket = window.__HMS_SOCKET__;
+      const patientId = window.HMS_USER ? window.HMS_USER.id : "";
+      
+      // Sync room registration & trigger live vitals telemetry stream generator
+      socket.emit('join', { userId: patientId, role: 'patient' });
+      socket.emit('start-vitals-monitoring', { patientId: patientId });
+
+      // Auto-recover vitals telemetry stream on socket reconnects!
+      socket.on('connect', function () {
+        if (callActive) {
+          socket.emit('join', { userId: patientId, role: 'patient' });
+          socket.emit('start-vitals-monitoring', { patientId: patientId });
+        }
+      });
+
+      // Directly bind to WebSocket vital sign update updates
+      socket.off('vitals-update'); // prevent duplicate bindings
+      socket.on('vitals-update', function (payload) {
+        if (isScanning) return; // let scanning animations run during scanner
+        if (payload.patientId === patientId) {
+          const v = payload.vitals;
+          let stressLabel = "CALM";
+          if (v.hr > 82) stressLabel = "ELEVATED";
+          else if (v.hr > 74) stressLabel = "MODERATE";
+
+          updateVitalsUI(v.hr, v.spo2, v.bpSys, v.bpDia, stressLabel);
+        }
+      });
+    }
+
+    // Fallback polling loop (runs only if WebSocket connection drops)
+    vitalsInterval = setInterval(() => {
+      if (window.__HMS_SOCKET__ && window.__HMS_SOCKET__.connected) {
+        return; // WebSocket is running perfectly, skip HTTP poll
+      }
+      fetchAndStreamTelemetry();
+    }, 1000);
   }
 
   function runBiometricScan() {
@@ -803,18 +858,18 @@
       fetch("/patient/ai-consultation/telemetry")
         .then(res => res.json())
         .then(data => {
-          let finalBpm = 102;
+          let finalBpm = 75;
           let finalSpo2 = 98;
-          let finalBpSys = 135;
-          let finalBpDia = 88;
-          let finalStress = "ELEVATED";
+          let finalBpSys = 120;
+          let finalBpDia = 80;
+          let finalStress = "CALM";
 
           if (data.success && data.vitals) {
-            // Induce a slightly elevated state for clinical diagnostics
-            finalBpm = data.vitals.bpm + 15;
-            finalSpo2 = Math.min(100, data.vitals.spo2);
-            finalBpSys = data.vitals.bpSys + 12;
-            finalBpDia = data.vitals.bpDia + 6;
+            finalBpm = data.vitals.bpm;
+            finalSpo2 = data.vitals.spo2;
+            finalBpSys = data.vitals.bpSys;
+            finalBpDia = data.vitals.bpDia;
+            finalStress = data.vitals.bpm > 82 ? "ELEVATED" : (data.vitals.bpm > 74 ? "MODERATE" : "CALM");
           }
           
           updateVitalsUI(finalBpm, finalSpo2, finalBpSys, finalBpDia, finalStress);
@@ -1607,6 +1662,9 @@
       localVideo.classList.remove("opacity-0");
       localVideo.classList.add("opacity-70");
       
+      const fallbackHUD = document.getElementById("cameraFallbackHUD");
+      if (fallbackHUD) fallbackHUD.classList.add("hidden");
+
       callActive = true;
       callStart = Date.now();
       
@@ -1662,7 +1720,37 @@
       }, 180);
 
     } catch (e) {
-      window.hmsShowToast && window.hmsShowToast("Hardware Error", "Camera or microphone device is blocked. Please allow permissions.", "error");
+      console.warn("Camera or microphone blocked. Starting in audio-telemetry fallback mode.", e.message);
+      window.hmsShowToast && window.hmsShowToast("Telemetry Fallback", "Starting in audio/telemetry diagnostics mode.", "warning");
+      
+      // Ensure webcam stream indicator is hidden but fallback HUD is visible
+      if (localVideo) {
+        localVideo.classList.add("opacity-0");
+        localVideo.classList.remove("opacity-70");
+      }
+      const fallbackHUD = document.getElementById("cameraFallbackHUD");
+      if (fallbackHUD) fallbackHUD.classList.remove("hidden");
+      
+      // Still boot call state, biometric streams and avatars!
+      callActive = true;
+      callStart = Date.now();
+      
+      startBtn.classList.add("hidden");
+      endBtn.classList.remove("hidden");
+      speakBtn.classList.remove("hidden");
+      saveBtn.classList.remove("hidden");
+      
+      setStatus("Live Telemetry", "success");
+      sfx.playBoot();
+      addChat("bot", "I see camera permissions are restricted. No problem! I am online via direct audio-telemetry link. Please describe your symptoms or write them below.");
+      
+      startAvatarVisualizer();
+      initSpeechRecognition();
+      toggleMic(true); // Automatically listen on start
+
+      startVitalsBackgroundLoop();
+      initECG();
+      startECGDraw();
     }
   }
 
@@ -1682,6 +1770,8 @@
     
     if (vitalsHud) vitalsHud.classList.add("hidden");
     if (aiTargetMesh) aiTargetMesh.classList.add("hidden");
+    const fallbackHUD = document.getElementById("cameraFallbackHUD");
+    if (fallbackHUD) fallbackHUD.classList.add("hidden");
     
     if (scanBtn) {
       scanBtn.classList.add("hidden");
@@ -1733,6 +1823,12 @@
     }
     if (window.speechSynthesis) {
       window.speechSynthesis.cancel();
+    }
+
+    // Stop real-time WebSocket vitals telemetry simulation
+    if (window.__HMS_SOCKET__) {
+      window.__HMS_SOCKET__.emit('stop-vitals-monitoring');
+      window.__HMS_SOCKET__.off('vitals-update');
     }
     
     callActive = false;
@@ -2089,6 +2185,102 @@
     solfeggioVolSlider.addEventListener("input", function (e) {
       adjustSolfeggioVolume(e.target.value);
     });
+  }
+
+  // AI Multi-Drug Interaction Checker Event Bindings
+  const multiDrugInput = document.getElementById("multiDrugInput");
+  const auditDrugsBtn = document.getElementById("auditDrugsBtn");
+  const multiDrugResult = document.getElementById("multiDrugResult");
+
+  if (auditDrugsBtn) {
+    auditDrugsBtn.addEventListener("click", performDrugSafetyAudit);
+  }
+  if (multiDrugInput) {
+    multiDrugInput.addEventListener("keypress", function (e) {
+      if (e.key === "Enter") performDrugSafetyAudit();
+    });
+  }
+
+  async function performDrugSafetyAudit() {
+    if (!multiDrugInput || !multiDrugResult) return;
+    const meds = multiDrugInput.value.trim();
+    if (!meds) {
+      window.hmsShowToast && window.hmsShowToast("Input Required", "Please enter at least one drug name.", "warning");
+      return;
+    }
+
+    sfx.playClick();
+    multiDrugResult.classList.remove("hidden");
+    multiDrugResult.innerHTML = `
+      <div class="flex flex-col items-center justify-center py-4 text-center">
+        <i class="fas fa-spinner fa-spin text-lg text-indigo-500 mb-2"></i>
+        <p class="text-white font-bold text-[10px]">Auditing Safety Logs...</p>
+      </div>
+    `;
+
+    try {
+      const res = await fetch("/patient/ai-consultation/audit-medications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ medications: meds })
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || "Drug safety audit failed");
+
+      const audit = data.audit;
+      let badgeColor = "bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
+      let badgeLabel = "Low Risk / Safe";
+
+      if (audit.risk_level === "high") {
+        badgeColor = "bg-rose-500/10 border-rose-500/20 text-rose-400 animate-pulse";
+        badgeLabel = "High Risk Warning";
+      } else if (audit.risk_level === "moderate") {
+        badgeColor = "bg-amber-500/10 border-amber-500/20 text-amber-400";
+        badgeLabel = "Moderate Caution";
+      }
+
+      let html = `
+        <div class="border-b border-white/5 pb-2">
+          <div class="flex justify-between items-center mb-1">
+            <span class="text-white font-bold text-[11px]">Audit Report</span>
+            <span class="px-2 py-0.5 rounded border ${badgeColor} text-[9px] uppercase font-black tracking-wider">${badgeLabel}</span>
+          </div>
+          <p class="text-gray-300 leading-relaxed text-[11px] mt-1">${formatResponse(audit.interaction_details)}</p>
+        </div>
+      `;
+
+      if (audit.precautions && audit.precautions.length) {
+        html += `
+          <div class="border-b border-white/5 pb-2">
+            <strong class="text-indigo-400 text-[10px] uppercase font-black block mb-1">Safety Guidelines</strong>
+            <ul class="list-disc pl-4 space-y-0.5 text-gray-400 text-[10px]">
+              ${audit.precautions.map(p => `<li>${escapeHtml(p)}</li>`).join("")}
+            </ul>
+          </div>
+        `;
+      }
+
+      if (audit.alternatives && audit.alternatives.length) {
+        html += `
+          <div>
+            <strong class="text-emerald-400 text-[10px] uppercase font-black block mb-1">Clinical Alternatives</strong>
+            <ul class="list-disc pl-4 space-y-0.5 text-gray-400 text-[10px]">
+              ${audit.alternatives.map(a => `<li>${escapeHtml(a)}</li>`).join("")}
+            </ul>
+          </div>
+        `;
+      }
+
+      multiDrugResult.innerHTML = html;
+    } catch (err) {
+      multiDrugResult.innerHTML = `
+        <div class="text-rose-500 p-2 flex items-center gap-2">
+          <i class="fas fa-exclamation-triangle"></i>
+          <span>${escapeHtml(err.message)}</span>
+        </div>
+      `;
+      window.hmsShowToast && window.hmsShowToast("Audit failed", err.message, "error");
+    }
   }
 
   if (saveBtn) saveBtn.addEventListener("click", saveConsultation);

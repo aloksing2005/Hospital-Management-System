@@ -41,6 +41,7 @@ router.post("/ai-chat/process", isPatient, chatController.processMessage);
 router.get("/ai-consultation", isPatient, aiConsultationController.getConsultationPage);
 router.post("/ai-consultation/analyze", isPatient, aiConsultationController.analyzeSymptoms);
 router.post("/ai-consultation/save", isPatient, aiConsultationController.saveConsultation);
+router.post("/ai-consultation/audit-medications", isPatient, aiConsultationController.auditMedications);
 router.get("/ai-consultation/history", isPatient, aiConsultationController.getHistory);
 router.get("/ai-consultation/telemetry", isPatient, aiConsultationController.getLiveTelemetry);
 router.get("/ai-consultation/:id", isPatient, aiConsultationController.getConsultationDetail);

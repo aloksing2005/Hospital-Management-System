@@ -158,6 +158,28 @@ async function run() {
 
   try {
     totalFailed += await testRoutes("patient", patientRoutes);
+
+    // Test the newly added Drug Safety & Interaction Checker POST endpoint
+    console.log("\nTesting [PATIENT] POST /patient/ai-consultation/audit-medications...");
+    const patientCookie = await loginAs("patient");
+    const auditRes = await request("/patient/ai-consultation/audit-medications", "POST", JSON.stringify({
+      medications: "Aspirin, Warfarin"
+    }), { 
+      Cookie: patientCookie
+    });
+    if (auditRes.statusCode === 200) {
+      const parsedAudit = JSON.parse(auditRes.body);
+      if (parsedAudit.success && parsedAudit.audit) {
+        console.log("🟢 POST /patient/ai-consultation/audit-medications OK (200, Risk Level: " + parsedAudit.audit.risk_level + ")");
+      } else {
+        console.log("🔴 POST /patient/ai-consultation/audit-medications FAILED (Invalid JSON response)");
+        totalFailed++;
+      }
+    } else {
+      console.log("🔴 POST /patient/ai-consultation/audit-medications FAILED (Status: " + auditRes.statusCode + ")");
+      totalFailed++;
+    }
+
     totalFailed += await testRoutes("doctor", doctorRoutes);
     totalFailed += await testRoutes("admin", adminRoutes);
     totalFailed += await testRoutes("driver", driverRoutes);

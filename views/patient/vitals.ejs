@@ -1,80 +1,271 @@
-<% var title = title || 'Live Vitals'; %>
+<% var title = title || 'Live Vitals - HMS Premium'; %>
 <%- include('../partials/header') %>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-<div class="flex h-screen">
+<div class="flex h-screen bg-slate-950">
   <!-- Sidebar -->
   <%- include('../partials/patient-sidebar', { active: 'vitals' }) %>
 
   <!-- Main Content -->
   <div class="flex-1 overflow-y-auto p-6 lg:p-8">
     <!-- Page Header -->
-    <div class="flex flex-wrap justify-between items-center gap-3 mb-8 animate-fade-in">
+    <div class="flex flex-wrap justify-between items-center gap-4 mb-10 animate-fade-in">
       <div>
-        <h1 class="text-3xl font-black text-white mb-2"><i class="fas fa-wave-square mr-2 text-emerald-400"></i>Live Vitals</h1>
-        <p class="text-gray-400 font-medium">Simulated stream for monitoring demo — use "Start monitoring" below</p>
+        <div class="flex items-center gap-3 mb-1">
+          <span class="px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+            REAL-TIME TELEMETRY
+          </span>
+          <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" id="liveIndicator" style="display: none;"></div>
+        </div>
+        <h1 class="text-3xl font-black text-white tracking-tight">Live Biometric Monitor</h1>
+        <p class="text-gray-400 font-medium text-sm mt-1">Continuous simulated stream for remote health diagnostics. Use "Start monitoring" to stream.</p>
       </div>
       <div class="flex gap-3">
-        <button type="button" class="hms-btn hms-btn-success rounded-full px-6" id="btnStartVitals">Start monitoring</button>
-        <button type="button" class="hms-btn hms-btn-outline rounded-full px-6" id="btnStopVitals">Stop</button>
+        <button type="button" class="hms-btn hms-btn-success rounded-full px-6 py-3 font-bold flex items-center gap-2 shadow-lg shadow-emerald-600/20" id="btnStartVitals">
+          <i class="fas fa-play text-xs"></i> Start Monitoring
+        </button>
+        <button type="button" class="hms-btn hms-btn-outline rounded-full px-6 py-3 font-bold flex items-center gap-2" id="btnStopVitals">
+          <i class="fas fa-stop text-xs"></i> Stop
+        </button>
       </div>
     </div>
 
-    <!-- Vitals Cards -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-8 animate-scale-in">
-      <div class="hms-card text-center p-6">
-        <p class="text-gray-400 text-sm mb-2">Heart Rate</p>
-        <h3 class="text-3xl font-black text-rose-400 mb-0" id="vHr">—</h3>
-        <p class="text-xs text-gray-500 mt-1">BPM</p>
+    <!-- Vitals Glassmorphism Cards Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10 animate-scale-in">
+      <!-- Heart Rate Card -->
+      <div class="hms-glass-premium hms-hover-lift hover:border-rose-500/30 relative overflow-hidden group transition-all duration-300 p-6 rounded-[24px]">
+        <div class="absolute -right-8 -top-8 w-20 h-20 rounded-full bg-rose-500/5 blur-xl pointer-events-none group-hover:bg-rose-500/10 transition-all"></div>
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-12 h-12 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform">
+            <i class="fas fa-heartbeat animate-pulse"></i>
+          </div>
+          <div>
+            <p class="text-xs font-black text-gray-400 uppercase tracking-widest">Heart Rate</p>
+            <h3 class="text-3xl font-black text-white tracking-tight mt-1" id="vHr">—</h3>
+          </div>
+        </div>
+        <div class="text-[10px] text-gray-400 font-bold flex items-center gap-1.5 bg-white/5 w-fit px-2 py-0.5 rounded-lg">
+          <span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>
+          <span>Target: 60-100 BPM</span>
+        </div>
       </div>
-      <div class="hms-card text-center p-6">
-        <p class="text-gray-400 text-sm mb-2">SpO₂</p>
-        <h3 class="text-3xl font-black text-cyan-400 mb-0" id="vSpo2">—</h3>
-        <p class="text-xs text-gray-500 mt-1">%</p>
+
+      <!-- Oxygen SpO2 Card -->
+      <div class="hms-glass-premium hms-hover-lift hover:border-cyan-500/30 relative overflow-hidden group transition-all duration-300 p-6 rounded-[24px]">
+        <div class="absolute -right-8 -top-8 w-20 h-20 rounded-full bg-cyan-500/5 blur-xl pointer-events-none group-hover:bg-cyan-500/10 transition-all"></div>
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-12 h-12 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 rounded-2xl flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform">
+            <i class="fas fa-wind animate-pulse"></i>
+          </div>
+          <div>
+            <p class="text-xs font-black text-gray-400 uppercase tracking-widest">Oxygen SpO₂</p>
+            <h3 class="text-3xl font-black text-white tracking-tight mt-1" id="vSpo2">—</h3>
+          </div>
+        </div>
+        <div class="text-[10px] text-gray-400 font-bold flex items-center gap-1.5 bg-white/5 w-fit px-2 py-0.5 rounded-lg">
+          <span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+          <span>Target: 95-100%</span>
+        </div>
       </div>
-      <div class="hms-card text-center p-6">
-        <p class="text-gray-400 text-sm mb-2">BP</p>
-        <h3 class="text-3xl font-black text-indigo-400 mb-0" id="vBp">—</h3>
-        <p class="text-xs text-gray-500 mt-1">mmHg</p>
+
+      <!-- Blood Pressure Card -->
+      <div class="hms-glass-premium hms-hover-lift hover:border-indigo-500/30 relative overflow-hidden group transition-all duration-300 p-6 rounded-[24px]">
+        <div class="absolute -right-8 -top-8 w-20 h-20 rounded-full bg-indigo-500/5 blur-xl pointer-events-none group-hover:bg-indigo-500/10 transition-all"></div>
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-12 h-12 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform">
+            <i class="fas fa-tint animate-pulse"></i>
+          </div>
+          <div>
+            <p class="text-xs font-black text-gray-400 uppercase tracking-widest">Blood Pressure</p>
+            <h3 class="text-3xl font-black text-white tracking-tight mt-1" id="vBp">—</h3>
+          </div>
+        </div>
+        <div class="text-[10px] text-gray-400 font-bold flex items-center gap-1.5 bg-white/5 w-fit px-2 py-0.5 rounded-lg">
+          <span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>
+          <span>Target: 120/80 mmHg</span>
+        </div>
       </div>
-      <div class="hms-card text-center p-6">
-        <p class="text-gray-400 text-sm mb-2">Temp</p>
-        <h3 class="text-3xl font-black text-amber-400 mb-0" id="vTemp">—</h3>
-        <p class="text-xs text-gray-500 mt-1">°F</p>
+
+      <!-- Temperature Card -->
+      <div class="hms-glass-premium hms-hover-lift hover:border-amber-500/30 relative overflow-hidden group transition-all duration-300 p-6 rounded-[24px]">
+        <div class="absolute -right-8 -top-8 w-20 h-20 rounded-full bg-amber-500/5 blur-xl pointer-events-none group-hover:bg-amber-500/10 transition-all"></div>
+        <div class="flex items-center gap-4 mb-4">
+          <div class="w-12 h-12 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform">
+            <i class="fas fa-thermometer-half"></i>
+          </div>
+          <div>
+            <p class="text-xs font-black text-gray-400 uppercase tracking-widest">Body Temp</p>
+            <h3 class="text-3xl font-black text-white tracking-tight mt-1" id="vTemp">—</h3>
+          </div>
+        </div>
+        <div class="text-[10px] text-gray-400 font-bold flex items-center gap-1.5 bg-white/5 w-fit px-2 py-0.5 rounded-lg">
+          <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+          <span>Target: 98.6 °F</span>
+        </div>
       </div>
     </div>
 
-    <!-- Vitals Chart -->
-    <div class="hms-card p-6 animate-fade-in">
-      <canvas id="vitalsChart" height="120"></canvas>
+    <!-- Glowing Real-Time Line Graph Container -->
+    <div class="hms-card hms-card-glass hms-card-elevated hover:border-white/10 transition-all animate-fade-in relative overflow-hidden p-6 rounded-[24px]">
+      <div class="absolute -right-24 -top-24 w-60 h-60 rounded-full bg-indigo-500/5 blur-3xl pointer-events-none"></div>
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-xl font-bold text-white flex items-center gap-2">
+          <i class="fas fa-wave-square text-emerald-400 animate-pulse"></i> Real-time Biometric Telemetry
+        </h3>
+        <span class="hms-badge hms-badge-danger shadow-[0_0_10px_rgba(239,68,68,0.2)] animate-pulse" id="liveBadge" style="display: none;">LIVE PATIENT FEED</span>
+      </div>
+      <div class="relative w-full h-[360px]">
+        <canvas id="vitalsChart"></canvas>
+      </div>
     </div>
   </div>
 </div>
 
 <%- include('../partials/footer') %>
+
 <script>
 (function () {
-  var pid = '<%= user.id %>';
-  var chart;
-  var socket;
-  
+  const pid = '<%= user.id %>';
+  let chart;
+  let socket;
+  let isMonitoringActive = false;
+
   function initVitals() {
-    var ctx = document.getElementById('vitalsChart');
-    if (ctx && window.Chart) {
+    if (typeof Chart === 'undefined') {
+      console.warn("Chart.js library is not loaded. Skipping chart visualization.");
+      return;
+    }
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.font.family = 'Inter, sans-serif';
+
+    const canvasEl = document.getElementById('vitalsChart');
+    if (!canvasEl) return;
+    const ctx = canvasEl.getContext('2d');
+    if (ctx) {
+      // Gradients for cyberpunk area glows
+      const hrGrad = ctx.createLinearGradient(0, 0, 0, 300);
+      hrGrad.addColorStop(0, 'rgba(239, 68, 68, 0.2)');
+      hrGrad.addColorStop(1, 'rgba(239, 68, 68, 0.0)');
+
+      const spo2Grad = ctx.createLinearGradient(0, 0, 0, 300);
+      spo2Grad.addColorStop(0, 'rgba(14, 165, 233, 0.15)');
+      spo2Grad.addColorStop(1, 'rgba(14, 165, 233, 0.0)');
+
       chart = new Chart(ctx, {
         type: 'line',
         data: {
           labels: [],
           datasets: [
-            { label: 'HR', data: [], borderColor: '#a78bfa', tension: 0.35, fill: false },
-            { label: 'SpO2', data: [], borderColor: '#22d3ee', tension: 0.35, fill: false }
+            {
+              label: 'Heart Rate (BPM)',
+              data: [],
+              borderColor: '#ef4444',
+              backgroundColor: hrGrad,
+              borderWidth: 3,
+              tension: 0.4,
+              fill: true,
+              pointBackgroundColor: '#ef4444',
+              pointHoverRadius: 7,
+              yAxisID: 'y'
+            },
+            {
+              label: 'Oxygen SpO2 (%)',
+              data: [],
+              borderColor: '#0ea5e9',
+              backgroundColor: spo2Grad,
+              borderWidth: 3,
+              tension: 0.4,
+              fill: true,
+              pointBackgroundColor: '#0ea5e9',
+              pointHoverRadius: 7,
+              yAxisID: 'yPercent'
+            },
+            {
+              label: 'BP Systolic (mmHg)',
+              data: [],
+              borderColor: '#8b5cf6',
+              borderWidth: 2,
+              borderDash: [5, 5],
+              tension: 0.35,
+              fill: false,
+              pointBackgroundColor: '#8b5cf6',
+              pointHoverRadius: 5,
+              yAxisID: 'y'
+            },
+            {
+              label: 'BP Diastolic (mmHg)',
+              data: [],
+              borderColor: '#6366f1',
+              borderWidth: 2,
+              borderDash: [5, 5],
+              tension: 0.35,
+              fill: false,
+              pointBackgroundColor: '#6366f1',
+              pointHoverRadius: 5,
+              yAxisID: 'y'
+            },
+            {
+              label: 'Body Temp (°F)',
+              data: [],
+              borderColor: '#f59e0b',
+              borderWidth: 2.5,
+              tension: 0.4,
+              fill: false,
+              pointBackgroundColor: '#f59e0b',
+              pointHoverRadius: 6,
+              yAxisID: 'yTemp'
+            }
           ]
         },
         options: {
-          plugins: { legend: { labels: { color: '#e2e8f0' } } },
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+              labels: {
+                boxWidth: 12,
+                padding: 15,
+                color: '#e2e8f0',
+                font: { size: 11, weight: '600' }
+              }
+            },
+            tooltip: {
+              backgroundColor: 'rgba(15, 23, 42, 0.9)',
+              titleFont: { weight: 'bold' },
+              padding: 12,
+              cornerRadius: 12,
+              borderColor: 'rgba(255, 255, 255, 0.1)',
+              borderWidth: 1
+            }
+          },
           scales: {
-            x: { ticks: { color: '#94a3b8', maxTicksLimit: 8 }, grid: { color: 'rgba(148,163,184,0.08)' } },
-            y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(148,163,184,0.08)' }, beginAtZero: false }
+            y: {
+              position: 'left',
+              ticks: { color: '#94a3b8' },
+              grid: { color: 'rgba(255, 255, 255, 0.05)' },
+              title: { display: true, text: 'BPM / mmHg', color: '#94a3b8' }
+            },
+            yPercent: {
+              position: 'right',
+              ticks: { color: '#94a3b8' },
+              grid: { drawOnChartArea: false },
+              title: { display: true, text: 'Oxygen SpO2 %', color: '#94a3b8' },
+              min: 80,
+              max: 100
+            },
+            yTemp: {
+              position: 'right',
+              ticks: { color: '#94a3b8' },
+              grid: { drawOnChartArea: false },
+              title: { display: true, text: 'Temp °F', color: '#94a3b8' },
+              min: 94,
+              max: 105
+            },
+            x: {
+              ticks: { color: '#94a3b8', maxTicksLimit: 12 },
+              grid: { color: 'rgba(255, 255, 255, 0.05)' }
+            }
           }
         }
       });
@@ -82,29 +273,58 @@
     
     socket = window.hmsSocket ? window.hmsSocket() : null;
     if (socket) {
+      // Guarantee patient room subscription immediately on load
+      socket.emit('join', { userId: pid, role: 'patient' });
+
+      // Auto-recover vitals telemetry stream on socket reconnects!
+      socket.on('connect', function () {
+        socket.emit('join', { userId: pid, role: 'patient' });
+        if (isMonitoringActive) {
+          socket.emit('start-vitals-monitoring', { patientId: pid });
+        }
+      });
+
       socket.on('vitals-update', function (payload) {
-        if (payload.patientId === '<%= user.id %>') {
+        if (payload.patientId === pid) {
           const v = payload.vitals;
+          
+          // Toggle indicators dynamically
+          const ind = document.getElementById('liveIndicator');
+          const badge = document.getElementById('liveBadge');
+          if (ind) ind.style.display = 'block';
+          if (badge) badge.style.display = 'block';
+          
+          // Update live DOM values with proper clinical styling
           const hrEl = document.getElementById('vHr');
           const spo2El = document.getElementById('vSpo2');
           const bpEl = document.getElementById('vBp');
           const tempEl = document.getElementById('vTemp');
-          if (hrEl) hrEl.textContent = v.hr + ' BPM';
-          if (spo2El) spo2El.textContent = v.spo2 + ' %';
-          if (bpEl) bpEl.textContent = v.bpSys + '/' + v.bpDia;
-          if (tempEl) tempEl.textContent = v.temp + ' °F';
           
+          if (hrEl) hrEl.innerHTML = `${v.hr} <span class="text-xs text-rose-400 font-bold">BPM</span>`;
+          if (spo2El) spo2El.innerHTML = `${v.spo2} <span class="text-xs text-cyan-400 font-bold">%</span>`;
+          if (bpEl) bpEl.innerHTML = `${v.bpSys}/${v.bpDia} <span class="text-xs text-indigo-400 font-bold">mmHg</span>`;
+          if (tempEl) tempEl.innerHTML = `${v.temp} <span class="text-xs text-amber-400 font-bold">°F</span>`;
+          
+          // Update neon Chart datasets
           if (chart) {
-            var t = new Date().toLocaleTimeString();
-            chart.data.labels.push(t);
+            const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            chart.data.labels.push(timeStr);
             chart.data.datasets[0].data.push(v.hr);
             chart.data.datasets[1].data.push(v.spo2);
-            if (chart.data.labels.length > 12) {
+            chart.data.datasets[2].data.push(v.bpSys);
+            chart.data.datasets[3].data.push(v.bpDia);
+            chart.data.datasets[4].data.push(v.temp);
+            
+            // Keep window showing last 15 ticks
+            if (chart.data.labels.length > 15) {
               chart.data.labels.shift();
               chart.data.datasets[0].data.shift();
               chart.data.datasets[1].data.shift();
+              chart.data.datasets[2].data.shift();
+              chart.data.datasets[3].data.shift();
+              chart.data.datasets[4].data.shift();
             }
-            chart.update('none');
+            chart.update('none'); // Update smoothly without visual reset resets
           }
         }
       });
@@ -112,8 +332,10 @@
       const btnStart = document.getElementById('btnStartVitals');
       if (btnStart) {
         btnStart.addEventListener('click', function () {
+          // Double emit check to prevent duplicating triggers
           socket.emit('start-vitals-monitoring', { patientId: pid });
-          if (window.hmsShowToast) window.hmsShowToast('Vitals', 'Monitoring stream started', 'success');
+          isMonitoringActive = true;
+          if (window.hmsShowToast) window.hmsShowToast('Live Biometrics', 'Holographic monitoring stream started', 'success');
         });
       }
       
@@ -121,7 +343,14 @@
       if (btnStop) {
         btnStop.addEventListener('click', function () {
           socket.emit('stop-vitals-monitoring');
-          if (window.hmsShowToast) window.hmsShowToast('Vitals', 'Stopped', 'info');
+          isMonitoringActive = false;
+          
+          const ind = document.getElementById('liveIndicator');
+          const badge = document.getElementById('liveBadge');
+          if (ind) ind.style.display = 'none';
+          if (badge) badge.style.display = 'none';
+          
+          if (window.hmsShowToast) window.hmsShowToast('Live Biometrics', 'Monitoring stream stopped', 'info');
         });
       }
     }

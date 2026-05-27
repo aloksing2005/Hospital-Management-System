@@ -55,6 +55,15 @@
             <!-- Local User Webcam Stream -->
             <video id="localVideo" autoplay muted playsinline class="w-full h-full object-cover opacity-70 transition-opacity duration-300"></video>
             
+            <!-- Camera Fallback Hologram Panel -->
+            <div id="cameraFallbackHUD" class="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/95 text-center p-6 border border-white/5 rounded-t-3xl transition-opacity duration-300">
+              <div class="w-16 h-16 rounded-full bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 text-xl mb-3 animate-pulse">
+                <i class="fas fa-video-slash"></i>
+              </div>
+              <h4 class="text-white font-bold text-xs tracking-widest uppercase">VIDEO STREAM COLLATERAL</h4>
+              <p class="text-gray-500 max-w-xs mt-2 leading-relaxed text-[11px] font-medium">Camera feeds offline or blocked. Dynamic biometric analytics remain active via local Socket.IO sensor integration.</p>
+            </div>
+            
             <!-- Floating audio canvas wave overlay -->
             <canvas id="audioVisualizer" class="absolute inset-0 w-full h-full pointer-events-none opacity-30"></canvas>
 
@@ -321,6 +330,25 @@
               <i class="fas fa-paper-plane text-sm"></i>
             </button>
           </div>
+        </div>
+
+        <!-- AI Multi-Drug Safety & Interaction Audit Suite -->
+        <div class="bg-slate-900/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 shadow-xl space-y-4">
+          <div class="flex items-center gap-2">
+            <i class="fas fa-pills text-indigo-400"></i>
+            <h3 class="text-lg font-bold text-white">AI Multi-Drug Interaction Auditor</h3>
+          </div>
+          
+          <p class="text-gray-400 text-xs leading-relaxed">Enter multiple medications (comma-separated) to check clinical drug interactions, FDA safety alerts, and recommendations.</p>
+          
+          <div class="flex gap-2">
+            <input type="text" id="multiDrugInput" class="flex-1 bg-slate-950/80 border border-white/10 rounded-2xl px-4 py-2.5 text-white text-xs focus:outline-none focus:border-indigo-500 transition-colors" placeholder="e.g. Aspirin, Warfarin, Ibuprofen...">
+            <button type="button" id="auditDrugsBtn" class="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl text-xs transition-all shadow-md shadow-indigo-600/10">
+              Audit Safety
+            </button>
+          </div>
+          
+          <div id="multiDrugResult" class="hidden text-xs space-y-3 bg-slate-950/40 border border-white/5 rounded-2xl p-4 min-h-[50px] transition-all"></div>
         </div>
       </div>
     </div>

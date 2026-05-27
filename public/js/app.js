@@ -105,15 +105,24 @@
     btn.addEventListener("click", function (e) {
       e.stopPropagation();
       const open = dropdown.classList.contains("opacity-100");
-      dropdown.classList.toggle("opacity-100", !open);
-      dropdown.classList.toggle("visible", !open);
-      dropdown.classList.toggle("opacity-0", open);
-      dropdown.classList.toggle("invisible", open);
+      if (open) {
+        dropdown.classList.remove("opacity-100", "visible", "translate-y-0", "scale-100");
+        dropdown.classList.add("opacity-0", "invisible", "translate-y-2", "scale-95");
+      } else {
+        // Close notifications if open
+        const panel = document.getElementById("hmsNotifPanel");
+        if (panel) {
+          panel.classList.remove("opacity-100", "visible", "translate-y-0", "scale-100");
+          panel.classList.add("opacity-0", "invisible", "translate-y-2", "scale-95");
+        }
+        dropdown.classList.remove("opacity-0", "invisible", "translate-y-2", "scale-95");
+        dropdown.classList.add("opacity-100", "visible", "translate-y-0", "scale-100");
+      }
     });
 
     document.addEventListener("click", function () {
-      dropdown.classList.add("opacity-0", "invisible");
-      dropdown.classList.remove("opacity-100", "visible");
+      dropdown.classList.remove("opacity-100", "visible", "translate-y-0", "scale-100");
+      dropdown.classList.add("opacity-0", "invisible", "translate-y-2", "scale-95");
     });
   }
 
@@ -163,12 +172,28 @@
 
     bell.addEventListener("click", function (e) {
       e.stopPropagation();
-      panel.classList.toggle("hidden");
-      loadNotifications();
+      const open = panel.classList.contains("opacity-100");
+      if (open) {
+        panel.classList.remove("opacity-100", "visible", "translate-y-0", "scale-100");
+        panel.classList.add("opacity-0", "invisible", "translate-y-2", "scale-95");
+      } else {
+        // Close profile menu if open
+        const dropdown = document.getElementById("userMenuDropdown");
+        if (dropdown) {
+          dropdown.classList.remove("opacity-100", "visible", "translate-y-0", "scale-100");
+          dropdown.classList.add("opacity-0", "invisible", "translate-y-2", "scale-95");
+        }
+        panel.classList.remove("opacity-0", "invisible", "translate-y-2", "scale-95");
+        panel.classList.add("opacity-100", "visible", "translate-y-0", "scale-100");
+        loadNotifications();
+      }
     });
 
     document.addEventListener("click", function (e) {
-      if (!panel.contains(e.target) && e.target !== bell) panel.classList.add("hidden");
+      if (!panel.contains(e.target) && e.target !== bell) {
+        panel.classList.remove("opacity-100", "visible", "translate-y-0", "scale-100");
+        panel.classList.add("opacity-0", "invisible", "translate-y-2", "scale-95");
+      }
     });
 
     const s = HMS.socket || initSocket();

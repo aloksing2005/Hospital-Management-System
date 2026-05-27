@@ -22,10 +22,10 @@
     <!-- Analytics Cards with Live Values -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
       <!-- Heart Rate Card -->
-      <div class="hms-card hms-card-glass hms-card-elevated hover:border-rose-500/40 relative overflow-hidden group animate-scale-in transition-all">
-        <div class="absolute -right-10 -top-10 w-24 h-24 rounded-full bg-rose-500/5 blur-2xl pointer-events-none"></div>
+      <div class="hms-glass-premium hms-hover-lift hover:border-rose-500/30 relative overflow-hidden group animate-scale-in transition-all p-6 rounded-[24px]">
+        <div class="absolute -right-10 -top-10 w-24 h-24 rounded-full bg-rose-500/5 blur-2xl pointer-events-none group-hover:bg-rose-500/10 transition-all"></div>
         <div class="flex items-center gap-4 mb-4">
-          <div class="w-12 h-12 bg-rose-500/20 text-rose-400 rounded-xl flex items-center justify-center text-xl shrink-0">
+          <div class="w-12 h-12 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-2xl flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform">
             <i class="fas fa-heartbeat animate-pulse"></i>
           </div>
           <div>
@@ -40,10 +40,10 @@
       </div>
 
       <!-- SpO2 Card -->
-      <div class="hms-card hms-card-glass hms-card-elevated hover:border-cyan-500/40 relative overflow-hidden group animate-scale-in animate-delay-100 transition-all">
-        <div class="absolute -right-10 -top-10 w-24 h-24 rounded-full bg-cyan-500/5 blur-2xl pointer-events-none"></div>
+      <div class="hms-glass-premium hms-hover-lift-cyan relative overflow-hidden group animate-scale-in animate-delay-100 transition-all p-6 rounded-[24px]">
+        <div class="absolute -right-10 -top-10 w-24 h-24 rounded-full bg-cyan-500/5 blur-2xl pointer-events-none group-hover:bg-cyan-500/10 transition-all"></div>
         <div class="flex items-center gap-4 mb-4">
-          <div class="w-12 h-12 bg-cyan-500/20 text-cyan-400 rounded-xl flex items-center justify-center text-xl shrink-0">
+          <div class="w-12 h-12 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 rounded-2xl flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform">
             <i class="fas fa-wind"></i>
           </div>
           <div>
@@ -58,10 +58,10 @@
       </div>
 
       <!-- Blood Pressure Card -->
-      <div class="hms-card hms-card-glass hms-card-elevated hover:border-indigo-500/40 relative overflow-hidden group animate-scale-in animate-delay-200 transition-all">
-        <div class="absolute -right-10 -top-10 w-24 h-24 rounded-full bg-indigo-500/5 blur-2xl pointer-events-none"></div>
+      <div class="hms-glass-premium hms-hover-lift hover:border-indigo-500/30 relative overflow-hidden group animate-scale-in animate-delay-200 transition-all p-6 rounded-[24px]">
+        <div class="absolute -right-10 -top-10 w-24 h-24 rounded-full bg-indigo-500/5 blur-2xl pointer-events-none group-hover:bg-indigo-500/10 transition-all"></div>
         <div class="flex items-center gap-4 mb-4">
-          <div class="w-12 h-12 bg-indigo-500/20 text-indigo-400 rounded-xl flex items-center justify-center text-xl shrink-0">
+          <div class="w-12 h-12 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform">
             <i class="fas fa-tint"></i>
           </div>
           <div>
@@ -76,10 +76,10 @@
       </div>
 
       <!-- Body Temperature Card -->
-      <div class="hms-card hms-card-glass hms-card-elevated hover:border-amber-500/40 relative overflow-hidden group animate-scale-in animate-delay-300 transition-all">
-        <div class="absolute -right-10 -top-10 w-24 h-24 rounded-full bg-amber-500/5 blur-2xl pointer-events-none"></div>
+      <div class="hms-glass-premium hms-hover-lift-amber relative overflow-hidden group animate-scale-in animate-delay-300 transition-all p-6 rounded-[24px]">
+        <div class="absolute -right-10 -top-10 w-24 h-24 rounded-full bg-amber-500/5 blur-2xl pointer-events-none group-hover:bg-amber-500/10 transition-all"></div>
         <div class="flex items-center gap-4 mb-4">
-          <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center text-xl shrink-0">
+          <div class="w-12 h-12 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-2xl flex items-center justify-center text-xl shrink-0 group-hover:scale-110 transition-transform">
             <i class="fas fa-thermometer-half"></i>
           </div>
           <div>
@@ -161,11 +161,16 @@
 <script>
   // Setup Chart.js context and configuration
   document.addEventListener('DOMContentLoaded', function () {
+    if (typeof Chart === 'undefined') {
+      console.warn("Chart.js library is not loaded. Skipping chart visualization.");
+      return;
+    }
     Chart.defaults.color = '#94a3b8';
     Chart.defaults.font.family = 'Inter, sans-serif';
 
-    // Vitals Chart: heart rate, spo2, temperature line charts
-    const vitalsCtx = document.getElementById('vitalsChart').getContext('2d');
+    const canvasEl = document.getElementById('vitalsChart');
+    if (!canvasEl) return;
+    const vitalsCtx = canvasEl.getContext('2d');
     
     // Gradients
     const hrGradient = vitalsCtx.createLinearGradient(0, 0, 0, 300);
@@ -321,6 +326,8 @@
     // Listen to Socket.IO live vitals stream for real-time telemetry rendering!
     const socket = window.hmsSocket ? window.hmsSocket() : null;
     if (socket) {
+      // Guarantee patient room subscription on page load
+      socket.emit('join', { userId: '<%= user.id %>', role: 'patient' });
       socket.on('vitals-update', (data) => {
         if (data.patientId === '<%= user.id %>') {
           const v = data.vitals;

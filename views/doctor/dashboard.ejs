@@ -7,7 +7,7 @@
   <%- include('../partials/doctor-sidebar', { active: 'dashboard' }) %>
 
   <!-- Main Content -->
-  <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+  <div class="flex-1 overflow-y-auto p-6 lg:p-8 hms-page-transition">
       <!-- Welcome Header -->
       <div class="mb-8 animate-fade-in flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -23,7 +23,7 @@
       <!-- Quick Stats -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <!-- Stat 1: Total Visits -->
-        <div class="hms-card hms-card-glass hms-card-elevated hover:border-indigo-500/40 relative overflow-hidden group animate-scale-in transition-all duration-300">
+        <div class="hms-glass-premium hms-hover-lift hover:border-indigo-500/30 rounded-[24px] p-6 relative overflow-hidden group shadow-xl transition-all duration-300 animate-scale-in">
           <div class="absolute -right-12 -top-12 w-28 h-28 rounded-full bg-indigo-500/10 blur-2xl pointer-events-none group-hover:bg-indigo-500/20 transition-all"></div>
           <div class="flex justify-between items-start mb-4">
             <div class="w-12 h-12 bg-indigo-500/20 text-indigo-400 rounded-xl flex items-center justify-center text-xl shadow-inner shadow-indigo-500/10">
@@ -40,7 +40,7 @@
         </div>
 
         <!-- Stat 2: Pending -->
-        <div class="hms-card hms-card-glass hms-card-elevated hover:border-amber-500/40 relative overflow-hidden group animate-scale-in animate-delay-100 transition-all duration-300">
+        <div class="hms-glass-premium hms-hover-lift hms-hover-lift-amber hover:border-amber-500/30 rounded-[24px] p-6 relative overflow-hidden group shadow-xl transition-all duration-300 animate-scale-in animate-delay-100">
           <div class="absolute -right-12 -top-12 w-28 h-28 rounded-full bg-amber-500/10 blur-2xl pointer-events-none group-hover:bg-amber-500/20 transition-all"></div>
           <div class="flex justify-between items-start mb-4">
             <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center text-xl shadow-inner shadow-amber-500/10">
@@ -57,7 +57,7 @@
         </div>
 
         <!-- Stat 3: Completed -->
-        <div class="hms-card hms-card-glass hms-card-elevated hover:border-emerald-500/40 relative overflow-hidden group animate-scale-in animate-delay-200 transition-all duration-300">
+        <div class="hms-glass-premium hms-hover-lift hover:border-emerald-500/30 rounded-[24px] p-6 relative overflow-hidden group shadow-xl transition-all duration-300 animate-scale-in animate-delay-200">
           <div class="absolute -right-12 -top-12 w-28 h-28 rounded-full bg-emerald-500/10 blur-2xl pointer-events-none group-hover:bg-emerald-500/20 transition-all"></div>
           <div class="flex justify-between items-start mb-4">
             <div class="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-xl flex items-center justify-center text-xl shadow-inner shadow-emerald-500/10">
@@ -74,7 +74,7 @@
         </div>
 
         <!-- Stat 4: Today's List -->
-        <div class="hms-card hms-card-glass hms-card-elevated hover:border-cyan-500/40 relative overflow-hidden group animate-scale-in animate-delay-300 transition-all duration-300">
+        <div class="hms-glass-premium hms-hover-lift hms-hover-lift-cyan hover:border-cyan-500/30 rounded-[24px] p-6 relative overflow-hidden group shadow-xl transition-all duration-300 animate-scale-in animate-delay-300">
           <div class="absolute -right-12 -top-12 w-28 h-28 rounded-full bg-cyan-500/10 blur-2xl pointer-events-none group-hover:bg-cyan-500/20 transition-all"></div>
           <div class="flex justify-between items-start mb-4">
             <div class="w-12 h-12 bg-cyan-500/20 text-cyan-400 rounded-xl flex items-center justify-center text-xl shadow-inner shadow-cyan-500/10">
@@ -91,10 +91,122 @@
         </div>
       </div>
 
+      <!-- Clinician Telemetry Biosurveillance HUD -->
+      <div class="hms-glass-premium hms-hover-lift rounded-[24px] p-6 relative overflow-hidden shadow-xl mb-8 border border-white/10 shadow-[0_0_50px_rgba(99,102,241,0.05)] animate-scale-in flex flex-col lg:flex-row gap-6">
+        <div class="hud-grid-overlay"></div>
+        <!-- Biosensor telemetry stream canvas -->
+        <div class="w-full lg:w-1/3 relative bg-slate-950/90 rounded-2xl border border-white/10 h-56 lg:h-auto overflow-hidden flex items-center justify-center group/bio shadow-inner shadow-emerald-500/10">
+          <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent pointer-events-none"></div>
+          
+          <!-- Glowing corner brackets -->
+          <div class="absolute top-3 left-3 w-4 h-4 border-t-2 border-l-2 border-emerald-500/40 pointer-events-none transition-all duration-300 group-hover/bio:border-emerald-400"></div>
+          <div class="absolute top-3 right-3 w-4 h-4 border-t-2 border-r-2 border-emerald-500/40 pointer-events-none transition-all duration-300 group-hover/bio:border-emerald-400"></div>
+          <div class="absolute bottom-3 left-3 w-4 h-4 border-b-2 border-l-2 border-emerald-500/40 pointer-events-none transition-all duration-300 group-hover/bio:border-emerald-400"></div>
+          <div class="absolute bottom-3 right-3 w-4 h-4 border-b-2 border-r-2 border-emerald-500/40 pointer-events-none transition-all duration-300 group-hover/bio:border-emerald-400"></div>
+          
+          <canvas id="bioCanvas" class="w-full h-full object-cover max-h-64" style="min-height: 220px;"></canvas>
+          
+          <!-- Badge -->
+          <div class="absolute top-3 left-3 bg-slate-900/90 text-white font-mono text-[9px] px-2.5 py-1.5 rounded-lg border border-emerald-500/30 tracking-widest flex items-center gap-1.5 uppercase shadow-lg shadow-black/50 z-20">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" id="bioStatusIndicator"></span>
+            <span id="bioStatusText">ICU UPLINK: OK</span>
+          </div>
+        </div>
+
+        <!-- Telemetry control panel & list -->
+        <div class="w-full lg:w-2/3 flex flex-col justify-between relative z-10 py-1">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                <h4 class="text-lg font-black text-white tracking-tight flex items-center gap-2">
+                  <i class="fas fa-network-wired text-emerald-400"></i>ICU Telemetry & Patient Biosurveillance HUD
+                </h4>
+              </div>
+              <span class="hms-badge hms-badge-danger uppercase tracking-widest text-[9px] font-mono" id="patientUrgencyBadge">Global Urgent</span>
+            </div>
+            <p class="text-xs text-gray-400 mb-4 leading-relaxed font-medium font-sans">Continuous telemetric tracking of patients in the clinical queue, displaying real-time heart rate spikes, arterial SpO2 oxygen grids, and triage index priority mapping.</p>
+
+            <!-- Triage lists -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4 font-sans">
+              <div onclick="selectTriagePatient('elena')" id="patientCardElena" class="p-3 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 rounded-2xl cursor-pointer transition-all hover:scale-[1.02]">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-[10px] font-black text-rose-400 font-mono tracking-widest">ICU BED 04</span>
+                  <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+                </div>
+                <h5 class="text-xs font-black text-white leading-tight">Elena Rostova</h5>
+                <p class="text-[10px] text-rose-400 mt-1 font-bold font-mono">HR: 114 BPM | SpO2: 91%</p>
+                <div class="text-[9px] uppercase tracking-widest text-rose-500 font-black mt-2 font-mono">Triage: CRITICAL</div>
+              </div>
+
+              <div onclick="selectTriagePatient('alex')" id="patientCardAlex" class="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl cursor-pointer transition-all hover:scale-[1.02]">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-[10px] font-black text-gray-500 font-mono tracking-widest">BED 12</span>
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                </div>
+                <h5 class="text-xs font-black text-white leading-tight">Alex Mercer</h5>
+                <p class="text-[10px] text-gray-400 mt-1 font-bold font-mono">HR: 76 BPM | SpO2: 98%</p>
+                <div class="text-[9px] uppercase tracking-widest text-emerald-400 font-black mt-2 font-mono">Triage: NOMINAL</div>
+              </div>
+
+              <div onclick="selectTriagePatient('marcus')" id="patientCardMarcus" class="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl cursor-pointer transition-all hover:scale-[1.02]">
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-[10px] font-black text-gray-500 font-mono tracking-widest">BED 09</span>
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                </div>
+                <h5 class="text-xs font-black text-white leading-tight">Marcus Vance</h5>
+                <p class="text-[10px] text-gray-400 mt-1 font-bold font-mono">HR: 72 BPM | SpO2: 99%</p>
+                <div class="text-[9px] uppercase tracking-widest text-emerald-400 font-black mt-2 font-mono">Triage: NOMINAL</div>
+              </div>
+            </div>
+
+            <!-- Detailed stats readout -->
+            <div class="p-4 bg-slate-950/70 border border-white/5 rounded-2xl text-xs mb-4 shadow-inner">
+              <div class="flex justify-between items-center pb-2 border-b border-white/5 font-mono text-[10px] mb-2">
+                <span class="text-gray-500 uppercase tracking-wider font-bold">Selected Patient Readout:</span>
+                <span id="txtBioSpeed" class="text-emerald-400 font-bold tracking-wider font-mono">LIVE TELEMETRY STREAM</span>
+              </div>
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-2.5 font-mono text-[11px] leading-relaxed">
+                <div>
+                  <span class="text-gray-500 block mb-0.5">Vitals Status</span>
+                  <span id="readoutStatus" class="text-rose-500 font-bold">CRITICAL SPIKE</span>
+                </div>
+                <div>
+                  <span class="text-gray-500 block mb-0.5">Respiration Rate</span>
+                  <span id="readoutResp" class="text-emerald-400 font-bold">22 Br/Min</span>
+                </div>
+                <div>
+                  <span class="text-gray-500 block mb-0.5">Body Temp</span>
+                  <span id="readoutTemp" class="text-emerald-400 font-bold">101.4 °F</span>
+                </div>
+                <div>
+                  <span class="text-gray-500 block mb-0.5">Arterial BP</span>
+                  <span id="readoutBp" class="text-rose-400 font-bold">148/95 mmHg</span>
+                </div>
+              </div>
+              <div id="txtBioAuditResult" class="text-gray-400 leading-relaxed border-t border-white/5 pt-2 italic text-[11px] min-h-[48px] font-medium font-sans">
+                Elena Rostova displays tachycardic fluctuations with descending blood-oxygen curves. Automated infusion governor is regulating cardiovascular load. Continuous clinician surveillance is highly advised.
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row gap-2 font-sans">
+            <button type="button" onclick="triggerTriageOverride()" id="btnBioOverride" class="px-4 py-3 bg-white/5 border border-white/10 hover:bg-white/10 text-gray-300 text-xs font-black tracking-wide uppercase rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all flex-1">
+              <i class="fas fa-microchip" id="overrideIcon"></i>
+              <span>Calibrate Sensor Array</span>
+            </button>
+            <button type="button" onclick="dispatchEmergencyTeam()" id="btnBioAlert" class="px-4 py-3 bg-rose-600 hover:bg-rose-700 text-white text-xs font-black tracking-wide uppercase rounded-xl flex items-center justify-center gap-2 cursor-pointer transition-all flex-1 border-none shadow-lg shadow-rose-600/20 hover:shadow-rose-600/30">
+              <i class="fas fa-ambulance" id="alertIcon"></i>
+              <span id="alertBtnText">Dispatch Emergency Team</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Center Grid -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <!-- Today's Schedule -->
-        <div class="hms-card hms-card-glass hms-card-elevated hover:border-white/10 transition-all animate-fade-in relative overflow-hidden">
+        <div class="hms-glass-premium hms-hover-lift rounded-[24px] p-6 relative overflow-hidden shadow-xl transition-all duration-300 animate-fade-in">
           <div class="absolute -left-20 -top-20 w-48 h-48 rounded-full bg-indigo-500/5 blur-3xl pointer-events-none"></div>
           
           <div class="flex items-center justify-between mb-6 relative z-10">
@@ -131,7 +243,7 @@
         </div>
 
         <!-- Recent Activity Table -->
-        <div class="hms-card hms-card-glass hms-card-elevated hover:border-white/10 transition-all animate-fade-in animate-delay-100 relative overflow-hidden">
+        <div class="hms-glass-premium hms-hover-lift rounded-[24px] p-6 relative overflow-hidden shadow-xl transition-all duration-300 animate-fade-in animate-delay-100">
           <div class="absolute -right-20 -bottom-20 w-48 h-48 rounded-full bg-purple-500/5 blur-3xl pointer-events-none"></div>
 
           <div class="flex items-center justify-between mb-6 relative z-10">
@@ -167,7 +279,7 @@
       </div>
 
       <!-- Recent Prescriptions section -->
-      <div class="hms-card hms-card-glass hms-card-elevated hover:border-white/10 transition-all animate-fade-in animate-delay-200 relative overflow-hidden mb-6">
+      <div class="hms-glass-premium hms-hover-lift rounded-[24px] p-6 relative overflow-hidden shadow-xl transition-all duration-300 animate-fade-in animate-delay-200 mb-6">
         <div class="absolute -right-20 -top-20 w-48 h-48 rounded-full bg-emerald-500/5 blur-3xl pointer-events-none"></div>
 
         <div class="flex items-center justify-between mb-6 relative z-10">
@@ -210,9 +322,439 @@
 </div>
 
 <script>
-  const socket = window.hmsSocket ? window.hmsSocket() : null;
-  if (socket) {
-    socket.on('doctor-notification', (data) => {
+  // --- HMS DOCTOR PORTAL ENTERPRISE LIFECYCLE & PERFORMANCE MANAGER ---
+  const HMSLifecycle = {
+    rafIds: new Set(),
+    intervals: new Set(),
+    timeouts: new Set(),
+    listeners: [],
+    
+    fpsLimit: 60,
+    isLowEndDevice: false,
+    performanceMetrics: {
+      renderedFrames: 0,
+      fps: 60,
+      lastMetricsTime: performance.now()
+    },
+    
+    isInitialized: false,
+    
+    init() {
+      if (this.isInitialized) this.destroy();
+      this.isInitialized = true;
+      
+      // Hardware-capability governor
+      if (navigator.deviceMemory && navigator.deviceMemory < 4) {
+        this.isLowEndDevice = true;
+        this.fpsLimit = 30;
+      }
+      if (navigator.hardwareConcurrency && navigator.hardwareConcurrency < 4) {
+        this.isLowEndDevice = true;
+        this.fpsLimit = 30;
+      }
+      
+      console.log(`⚡ doctor lifecycle: initialized (GPU Throttling: ${this.isLowEndDevice ? 'ACTIVE (30 FPS limit)' : 'INACTIVE (60 FPS limit)'})`);
+    },
+    
+    requestAnimationFrame(cb) {
+      const id = requestAnimationFrame((timestamp) => {
+        this.rafIds.delete(id);
+        cb(timestamp);
+      });
+      this.rafIds.add(id);
+      return id;
+    },
+    
+    cancelAnimationFrame(id) {
+      if (id) {
+        cancelAnimationFrame(id);
+        this.rafIds.delete(id);
+      }
+    },
+    
+    setInterval(cb, delay) {
+      const id = setInterval(cb, delay);
+      this.intervals.add(id);
+      return id;
+    },
+    
+    clearInterval(id) {
+      if (id) {
+        clearInterval(id);
+        this.intervals.delete(id);
+      }
+    },
+    
+    setTimeout(cb, delay) {
+      const id = setTimeout(() => {
+        this.timeouts.delete(id);
+        cb();
+      }, delay);
+      this.timeouts.add(id);
+      return id;
+    },
+    
+    clearTimeout(id) {
+      if (id) {
+        clearTimeout(id);
+        this.timeouts.delete(id);
+      }
+    },
+    
+    addEventListener(element, type, listener, options) {
+      if (!element) return;
+      element.addEventListener(type, listener, options);
+      this.listeners.push({ element, type, listener, options });
+    },
+    
+    destroy() {
+      console.log('⚡ doctor lifecycle: purging active registry resources...');
+      for (const id of this.rafIds) {
+        cancelAnimationFrame(id);
+      }
+      this.rafIds.clear();
+      for (const id of this.intervals) {
+        clearInterval(id);
+      }
+      this.intervals.clear();
+      for (const id of this.timeouts) {
+        clearTimeout(id);
+      }
+      this.timeouts.clear();
+      this.listeners.forEach(({ element, type, listener, options }) => {
+        if (element) {
+          element.removeEventListener(type, listener, options);
+        }
+      });
+      this.listeners = [];
+      
+      if (doctorDashboardSocket) {
+        doctorDashboardSocket.off('doctor-notification');
+      }
+      
+      this.isInitialized = false;
+    }
+  };
+
+  // --- High-DPI & Retina Sharp Scaling Optimizer ---
+  function scaleCanvas(canvas, ctx, width, height) {
+    if (!canvas || !ctx) return;
+    const dpr = window.devicePixelRatio || 1;
+    const maxDpr = HMSLifecycle.isLowEndDevice ? 1 : 2;
+    const activeDpr = Math.min(dpr, maxDpr);
+    
+    canvas.width = width * activeDpr;
+    canvas.height = height * activeDpr;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+    
+    ctx.scale(activeDpr, activeDpr);
+  }
+
+  // --- Safe Static Fallback for low-end or disabled Canvas contexts ---
+  function drawFallbackStatic(canvasId, text) {
+    const canv = document.getElementById(canvasId);
+    if (!canv) return;
+    const context = canv.getContext('2d');
+    if (!context) {
+      canv.parentElement.innerHTML = `<div class="font-mono text-[10px] text-gray-500 flex items-center justify-center h-full w-full border border-dashed border-gray-700 p-4 text-center uppercase">${text}</div>`;
+      return;
+    }
+    context.fillStyle = '#020617';
+    context.fillRect(0, 0, canv.width, canv.height);
+    context.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    context.font = '10px monospace';
+    context.textAlign = 'center';
+    context.fillText(text, canv.width / 2, canv.height / 2);
+  }
+
+  // --- Dynamic Toast Rate Limiter / Anti-Spam Governor ---
+  let lastToastTime = 0;
+  const TOAST_THROTTLE_LIMIT = 2000;
+  function throttleShowToast(title, message, type) {
+    const now = Date.now();
+    if (now - lastToastTime < TOAST_THROTTLE_LIMIT) return;
+    lastToastTime = now;
+    if (typeof window.hmsShowToast === 'function') {
+      window.hmsShowToast(title, message, type);
+    }
+  }
+
+  // --- ICU Telemetry & Patient Biosurveillance HUD Logic ---
+  let bioCanvas = null;
+  let bioCtx = null;
+  let bioAnimationId = null;
+  let bioIndex = 0;
+  let activeBioPatient = 'elena';
+  let isBioOverriding = false;
+  let bioProgress = 0;
+  const bioBuffer = [];
+
+  function initBioCanvas() {
+    bioCanvas = document.getElementById('bioCanvas');
+    if (!bioCanvas) return;
+    bioCtx = bioCanvas.getContext('2d');
+    if (!bioCtx) throw new Error("Could not acquire 2D biosurveillance context");
+    const parent = bioCanvas.parentElement;
+    const w = parent.clientWidth || 300;
+    const h = 220;
+    if (w > 0 && h > 0) {
+      scaleCanvas(bioCanvas, bioCtx, w, h);
+    }
+  }
+
+  function safeInitBioCanvas() {
+    try {
+      initBioCanvas();
+    } catch (e) {
+      console.warn("ICU Biosensor Canvas failed to mount:", e.message);
+      drawFallbackStatic('bioCanvas', 'ICU TELEMETRY ONLINE (SOFTWARE GOVERNOR)');
+    }
+  }
+
+  let lastBioFrameTime = 0;
+  function renderBioLoop(timestamp) {
+    if (!bioCtx || !bioCanvas) return;
+    
+    // Performance Frame Throttling Check
+    const elapsed = timestamp - lastBioFrameTime;
+    const frameInterval = 1000 / HMSLifecycle.fpsLimit;
+    if (lastBioFrameTime && elapsed < frameInterval) {
+      bioAnimationId = HMSLifecycle.requestAnimationFrame(renderBioLoop);
+      return;
+    }
+    lastBioFrameTime = timestamp - (elapsed % frameInterval);
+
+    // Fade clear for glowing oscilloscope phosphor trail
+    bioCtx.fillStyle = 'rgba(2, 6, 23, 0.08)';
+    bioCtx.fillRect(0, 0, bioCanvas.width, bioCanvas.height);
+    
+    // Draw background tech grid
+    bioCtx.strokeStyle = 'rgba(16, 185, 129, 0.03)';
+    bioCtx.lineWidth = 1;
+    for(let i=0; i<bioCanvas.width; i+=20) {
+      bioCtx.beginPath(); bioCtx.moveTo(i, 0); bioCtx.lineTo(i, bioCanvas.height); bioCtx.stroke();
+    }
+    for(let j=0; j<bioCanvas.height; j+=20) {
+      bioCtx.beginPath(); bioCtx.moveTo(0, j); bioCtx.lineTo(bioCanvas.width, j); bioCtx.stroke();
+    }
+    
+    bioIndex = (bioIndex + 2) % bioCanvas.width;
+    
+    // Determine frequency and parameters based on selected patient
+    let hr = 72;
+    let amplitude = 12;
+    let color = 'rgba(16, 185, 129, 0.85)'; // Emerald
+    let isCritical = false;
+    
+    if (activeBioPatient === 'elena') {
+      hr = 114;
+      amplitude = 25;
+      color = 'rgba(239, 68, 68, 0.9)'; // Critical Red
+      isCritical = true;
+    } else if (activeBioPatient === 'alex') {
+      hr = 76;
+    } else if (activeBioPatient === 'marcus') {
+      hr = 72;
+    }
+    
+    if (isBioOverriding) {
+      bioProgress += 0.005;
+      if (bioProgress >= 1.0) {
+        completeBioOverride();
+      }
+      color = 'rgba(14, 165, 233, 0.9)'; // Calibrating Cyan
+    }
+    
+    // Generate the vital wave value
+    const phase = (bioIndex * (hr / 60) * 0.1) % (Math.PI * 2);
+    let yOffset = Math.sin(phase) * 5; // standard respiratory baseline
+    
+    // Simulating QRS complex
+    const qrsPhase = (bioIndex * (hr / 60) * 0.08) % 10;
+    if (qrsPhase > 4 && qrsPhase < 4.4) {
+      yOffset = -amplitude; // R wave spike
+    } else if (qrsPhase >= 4.4 && qrsPhase < 4.7) {
+      yOffset = amplitude * 0.4; // S wave rebound
+    } else if (qrsPhase >= 4.7 && qrsPhase < 5.2) {
+      yOffset = -amplitude * 0.15; // T wave
+    }
+    
+    const y = bioCanvas.height / 2 + yOffset;
+    
+    // Push value to history buffer
+    bioBuffer.push({ x: bioIndex, y: y, color: color });
+    if (bioBuffer.length > bioCanvas.width) {
+      bioBuffer.shift();
+    }
+    
+    // Draw trail
+    bioCtx.lineWidth = 2;
+    bioCtx.beginPath();
+    for (let i = 0; i < bioBuffer.length; i++) {
+      const pt = bioBuffer[i];
+      if (i === 0) bioCtx.moveTo(pt.x, pt.y);
+      else {
+        if (Math.abs(pt.x - bioBuffer[i-1].x) > 5) {
+          bioCtx.stroke();
+          bioCtx.beginPath();
+          bioCtx.moveTo(pt.x, pt.y);
+        } else {
+          bioCtx.lineTo(pt.x, pt.y);
+        }
+      }
+    }
+    bioCtx.strokeStyle = color;
+    bioCtx.shadowBlur = isCritical ? 10 : 3;
+    bioCtx.shadowColor = color;
+    bioCtx.stroke();
+    bioCtx.shadowBlur = 0; // Reset
+    
+    // Draw scanning cursor vertical bar
+    bioCtx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    bioCtx.fillRect(bioIndex, 0, 1.5, bioCanvas.height);
+    
+    // Draw details text
+    if (isBioOverriding) {
+      bioCtx.fillStyle = 'rgba(14, 165, 233, 0.95)';
+      bioCtx.font = '8px monospace';
+      bioCtx.textAlign = 'left';
+      bioCtx.fillText(`CALIBRATING BIOSENSORS: ${Math.floor(bioProgress * 100)}%`, 15, 22);
+      bioCtx.fillText(`RESOLUTION STATE: 4096 PX`, 15, 34);
+    } else {
+      bioCtx.fillStyle = isCritical ? 'rgba(239, 68, 68, 0.7)' : 'rgba(255, 255, 255, 0.3)';
+      bioCtx.font = '9px monospace';
+      bioCtx.textAlign = 'center';
+      bioCtx.fillText(isCritical ? 'ALERT: TACHYCARDIC CRITICAL OUTLIER' : 'WARD TELEMETRY STREAM NOMINAL', bioCanvas.width/2, bioCanvas.height - 15);
+    }
+    
+    bioAnimationId = HMSLifecycle.requestAnimationFrame(renderBioLoop);
+  }
+
+  function selectTriagePatient(patient) {
+    if (isBioOverriding) return;
+    activeBioPatient = patient;
+    
+    // Update card stylings
+    const patients = ['elena', 'alex', 'marcus'];
+    patients.forEach(p => {
+      const card = document.getElementById(`patientCard${p.charAt(0).toUpperCase() + p.slice(1)}`);
+      if (card) {
+        if (p === patient) {
+          card.className = p === 'elena' 
+            ? 'p-3 bg-rose-500/20 border border-rose-500/50 rounded-2xl cursor-pointer transition-all scale-[1.02] shadow-lg shadow-rose-500/10'
+            : 'p-3 bg-emerald-500/20 border border-emerald-500/50 rounded-2xl cursor-pointer transition-all scale-[1.02] shadow-lg shadow-emerald-500/10';
+        } else {
+          card.className = p === 'elena'
+            ? 'p-3 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 rounded-2xl cursor-pointer transition-all hover:scale-[1.02]'
+            : 'p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl cursor-pointer transition-all hover:scale-[1.02]';
+        }
+      }
+    });
+
+    const urgencyBadge = document.getElementById('patientUrgencyBadge');
+    const readoutStatus = document.getElementById('readoutStatus');
+    const readoutResp = document.getElementById('readoutResp');
+    const readoutTemp = document.getElementById('readoutTemp');
+    const readoutBp = document.getElementById('readoutBp');
+    const resultText = document.getElementById('txtBioAuditResult');
+
+    if (patient === 'elena') {
+      urgencyBadge.innerText = 'Global Urgent';
+      urgencyBadge.className = 'hms-badge hms-badge-danger uppercase tracking-widest text-[9px] font-mono';
+      readoutStatus.innerText = 'CRITICAL SPIKE';
+      readoutStatus.className = 'text-rose-500 font-bold';
+      readoutResp.innerText = '22 Br/Min';
+      readoutTemp.innerText = '101.4 °F';
+      readoutBp.innerText = '148/95 mmHg';
+      readoutBp.className = 'text-rose-400 font-bold';
+      resultText.innerHTML = 'Elena Rostova displays tachycardic fluctuations with descending blood-oxygen curves. Automated infusion governor is regulating cardiovascular load. Continuous clinician surveillance is highly advised.';
+    } else if (patient === 'alex') {
+      urgencyBadge.innerText = 'Global Stable';
+      urgencyBadge.className = 'hms-badge hms-badge-success uppercase tracking-widest text-[9px] font-mono';
+      readoutStatus.innerText = 'NOMINAL';
+      readoutStatus.className = 'text-emerald-400 font-bold';
+      readoutResp.innerText = '16 Br/Min';
+      readoutTemp.innerText = '98.4 °F';
+      readoutBp.innerText = '118/75 mmHg';
+      readoutBp.className = 'text-emerald-400 font-bold';
+      resultText.innerHTML = 'Alex Mercer is maintaining absolute homeostasis. Epigenetic indicators suggest robust cellular repair windows active. Standard telemetry monitoring passes registered.';
+    } else if (patient === 'marcus') {
+      urgencyBadge.innerText = 'Global Stable';
+      urgencyBadge.className = 'hms-badge hms-badge-success uppercase tracking-widest text-[9px] font-mono';
+      readoutStatus.innerText = 'STANDBY';
+      readoutStatus.className = 'text-emerald-400 font-bold';
+      readoutResp.innerText = '14 Br/Min';
+      readoutTemp.innerText = '98.8 °F';
+      readoutBp.innerText = '120/80 mmHg';
+      readoutBp.className = 'text-emerald-400 font-bold';
+      resultText.innerHTML = 'Marcus Vance shows ideal sinus rhythm profiles. Left ventricular contractility indexes are stable. Triage evaluation completed. Ready for standard discharge audit.';
+    }
+  }
+
+  function triggerTriageOverride() {
+    if (isBioOverriding) return;
+    isBioOverriding = true;
+    bioProgress = 0;
+    
+    document.getElementById('bioStatusText').innerText = 'ICU: CALIBRATING...';
+    document.getElementById('bioStatusIndicator').className = 'w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping';
+    document.getElementById('overrideIcon').className = 'fas fa-spinner animate-spin text-cyan-400';
+    document.getElementById('txtBioSpeed').innerText = 'HIGH-FREQUENCY SENSOR OVERLAY ACTIVE';
+    document.getElementById('txtBioSpeed').className = 'text-cyan-400 font-bold tracking-wider animate-pulse';
+  }
+
+  function completeBioOverride() {
+    isBioOverriding = false;
+    document.getElementById('bioStatusText').innerText = 'ICU: SYNC SUCCESS';
+    document.getElementById('bioStatusIndicator').className = 'w-1.5 h-1.5 rounded-full bg-emerald-400';
+    document.getElementById('overrideIcon').className = 'fas fa-microchip';
+    document.getElementById('txtBioSpeed').innerText = 'LIVE TELEMETRY STREAM';
+    document.getElementById('txtBioSpeed').className = 'text-emerald-400 font-bold tracking-wider';
+    
+    throttleShowToast('Triage Sync', 'Ward biosensor arrays calibrated and synced successfully!', 'success');
+  }
+
+  function dispatchEmergencyTeam() {
+    throttleShowToast('EMERGENCY OUTBREAK', 'ICU Emergency Dispatch Team deployed to Bed 04 instantly!', 'danger');
+  }
+
+  // --- Centralized Mount/Initialization Block ---
+  document.addEventListener('DOMContentLoaded', function() {
+    HMSLifecycle.init();
+    safeInitBioCanvas();
+    
+    if (bioCtx && bioCanvas) {
+      bioAnimationId = HMSLifecycle.requestAnimationFrame(renderBioLoop);
+    }
+    
+    // Centralized resize listener
+    HMSLifecycle.addEventListener(window, 'resize', () => {
+      safeInitBioCanvas();
+    });
+    
+    // Page Visibility API support
+    HMSLifecycle.addEventListener(document, 'visibilitychange', () => {
+      if (document.hidden) {
+        console.log('💤 tab hidden: freezing ICU oscilloscope loop');
+        HMSLifecycle.cancelAnimationFrame(bioAnimationId);
+        bioAnimationId = null;
+      } else {
+        console.log('🌞 tab active: resuming ICU oscilloscope loop');
+        if (bioCtx && bioCanvas && !bioAnimationId) {
+          bioAnimationId = HMSLifecycle.requestAnimationFrame(renderBioLoop);
+        }
+      }
+    });
+
+    // Navigation and unmount cleanups
+    HMSLifecycle.addEventListener(window, 'beforeunload', () => HMSLifecycle.destroy());
+    HMSLifecycle.addEventListener(window, 'pagehide', () => HMSLifecycle.destroy());
+  });
+
+  const doctorDashboardSocket = window.hmsSocket ? window.hmsSocket() : null;
+  if (doctorDashboardSocket) {
+    doctorDashboardSocket.on('doctor-notification', (data) => {
       if (typeof window.hmsShowToast === 'function') {
         window.hmsShowToast('Clinical', (data && data.message) ? data.message : 'New notification', 'warning');
       }

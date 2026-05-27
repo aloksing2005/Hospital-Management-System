@@ -471,6 +471,32 @@ async function seedDB() {
         });
         console.log("  → Demo blood profile report seeded");
       }
+
+      // --- Demo billing/invoice data for patient ---
+      const billCount = await Bill.countDocuments({ patient_id: demoPatient._id });
+      if (billCount === 0) {
+        await Bill.create([
+          {
+            patient_id: demoPatient._id,
+            bill_number: "INV-8736412",
+            consultation_fee: 500,
+            medicine_charges: 350.50,
+            lab_charges: 1200,
+            total_amount: 2050.50,
+            payment_status: "pending"
+          },
+          {
+            patient_id: demoPatient._id,
+            bill_number: "INV-9283471",
+            consultation_fee: 800,
+            medicine_charges: 150.25,
+            lab_charges: 0,
+            total_amount: 950.25,
+            payment_status: "paid"
+          }
+        ]);
+        console.log("  → Default billing data seeded");
+      }
     }
 
     // --- Parking Slots Seed ---

@@ -47,65 +47,142 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  const revenueData = `<%- JSON.stringify(revenueStats || []) %>`;
-  const monthlyData = `<%- JSON.stringify(monthlyStats || []) %>`;
-  const specializationData = `<%- JSON.stringify(specializationStats || []) %>`;
+  const revenueStatsText = `<%- JSON.stringify(revenueStats || []) %>`;
+  const monthlyStatsText = `<%- JSON.stringify(monthlyStats || []) %>`;
+  const specializationStatsText = `<%- JSON.stringify(specializationStats || []) %>`;
   
-  // Chart.js global configuration for dark theme
-  Chart.defaults.color = '#9ca3af';
-  Chart.defaults.borderColor = 'rgba(75, 85, 99, 0.3)';
+  let revenueData = [];
+  let monthlyData = [];
+  let specializationData = [];
   
-  // Monthly Appointments Line Chart
-  if (monthlyData.length > 0) {
-    new Chart(document.getElementById('appointmentsChart'), {
-      type: 'line',
-      data: {
-        labels: monthlyData.map(d => d.month),
-        datasets: [{
-          label: 'Appointments',
-          data: monthlyData.map(d => d.count),
-          borderColor: '#6366f1',
-          backgroundColor: 'rgba(99, 102, 241, 0.1)',
-          borderWidth: 3,
-          fill: true,
-          tension: 0.4,
-          pointBackgroundColor: '#6366f1',
-          pointBorderColor: '#fff',
-          pointBorderWidth: 2,
-          pointRadius: 5,
-          pointHoverRadius: 7
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false }
+  try { revenueData = JSON.parse(revenueStatsText); } catch(e) {}
+  try { monthlyData = JSON.parse(monthlyStatsText); } catch(e) {}
+  try { specializationData = JSON.parse(specializationStatsText); } catch(e) {}
+  
+  document.addEventListener('DOMContentLoaded', function () {
+    if (typeof Chart === 'undefined') {
+      console.warn("Chart.js library is not loaded. Skipping charts.");
+      return;
+    }
+
+    // Chart.js global configuration for dark theme
+    Chart.defaults.color = '#9ca3af';
+    Chart.defaults.borderColor = 'rgba(75, 85, 99, 0.3)';
+    
+    // Monthly Appointments Line Chart
+    if (monthlyData.length > 0) {
+      new Chart(document.getElementById('appointmentsChart'), {
+        type: 'line',
+        data: {
+          labels: monthlyData.map(d => d.month),
+          datasets: [{
+            label: 'Appointments',
+            data: monthlyData.map(d => d.count),
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#6366f1',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            pointRadius: 5,
+            pointHoverRadius: 7
+          }]
         },
-        scales: {
-          y: {
-            beginAtZero: true,
-            grid: { color: 'rgba(75, 85, 99, 0.3)' }
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
           },
-          x: {
-            grid: { display: false }
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: { color: 'rgba(75, 85, 99, 0.3)' }
+            },
+            x: {
+              grid: { display: false }
+            }
           }
         }
-      }
-    });
-  }
-  
-  // Specialization Doughnut Chart
-  if (specializationData.length > 0) {
-    new Chart(document.getElementById('specializationChart'), {
-      type: 'doughnut',
+      });
+    }
+    
+    // Specialization Doughnut Chart
+    if (specializationData.length > 0) {
+      new Chart(document.getElementById('specializationChart'), {
+        type: 'doughnut',
+        data: {
+          labels: specializationData.map(d => d.specialization),
+          datasets: [{
+            data: specializationData.map(d => d.appointments),
+            backgroundColor: [
+              '#6366f1', '#8b5cf6', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444'
+            ],
+            borderWidth: 0,
+            hoverOffset: 10
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right',
+              labels: { padding: 20, usePointStyle: true }
+            }
+          },
+          cutout: '65%'
+        }
+      });
+    }
+    
+    // Revenue Bar Chart
+    if (revenueData.length > 0) {
+      new Chart(document.getElementById('revenueChart'), {
+        type: 'bar',
+        data: {
+          labels: revenueData.map(d => 'Dr. ' + d.doctor_name),
+          datasets: [{
+            label: 'Revenue (₹)',
+            data: revenueData.map(d => d.revenue),
+            backgroundColor: 'rgba(99, 102, 241, 0.6)',
+            borderColor: 'rgba(99, 102, 241, 1)',
+            borderWidth: 2,
+            borderRadius: 8,
+            hoverBackgroundColor: 'rgba(99, 102, 241, 0.8)'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: { callback: function(value) { return '₹' + value; } },
+              grid: { color: 'rgba(75, 85, 99, 0.3)' }
+            },
+            x: {
+              grid: { display: false }
+            }
+          }
+        }
+      });
+    }
+    
+    // Status Distribution Pie Chart
+    const statusData = { pending: 15, confirmed: 45, completed: 35, cancelled: 5 };
+    new Chart(document.getElementById('statusChart'), {
+      type: 'pie',
       data: {
-        labels: specializationData.map(d => d.specialization),
+        labels: ['Pending', 'Confirmed', 'Completed', 'Cancelled'],
         datasets: [{
-          data: specializationData.map(d => d.appointments),
-          backgroundColor: [
-            '#6366f1', '#8b5cf6', '#0ea5e9', '#10b981', '#f59e0b', '#ef4444'
-          ],
+          data: [statusData.pending, statusData.confirmed, statusData.completed, statusData.cancelled],
+          backgroundColor: ['#f59e0b', '#10b981', '#3b82f6', '#ef4444'],
           borderWidth: 0,
           hoverOffset: 10
         }]
@@ -118,71 +195,9 @@
             position: 'right',
             labels: { padding: 20, usePointStyle: true }
           }
-        },
-        cutout: '65%'
-      }
-    });
-  }
-  
-  // Revenue Bar Chart
-  if (revenueData.length > 0) {
-    new Chart(document.getElementById('revenueChart'), {
-      type: 'bar',
-      data: {
-        labels: revenueData.map(d => 'Dr. ' + d.doctor_name),
-        datasets: [{
-          label: 'Revenue (₹)',
-          data: revenueData.map(d => d.revenue),
-          backgroundColor: 'rgba(99, 102, 241, 0.6)',
-          borderColor: 'rgba(99, 102, 241, 1)',
-          borderWidth: 2,
-          borderRadius: 8,
-          hoverBackgroundColor: 'rgba(99, 102, 241, 0.8)'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: { callback: function(value) { return '₹' + value; } },
-            grid: { color: 'rgba(75, 85, 99, 0.3)' }
-          },
-          x: {
-            grid: { display: false }
-          }
         }
       }
     });
-  }
-  
-  // Status Distribution Pie Chart
-  const statusData = { pending: 15, confirmed: 45, completed: 35, cancelled: 5 };
-  new Chart(document.getElementById('statusChart'), {
-    type: 'pie',
-    data: {
-      labels: ['Pending', 'Confirmed', 'Completed', 'Cancelled'],
-      datasets: [{
-        data: [statusData.pending, statusData.confirmed, statusData.completed, statusData.cancelled],
-        backgroundColor: ['#f59e0b', '#10b981', '#3b82f6', '#ef4444'],
-        borderWidth: 0,
-        hoverOffset: 10
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'right',
-          labels: { padding: 20, usePointStyle: true }
-        }
-      }
-    }
   });
 </script>
 <%- include('../partials/footer') %>
