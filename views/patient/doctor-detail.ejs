@@ -1,80 +1,149 @@
-<% var title = 'Doctor Details - HMS'; %>
+<% var title = 'Doctor Details - HMS Premium'; %>
 <%- include('../partials/header') %>
 
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-md-3 col-lg-2 sidebar p-0">
-      <div class="p-3 text-white">
-        <h5 class="fw-bold"><i class="fas fa-heartbeat me-2"></i>Patient Panel</h5>
-      </div>
-      <nav class="nav flex-column">
-        <a class="nav-link" href="/patient/dashboard"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
-        <a class="nav-link active" href="/patient/doctors"><i class="fas fa-user-md me-2"></i>Find Doctors</a>
-        <a class="nav-link" href="/patient/appointments"><i class="fas fa-calendar-check me-2"></i>My Appointments</a>
-        <a class="nav-link" href="/patient/prescriptions"><i class="fas fa-file-prescription me-2"></i>Prescriptions</a>
-        <a class="nav-link" href="/patient/symptom-checker"><i class="fas fa-brain me-2"></i>AI Symptom Checker</a>
-        <a class="nav-link" href="/patient/chat"><i class="fas fa-comments me-2"></i>Chat</a>
-      </nav>
-    </div>
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <%- include('../partials/patient-sidebar', { active: 'doctors' }) %>
 
-    <div class="col-md-9 col-lg-10 p-4">
-      <a href="/patient/doctors" class="btn btn-outline-primary mb-3">
-        <i class="fas fa-arrow-left me-2"></i>Back to Doctors
-      </a>
+  <!-- Main Content -->
+  <div class="flex-1 overflow-y-auto p-6 lg:p-8">
+    <!-- Back to Doctors Link -->
+    <a href="/patient/doctors" class="hms-btn hms-btn-secondary mb-6 animate-fade-in inline-flex items-center gap-2">
+      <i class="fas fa-arrow-left"></i>
+      Back to Doctors
+    </a>
 
-      <div class="row">
-        <div class="col-md-4">
-          <div class="card p-4 text-center">
-            <img src="<%= doctor.photo || '/images/default-doctor.jpg' %>" alt="Dr. <%= doctor.name %>" class="rounded-circle mx-auto mb-3" style="width:150px;height:150px;object-fit:cover;border:4px solid var(--primary)">
-            <h4 class="fw-bold">Dr. <%= doctor.name %></h4>
-            <span class="badge bg-info mb-2"><%= doctor.specialization %></span>
-            <p class="text-muted"><i class="fas fa-map-marker-alt me-2 text-danger"></i><%= doctor.location || 'Location not set' %></p>
-            <p class="text-success fw-bold"><i class="fas fa-rupee-sign me-2"></i><%= doctor.fees %> per consultation</p>
-            <p class="text-muted"><i class="fas fa-envelope me-2"></i><%= doctor.email %></p>
-            <p class="text-muted"><i class="fas fa-phone me-2"></i><%= doctor.phone || 'N/A' %></p>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-scale-in">
+      <!-- Left Column: Doctor Profile Card -->
+      <div class="lg:col-span-4">
+        <div class="hms-glass-premium p-6 rounded-2xl text-center relative overflow-hidden border border-white/10 shadow-xl">
+          <!-- Status Indicator -->
+          <div class="absolute top-4 right-4 flex items-center gap-2 bg-black/40 px-3 py-1 rounded-full border border-white/10">
+            <span class="w-2.5 h-2.5 rounded-full bg-gray-400 animate-pulse" id="statusDot"></span>
+            <span class="text-xs font-bold text-gray-400" id="doctorStatus">Offline</span>
+          </div>
+
+          <div class="relative inline-block mb-4 mt-4">
+            <img src="<%= doctor.photo || '/images/default-doctor.jpg' %>" alt="Dr. <%= doctor.name %>" class="w-32 h-32 rounded-2xl mx-auto object-cover border-4 border-indigo-500 shadow-xl">
+          </div>
+
+          <h3 class="text-2xl font-black text-white mb-2">Dr. <%= doctor.name %></h3>
+          <span class="hms-badge hms-badge-primary mb-4"><%= doctor.specialization %></span>
+          
+          <div class="h-px bg-white/10 my-4"></div>
+
+          <div class="space-y-4 text-left">
+            <div class="flex items-center gap-3 text-gray-300">
+              <div class="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                <i class="fas fa-map-marker-alt"></i>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-[10px] text-gray-500 uppercase font-bold">Location</p>
+                <p class="text-sm font-semibold text-white truncate"><%= doctor.location || 'Location not set' %></p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3 text-gray-300">
+              <div class="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                <i class="fas fa-rupee-sign"></i>
+              </div>
+              <div>
+                <p class="text-[10px] text-gray-500 uppercase font-bold">Consultation Fee</p>
+                <p class="text-sm font-semibold text-emerald-400">₹<%= doctor.fees %> per consultation</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3 text-gray-300">
+              <div class="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400">
+                <i class="fas fa-clock"></i>
+              </div>
+              <div>
+                <p class="text-[10px] text-gray-500 uppercase font-bold">Availability</p>
+                <p class="text-sm font-semibold text-white"><%= doctor.available_from %> - <%= doctor.available_to %></p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3 text-gray-300">
+              <div class="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center text-purple-400">
+                <i class="fas fa-envelope"></i>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-[10px] text-gray-500 uppercase font-bold">Email</p>
+                <p class="text-sm font-semibold text-white truncate"><%= doctor.email %></p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3 text-gray-300">
+              <div class="w-8 h-8 rounded-lg bg-sky-500/10 flex items-center justify-center text-sky-400">
+                <i class="fas fa-phone"></i>
+              </div>
+              <div>
+                <p class="text-[10px] text-gray-500 uppercase font-bold">Phone</p>
+                <p class="text-sm font-semibold text-white"><%= doctor.phone || 'N/A' %></p>
+              </div>
+            </div>
           </div>
         </div>
+      </div>
 
-        <div class="col-md-8">
-          <div class="card p-4">
-            <h5 class="fw-bold mb-3"><i class="fas fa-calendar-plus me-2 text-primary"></i>Book Appointment</h5>
+      <!-- Right Column: Booking Form -->
+      <div class="lg:col-span-8">
+        <div class="hms-glass-premium p-8 rounded-2xl border border-white/10 shadow-xl relative">
+          <h2 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+            <i class="fas fa-calendar-plus text-indigo-500"></i>
+            <span>Book Appointment</span>
+          </h2>
 
-            <form action="/patient/book-appointment" method="POST" id="bookingForm">
-              <input type="hidden" name="doctor_id" value="<%= doctor.id %>">
+          <form action="/patient/book-appointment" method="POST" id="bookingForm" class="space-y-6">
+            <input type="hidden" name="doctor_id" value="<%= doctor.id %>">
 
-              <div class="mb-3">
-                <label class="form-label">Select Date</label>
-                <input type="date" name="date" id="appointmentDate" class="form-control" required min="<%= new Date().toISOString().split('T')[0] %>">
-                <small id="leaveWarning" class="text-danger d-none">Doctor is on leave on this date.</small>
-              </div>
-
-              <div class="mb-3">
-                <label class="form-label">Select Time Slot</label>
-                <div class="d-flex flex-wrap">
-                  <% slots.forEach(slot => { %>
-                    <button type="button" class="btn btn-outline-primary slot-btn" onclick="selectSlot(this, '<%= slot %>')">
-                      <%= slot %>
-                    </button>
-                  <% }) %>
+            <!-- Date Picker -->
+            <div>
+              <label class="hms-label text-sm font-bold mb-2">Select Date</label>
+              <div class="relative">
+                <input type="date" name="date" id="appointmentDate" class="hms-input-modern w-full p-4 pl-12 focus:outline-none" required min="<%= new Date().toISOString().split('T')[0] %>">
+                <div class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
+                  <i class="fas fa-calendar"></i>
                 </div>
-                <input type="hidden" name="time_slot" id="selectedSlot" required>
               </div>
-
-              <div class="mb-3">
-                <label class="form-label">Symptoms</label>
-                <textarea name="symptoms" class="form-control" rows="3" placeholder="Describe your symptoms..."></textarea>
+              <div id="leaveWarning" class="hidden mt-3 p-4 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-center gap-3">
+                <i class="fas fa-exclamation-circle text-rose-400"></i>
+                <span class="text-rose-400 text-sm font-semibold">Doctor is on leave on this date. Please choose another date.</span>
               </div>
+            </div>
 
-              <div class="mb-3">
-                <label class="form-label">Additional Notes</label>
-                <textarea name="notes" class="form-control" rows="2" placeholder="Any additional information..."></textarea>
+            <!-- Time Slot Selection -->
+            <div>
+              <label class="hms-label text-sm font-bold mb-3">Select Time Slot</label>
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                <% slots.forEach(slot => { %>
+                  <button type="button" class="slot-btn py-3 px-4 rounded-xl border border-white/5 bg-white/5 text-gray-300 font-semibold hover:border-indigo-500/30 hover:bg-indigo-500/5 hover:text-white transition-all text-sm flex items-center justify-center gap-2 cursor-pointer" onclick="selectSlot(this, '<%= slot %>')">
+                    <i class="far fa-clock text-xs opacity-60"></i>
+                    <%= slot %>
+                  </button>
+                <% }) %>
               </div>
+              <input type="hidden" name="time_slot" id="selectedSlot" required>
+            </div>
 
-              <button type="submit" class="btn btn-primary btn-lg w-100">
-                <i class="fas fa-calendar-check me-2"></i>Confirm Booking
-              </button>
-            </form>
-          </div>
+            <!-- Symptoms Input -->
+            <div>
+              <label class="hms-label text-sm font-bold mb-2">Symptoms</label>
+              <textarea name="symptoms" class="hms-input-modern w-full p-4 h-32 focus:outline-none resize-none" placeholder="Describe your symptoms (e.g. fever, headache, cough)..."></textarea>
+            </div>
+
+            <!-- Additional Notes -->
+            <div>
+              <label class="hms-label text-sm font-bold mb-2">Additional Notes (Optional)</label>
+              <textarea name="notes" class="hms-input-modern w-full p-4 h-24 focus:outline-none resize-none" placeholder="Any additional details or medical history..."></textarea>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="hms-btn hms-btn-primary w-full py-4 text-base font-bold flex items-center justify-center gap-2">
+              <i class="fas fa-calendar-check"></i>
+              Confirm Appointment Booking
+            </button>
+          </form>
         </div>
       </div>
     </div>
@@ -87,19 +156,37 @@
     socket.on('doctor-online-status', (data) => {
       if (data.doctorId === '<%= doctor.id %>') {
         const statusEl = document.getElementById('doctorStatus');
+        const statusDot = document.getElementById('statusDot');
         if (statusEl) {
           statusEl.textContent = data.isOnline ? 'Online' : 'Offline';
-          statusEl.className = data.isOnline ? 'text-emerald-400 font-bold' : 'text-gray-400 font-bold';
+          statusEl.className = data.isOnline ? 'text-xs font-bold text-emerald-400' : 'text-xs font-bold text-gray-400';
+        }
+        if (statusDot) {
+          statusDot.className = data.isOnline ? 'w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse' : 'w-2.5 h-2.5 rounded-full bg-gray-400';
         }
       }
     });
   }
 
   function selectSlot(btn, slot) {
-    document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('selected', 'btn-primary'));
-    document.querySelectorAll('.slot-btn').forEach(b => b.classList.add('btn-outline-primary'));
-    btn.classList.remove('btn-outline-primary');
-    btn.classList.add('selected', 'btn-primary');
+    // Reset all slot buttons to default style
+    document.querySelectorAll('.slot-btn').forEach(b => {
+      b.classList.remove('border-indigo-500', 'bg-indigo-500/10', 'text-white', 'selected');
+      b.classList.add('border-white/5', 'bg-white/5', 'text-gray-300');
+      const icon = b.querySelector('i');
+      if (icon) {
+        icon.className = 'far fa-clock text-xs opacity-60';
+      }
+    });
+    
+    // Apply selected style to the clicked button
+    btn.classList.remove('border-white/5', 'bg-white/5', 'text-gray-300');
+    btn.classList.add('border-indigo-500', 'bg-indigo-500/10', 'text-white', 'selected');
+    const activeIcon = btn.querySelector('i');
+    if (activeIcon) {
+      activeIcon.className = 'fas fa-clock text-xs text-indigo-400';
+    }
+    
     document.getElementById('selectedSlot').value = slot;
   }
 
@@ -110,10 +197,10 @@
     const warning = document.getElementById('leaveWarning');
     const submitBtn = document.querySelector('#bookingForm button[type="submit"]');
     if (leaveDates.includes(selectedDate)) {
-      warning.classList.remove('d-none');
+      warning.classList.remove('hidden');
       submitBtn.disabled = true;
     } else {
-      warning.classList.add('d-none');
+      warning.classList.add('hidden');
       submitBtn.disabled = false;
     }
   });
