@@ -1,5 +1,13 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
+const dns = require("dns");
+
+try {
+  dns.setServers(["1.1.1.1", "8.8.8.8"]);
+} catch (err) {
+  console.warn("⚠️ DNS setServers failed:", err.message);
+}
+
 require("dotenv").config();
 
 // ─── Mongoose Connection ───────────────────────────────────────────────────────
