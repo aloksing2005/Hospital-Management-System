@@ -1,4 +1,12 @@
 const express = require("express");
+const dns = require("dns");
+
+try {
+  dns.setServers(["1.1.1.1", "8.8.8.8"]);
+} catch (err) {
+  console.warn("⚠️ DNS setServers failed:", err.message);
+}
+
 const session = require("express-session");
 const flash = require("connect-flash");
 const path = require("path");
