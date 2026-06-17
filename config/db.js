@@ -12,13 +12,34 @@ require("dotenv").config();
 
 // ─── Mongoose Connection ───────────────────────────────────────────────────────
 const MONGO_URI = process.env.MONGO_URI || "mongodb://localhost:27017/hospital_db";
+const FALLBACK_URI = "mongodb://127.0.0.1:27017/hospital_db";
 
-mongoose.connect(MONGO_URI)
-  .then(() => console.log("✅ MongoDB connected successfully"))
-  .catch(err => {
-    console.error("❌ MongoDB connection failed:", err.message);
-    console.error("Please check your MONGO_URI in .env");
-  });
+async function connectDB() {
+  console.log("Connecting to primary MongoDB URI...");
+  try {
+    await mongoose.connect(MONGO_URI, {
+      serverSelectionTimeoutMS: 5000
+    });
+    console.log("✅ MongoDB connected successfully to primary database");
+  } catch (err) {
+    console.error("❌ MongoDB primary connection failed:", err.message);
+    if (MONGO_URI !== FALLBACK_URI && !MONGO_URI.includes("127.0.0.1") && !MONGO_URI.includes("localhost")) {
+      console.log(`Trying fallback local MongoDB: ${FALLBACK_URI}...`);
+      try {
+        await mongoose.connect(FALLBACK_URI, {
+          serverSelectionTimeoutMS: 5000
+        });
+        console.log("✅ MongoDB connected successfully to fallback database");
+      } catch (fallbackErr) {
+        console.error("❌ MongoDB fallback connection failed:", fallbackErr.message);
+      }
+    } else {
+      console.error("Please check your MONGO_URI in .env");
+    }
+  }
+}
+
+connectDB();
 
 // ─── Schema Definitions ────────────────────────────────────────────────────────
 
