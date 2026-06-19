@@ -395,3 +395,17 @@ exports.getNotificationsApi = async (req, res) => {
     res.status(500).json({ success: false });
   }
 };
+
+exports.generateDiet = async (req, res) => {
+  try {
+    const { goal, activity } = req.body;
+    if (!goal || !activity) {
+      return res.status(400).json({ success: false, error: "Goal and activity level are required" });
+    }
+    const { generateDietPlan } = require("../utils/medicalAI");
+    const plan = await generateDietPlan(goal, activity);
+    res.json({ success: true, plan });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};

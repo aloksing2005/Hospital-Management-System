@@ -64,6 +64,8 @@ router.get("/diet-planner", isPatient, (req, res) => {
   res.render("patient/diet-planner", { user: req.session.user });
 });
 
+router.post("/diet-planner/generate", isPatient, patientFeatures.generateDiet);
+
 router.get("/wellbeing", isPatient, patientFeatures.getWellbeing);
 router.post("/wellbeing/log", isPatient, patientFeatures.logWellbeing);
 

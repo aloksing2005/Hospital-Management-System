@@ -341,5 +341,142 @@ Patient symptoms/input: "{input}"`]
   return finalAnalysis;
 }
 
-module.exports = { analyzeSymptoms, detectConditions };
+async function generateDietPlan(goal = "", activity = "") {
+  // Local fallbacks:
+  const fallbacks = {
+    "recovery from fever": {
+      calories: 1800,
+      macros: { protein: 30, carbs: 50, fats: 20 },
+      meals: [
+        { time: "08:00", name: "Breakfast: Warm Oats & Banana", desc: "Easy to digest, rich in soluble fiber. Avoid dairy if stomach is sensitive." },
+        { time: "11:00", name: "Mid-Day: Coconut Water & Apple Puree", desc: "Provides vital electrolytes and hydration." },
+        { time: "13:00", name: "Lunch: Moong Dal Khichdi & Curd", desc: "Light comfort food, rich in protein and probiotics." },
+        { time: "16:00", name: "Snack: Clear Chicken or Vegetable Soup", desc: "Warm liquids to soothe throat and provide hydration." },
+        { time: "20:00", name: "Dinner: Boiled Vegetables & Steamed Rice", desc: "Very light on the stomach, supports rapid recovery." }
+      ],
+      advice: [
+        "Drink at least 3 liters of fluids daily.",
+        "Avoid oily, spicy, and heavy foods.",
+        "Take plenty of bed rest to aid recovery."
+      ]
+    },
+    "weight management": {
+      calories: 2000,
+      macros: { protein: 40, carbs: 35, fats: 25 },
+      meals: [
+        { time: "08:00", name: "Breakfast: High Protein Omelette", desc: "3 egg whites, spinach, and whole grain toast. No butter." },
+        { time: "13:00", name: "Lunch: Grilled Chicken & Quinoa", desc: "Seasoned with lemon and herbs. Large side of steamed broccoli." },
+        { time: "17:00", name: "Snack: Roasted Chickpeas & Green Tea", desc: "High fiber snack to control cravings." },
+        { time: "20:00", name: "Dinner: Baked Salmon or Tofu with Asparagus", desc: "Rich in Omega-3 and clean protein. Light dinner." }
+      ],
+      advice: [
+        "Maintain a calorie deficit if looking to lose weight.",
+        "Engage in 30 minutes of moderate exercise daily.",
+        "Avoid liquid calories and sugary beverages."
+      ]
+    },
+    "diabetic friendly": {
+      calories: 1900,
+      macros: { protein: 35, carbs: 40, fats: 25 },
+      meals: [
+        { time: "08:00", name: "Breakfast: Ragi Porridge with Almonds", desc: "Low glycemic index, rich in complex carbohydrates and healthy fats." },
+        { time: "13:00", name: "Lunch: Brown Rice, Mixed Dal & Leafy Salad", desc: "High fiber combination to prevent blood glucose spikes." },
+        { time: "17:00", name: "Snack: Handful of Walnuts & Cucumber Slices", desc: "Healthy fats and hydration with zero impact on insulin." },
+        { time: "20:00", name: "Dinner: Grilled Paneer/Fish with Stir-Fried Veggies", desc: "High protein, low carb meal to maintain stable overnight blood sugar." }
+      ],
+      advice: [
+        "Avoid simple sugars, refined flour, and processed foods.",
+        "Incorporate regular walking after major meals.",
+        "Monitor blood glucose levels regularly."
+      ]
+    },
+    "heart healthy": {
+      calories: 2100,
+      macros: { protein: 30, carbs: 45, fats: 25 },
+      meals: [
+        { time: "08:00", name: "Breakfast: Oatmeal with Chia Seeds & Berries", desc: "High in soluble beta-glucan fiber and heart-healthy antioxidants." },
+        { time: "13:00", name: "Lunch: Lentil Soup, Quinoa, and Steamed Broccoli", desc: "Low sodium, plant-based protein, and fiber rich." },
+        { time: "17:00", name: "Snack: Apple Slices with a tablespoon of Almond Butter", desc: "Monounsaturated fats and dietary fiber." },
+        { time: "20:00", name: "Dinner: Baked Salmon or Tofu with Asparagus", desc: "Rich in Omega-3 fatty acids to support cardiovascular health." }
+      ],
+      advice: [
+        "Minimize sodium (salt) intake and avoid trans fats.",
+        "Cook meals using extra virgin olive oil or mustard oil in moderation.",
+        "Incorporate cardiovascular exercises like swimming or brisk walking."
+      ]
+    }
+  };
+
+  const key = goal.toLowerCase().trim();
+  let selectedPlan = fallbacks[key] || fallbacks["weight management"];
+  
+  // Scale calories slightly based on activity
+  // Sedentary: base, Moderate: +200, Active: +400
+  let calModifier = 0;
+  if (activity.toLowerCase() === "moderate") calModifier = 200;
+  else if (activity.toLowerCase() === "active") calModifier = 400;
+  
+  const finalCal = selectedPlan.calories + calModifier;
+
+  const hasApiKey = process.env.GEMINI_API_KEY && 
+                    process.env.GEMINI_API_KEY !== "your_gemini_api_key_here" && 
+                    process.env.GEMINI_API_KEY.trim() !== "";
+
+  if (hasApiKey) {
+    try {
+      const model = new ChatGoogleGenerativeAI({
+        apiKey: process.env.GEMINI_API_KEY,
+        model: "gemini-1.5-flash",
+        maxOutputTokens: 1200,
+      });
+
+      const prompt = ChatPromptTemplate.fromMessages([
+        ["system", `You are a professional AI Nutritionist and Diet Consultant. Create a personalized, highly structured daily meal plan.
+Always output structured JSON matching the requested fields without any wrapping text or markdown blocks.
+Ensure the food choices are accessible, healthy, and tailored to the requested goal and activity level. Include times, meal names, and descriptions for breakfast, lunch, and dinner, plus optional snacks.`],
+        ["human", `Create a daily diet plan for a patient with:
+Goal: {goal}
+Activity Level: {activityLevel}
+
+Respond ONLY with a valid JSON object containing:
+- calories: Target daily calories (integer, e.g. 2100)
+- macros: Object with keys "protein" (percentage), "carbs" (percentage), "fats" (percentage) summing to 100
+- meals: Array of objects with keys "time", "name" (e.g. "Breakfast: Oats"), and "desc" (description of nutrients and food recommendations)
+- advice: Array of daily health and nutrition tips tailored to this specific goal.
+
+For the goal '{goal}' and activity level '{activityLevel}', provide a structured diet plan.`]
+      ]);
+
+      const chain = prompt.pipe(model).pipe(new StringOutputParser());
+      const response = await chain.invoke({
+        goal: goal,
+        activityLevel: activity
+      });
+
+      let cleanedResponse = response.trim();
+      if (cleanedResponse.startsWith("```json")) {
+        cleanedResponse = cleanedResponse.substring(7, cleanedResponse.length - 3).trim();
+      } else if (cleanedResponse.startsWith("```")) {
+        cleanedResponse = cleanedResponse.substring(3, cleanedResponse.length - 3).trim();
+      }
+
+      const parsed = JSON.parse(cleanedResponse);
+      if (parsed.calories && parsed.meals && parsed.macros) {
+        return parsed;
+      }
+    } catch (err) {
+      console.warn("⚠️ Gemini Diet Planner API error, falling back to local database:", err.message);
+    }
+  }
+
+  // Return local fallback plan if Gemini fails or is disabled
+  return {
+    calories: finalCal,
+    macros: selectedPlan.macros,
+    meals: selectedPlan.meals,
+    advice: selectedPlan.advice
+  };
+}
+
+module.exports = { analyzeSymptoms, detectConditions, generateDietPlan };
 

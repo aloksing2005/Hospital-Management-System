@@ -18,11 +18,13 @@ exports.getDriverDashboard = async (req, res) => {
   try {
     const ambulance = await AmbulanceModel.getAmbulanceByDriver(req.session.user.id);
     const pendingRequests = await AmbulanceModel.getPendingRequests();
+    const activeRequest = await AmbulanceModel.getActiveRequestForDriver(req.session.user.id);
     res.render("driver/dashboard", {
       title: "Driver Dashboard",
       user: req.session.user,
       ambulance,
-      pendingRequests
+      pendingRequests,
+      activeRequest
     });
   } catch (err) {
     req.flash("error", err.message);

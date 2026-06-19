@@ -1,95 +1,133 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Driver Dashboard - HMS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        #map { height: 400px; width: 100%; border-radius: 12px; }
-        .request-card { transition: all 0.3s ease; }
-        .request-card:hover { transform: translateY(-2px); }
-    </style>
-</head>
-<body class="bg-gray-50">
-    <!-- Navbar -->
-    <nav class="bg-indigo-700 text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <div class="flex items-center">
-                    <i class="fas fa-ambulance text-2xl mr-3"></i>
-                    <span class="text-xl font-bold tracking-tight">Driver Portal</span>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <div class="flex items-center bg-indigo-800 px-3 py-1 rounded-full">
-                        <div class="w-2 h-2 rounded-full bg-green-400 mr-2 animate-pulse"></div>
-                        <span class="text-sm font-medium">Online</span>
-                    </div>
-                    <a href="/logout" class="hover:text-indigo-200 transition"><i class="fas fa-sign-out-alt"></i></a>
-                </div>
+<% var title = 'Driver Dashboard - HMS'; %>
+<%- include('../partials/header') %>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+  /* Cyberspace Map filters for tactical matrix HUD layout */
+  #map .leaflet-tile {
+    filter: invert(100%) hue-rotate(180deg) brightness(85%) contrast(95%) !important;
+  }
+  .leaflet-container {
+    background: #090d16 !important;
+  }
+  .leaflet-bar a {
+    background-color: #0f172a !important;
+    color: #8b5cf6 !important;
+    border-color: rgba(255, 255, 255, 0.1) !important;
+  }
+  #map { height: 400px; width: 100%; border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.1); }
+  .request-card { transition: all 0.3s ease; }
+  .request-card:hover { transform: translateY(-2px); }
+
+  /* Pulsing markers */
+  .pulse-driver-marker {
+    position: relative;
+  }
+  .pulse-driver-marker::after {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border: 3px solid #6366f1;
+    border-radius: 50%;
+    animation: pulse-ring 1.5s cubic-bezier(0.215, 0.610, 0.355, 1) infinite;
+  }
+  .pulse-patient-marker {
+    position: relative;
+  }
+  .pulse-patient-marker::after {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border: 3px solid #f43f5e;
+    border-radius: 50%;
+    animation: pulse-ring 1.5s cubic-bezier(0.215, 0.610, 0.355, 1) infinite;
+  }
+  @keyframes pulse-ring {
+    0% { transform: scale(0.5); opacity: 0; }
+    50% { opacity: 1; }
+    100% { transform: scale(1.2); opacity: 0; }
+  }
+</style>
+
+<div class="hms-bg min-h-screen py-8">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Dashboard Header -->
+        <div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-black text-white tracking-tight">Driver Portal</h1>
+                <p class="text-gray-400 font-medium">Manage emergency requests and location synchronization</p>
+            </div>
+            <div class="flex items-center gap-3 bg-emerald-500/10 px-4 py-2 rounded-xl border border-emerald-500/20 w-fit">
+                <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
+                <span class="text-xs font-black text-emerald-400 uppercase tracking-wider">Duty Status: Online</span>
             </div>
         </div>
-    </nav>
 
-    <main class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- Left Column: Map & Status -->
             <div class="lg:col-span-2 space-y-6">
-                <div class="bg-white rounded-2xl shadow-sm p-6">
+                <!-- Map Card -->
+                <div class="hms-glass-premium rounded-2xl p-6 relative overflow-hidden shadow-2xl">
                     <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-lg font-semibold text-gray-800">Your Live Location</h2>
-                        <span class="text-sm text-gray-500" id="coords">Detecting...</span>
+                        <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                            <i class="fas fa-map-marked-alt text-indigo-400"></i>
+                            Your Live Location
+                        </h2>
+                        <span class="text-xs font-semibold text-gray-400 bg-white/5 px-3 py-1 rounded-full border border-white/5" id="coords">Detecting...</span>
                     </div>
-                    <div id="map"></div>
+                    <div id="map" class="z-10"></div>
                 </div>
 
+                <!-- Stats Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm">
-                        <p class="text-sm text-gray-500 mb-1">Total Trips</p>
-                        <p class="text-2xl font-bold text-gray-800">24</p>
+                    <div class="hms-glass-premium hms-hover-lift p-6 rounded-2xl border border-white/10 shadow-lg">
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Total Trips</p>
+                        <p class="text-2xl font-black text-white">24</p>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm">
-                        <p class="text-sm text-gray-500 mb-1">Vehicle</p>
-                        <p class="text-2xl font-bold text-indigo-600"><%= ambulance ? ambulance.vehicle_no : 'AMB-101' %></p>
+                    <div class="hms-glass-premium hms-hover-lift p-6 rounded-2xl border border-white/10 shadow-lg">
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Assigned Vehicle</p>
+                        <p class="text-2xl font-black text-indigo-400"><%= ambulance ? ambulance.vehicle_no : 'AMB-101' %></p>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm">
-                        <p class="text-sm text-gray-500 mb-1">Rating</p>
-                        <p class="text-2xl font-bold text-yellow-500">4.9 <i class="fas fa-star text-xs"></i></p>
+                    <div class="hms-glass-premium hms-hover-lift p-6 rounded-2xl border border-white/10 shadow-lg">
+                        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Rating</p>
+                        <p class="text-2xl font-black text-amber-400">4.9 <i class="fas fa-star text-xs"></i></p>
                     </div>
                 </div>
             </div>
 
             <!-- Right Column: Requests -->
             <div class="space-y-6">
-                <div class="bg-white rounded-2xl shadow-sm p-6 h-full min-h-[500px]">
-                    <h2 class="text-lg font-semibold text-gray-800 mb-6 flex items-center">
-                        <i class="fas fa-bell text-indigo-500 mr-3"></i>
+                <div class="hms-glass-premium rounded-2xl p-6 h-full min-h-[500px] border border-white/10 shadow-2xl">
+                    <h2 class="text-lg font-bold text-white mb-6 flex items-center">
+                        <i class="fas fa-bell text-rose-400 mr-3 animate-pulse"></i>
                         Live Requests
-                        <span id="requestCount" class="ml-auto bg-indigo-100 text-indigo-700 text-xs px-2 py-1 rounded-full"><%= pendingRequests.length %></span>
+                        <span id="requestCount" class="ml-auto bg-indigo-500/20 text-indigo-300 text-xs px-2.5 py-1 rounded-full border border-indigo-500/20 font-bold"><%= pendingRequests.length %></span>
                     </h2>
 
                     <div id="requestContainer" class="space-y-4">
                         <% if (pendingRequests.length === 0) { %>
-                            <div class="text-center py-12" id="noRequests">
-                                <i class="fas fa-search-location text-4xl text-gray-200 mb-4 block"></i>
-                                <p class="text-gray-400">Waiting for new requests...</p>
+                            <div class="text-center py-16" id="noRequests">
+                                <i class="fas fa-search-location text-4xl text-white/20 mb-4 block"></i>
+                                <p class="text-gray-400 font-medium">Waiting for new requests...</p>
                             </div>
                         <% } else { %>
                             <% pendingRequests.forEach(req => { %>
-                                <div class="request-card bg-gray-50 border border-gray-100 rounded-xl p-4" id="req-<%= req.id %>">
+                                <div class="request-card bg-white/5 border border-white/5 rounded-xl p-4 hms-hover-lift" id="req-<%= req.id %>">
                                     <div class="flex justify-between items-start mb-3">
-                                        <span class="text-xs font-bold uppercase tracking-wider text-red-500 bg-red-50 px-2 py-1 rounded">Emergency</span>
+                                        <span class="text-[10px] font-black uppercase tracking-wider text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded">Emergency</span>
                                         <span class="text-xs text-gray-400">Just now</span>
                                     </div>
-                                    <h3 class="font-bold text-gray-800"><%= req.patient_name %></h3>
-                                    <p class="text-sm text-gray-600 mt-1"><i class="fas fa-map-marker-alt text-indigo-500 mr-2"></i><%= req.pickup_address %></p>
+                                    <h3 class="font-bold text-white"><%= req.patient_name %></h3>
+                                    <p class="text-xs text-gray-300 mt-1 flex items-start gap-1"><i class="fas fa-map-marker-alt text-rose-400 mt-0.5"></i> <span><%= req.pickup_address %></span></p>
                                     <div class="mt-4 flex gap-2">
-                                        <button onclick="acceptRequest(`<%= req.id %>`)" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-medium hover:bg-indigo-700 transition">Accept</button>
-                                        <button onclick="rejectRequest(`<%= req.id %>`)" class="px-4 py-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"><i class="fas fa-times"></i></button>
+                                        <button onclick="acceptRequest('<%= req.id %>')" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm py-2 rounded-lg font-bold transition">Accept</button>
+                                        <button onclick="rejectRequest('<%= req.id %>')" class="px-3 py-2 text-gray-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition"><i class="fas fa-times"></i></button>
                                     </div>
                                 </div>
                             <% }) %>
@@ -99,110 +137,213 @@
             </div>
         </div>
     </main>
+</div>
 
-    <!-- Active Trip Modal -->
-    <div id="tripModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl">
-            <div class="text-center mb-6">
-                <div class="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="fas fa-route text-2xl"></i>
-                </div>
-                <h3 class="text-2xl font-bold text-gray-800">Trip in Progress</h3>
-                <p class="text-gray-500" id="activePatient">Patient: John Doe</p>
-                <p class="text-sm text-indigo-600 font-medium mt-1" id="tripStatus">Status: Accepted</p>
-            </div>
-            
-            <div class="space-y-4 mb-8">
-                <div class="flex items-center p-4 bg-gray-50 rounded-2xl">
-                    <i class="fas fa-phone-alt text-indigo-500 mr-4"></i>
-                    <span id="activePhone">+91 9876543210</span>
-                </div>
-                <div class="flex items-center p-4 bg-gray-50 rounded-2xl">
-                    <i class="fas fa-map-marked-alt text-indigo-500 mr-4"></i>
-                    <span id="activeAddress">123 Street Name, City</span>
-                </div>
-                <div class="flex items-center p-4 bg-indigo-50 rounded-2xl">
-                    <i class="fas fa-clock text-indigo-500 mr-4"></i>
-                    <span id="etaDisplay">ETA: Calculating...</span>
-                </div>
-            </div>
+<!-- Active Trip Modal -->
+<div id="tripModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-md flex items-center justify-center p-4 z-50 transition-all duration-300">
+    <div class="hms-glass-premium rounded-3xl w-full max-w-md p-8 shadow-2xl border border-white/10 relative overflow-hidden">
+        <div class="absolute -top-10 -left-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-10 -right-10 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
-            <!-- Status Update Buttons -->
-            <div id="statusButtons" class="space-y-3 mb-6">
-                <button onclick="updateTripStatus('on_the_way')" class="w-full bg-blue-600 text-white py-3 rounded-2xl font-bold hover:bg-blue-700 transition">
-                    <i class="fas fa-truck mr-2"></i> On The Way
-                </button>
-                <button onclick="updateTripStatus('arrived')" class="w-full bg-amber-600 text-white py-3 rounded-2xl font-bold hover:bg-amber-700 transition">
-                    <i class="fas fa-map-pin mr-2"></i> Arrived at Location
-                </button>
+        <div class="text-center mb-6 relative z-10">
+            <div class="w-16 h-16 bg-indigo-500/20 text-indigo-400 rounded-full flex items-center justify-center mx-auto mb-4 border border-indigo-500/30">
+                <i class="fas fa-route text-2xl"></i>
             </div>
+            <h3 class="text-2xl font-black text-white">Trip in Progress</h3>
+            <p class="text-gray-300 mt-1 font-semibold" id="activePatient">Patient: Loading...</p>
+            <p class="text-sm text-indigo-400 font-bold mt-1" id="tripStatus">Status: Accepted</p>
+        </div>
+        
+        <div class="space-y-4 mb-8 relative z-10">
+            <div class="flex items-center p-4 bg-white/5 border border-white/5 rounded-2xl">
+                <i class="fas fa-phone-alt text-indigo-400 mr-4 text-sm"></i>
+                <span id="activePhone" class="text-white font-bold text-sm">+91 9876543210</span>
+            </div>
+            <div class="flex items-center p-4 bg-white/5 border border-white/5 rounded-2xl">
+                <i class="fas fa-map-marked-alt text-indigo-400 mr-4 text-sm"></i>
+                <span id="activeAddress" class="text-gray-300 text-xs font-semibold leading-tight">123 Street Name, City</span>
+            </div>
+            <div class="flex items-center p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl">
+                <i class="fas fa-clock text-indigo-400 mr-4 text-sm"></i>
+                <span id="etaDisplay" class="text-indigo-300 font-bold text-sm">ETA: Calculating...</span>
+            </div>
+        </div>
 
-            <button onclick="completeTrip()" class="w-full bg-green-600 text-white py-4 rounded-2xl font-bold text-lg hover:bg-green-700 shadow-lg shadow-green-200 transition">
-                <i class="fas fa-check-circle mr-2"></i> Complete Trip
+        <!-- Status Update Buttons -->
+        <div id="statusButtons" class="space-y-3 mb-6 relative z-10">
+            <button id="btnOnTheWay" onclick="updateTripStatus('on_the_way')" class="w-full bg-indigo-600 text-white py-3.5 rounded-2xl font-bold hover:bg-indigo-700 transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30">
+                <i class="fas fa-truck"></i> On The Way
+            </button>
+            <button id="btnArrived" onclick="updateTripStatus('arrived')" class="w-full bg-amber-600 text-white py-3.5 rounded-2xl font-bold hover:bg-amber-700 transition flex items-center justify-center gap-2 shadow-lg shadow-amber-600/30">
+                <i class="fas fa-map-pin"></i> Arrived at Location
             </button>
         </div>
+
+        <button onclick="completeTrip()" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black text-lg hover:bg-emerald-700 shadow-lg shadow-emerald-600/30 transition flex items-center justify-center gap-2 relative z-10">
+            <i class="fas fa-check-circle"></i> Complete Trip
+        </button>
     </div>
+</div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        const socket = window.hmsSocket ? window.hmsSocket() : null;
-        const driverId = `<%= user.id %>`;
-        let map, marker, activeRequestId = null;
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<%- include('../partials/footer') %>
 
-        if (socket) {
-            socket.emit('join', { userId: String(driverId), role: 'driver' });
+<script>
+    const socket = window.hmsSocket ? window.hmsSocket() : null;
+    const driverId = `<%= user.id %>`;
+    let map, marker, patientMarker = null, activeRequestId = null;
+
+    if (socket) {
+        socket.emit('driver-online', { driverId });
+        socket.on('connect', () => {
             socket.emit('driver-online', { driverId });
-        }
+        });
+    }
 
-        // Init Map
-        function initMap() {
-            map = L.map('map').setView([28.6139, 77.2090], 13);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-            marker = L.marker([28.6139, 77.2090]).addTo(map);
-        }
+    // Init Map
+    function initMap() {
+        map = L.map('map').setView([28.6139, 77.2090], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
-        // Get Location
-        if ("geolocation" in navigator) {
-            navigator.geolocation.watchPosition(async (pos) => {
-                const { latitude, longitude } = pos.coords;
+        const customIcon = L.divIcon({
+            className: 'pulse-driver-marker',
+            html: `<div class="w-8 h-8 rounded-full bg-indigo-600 border-2 border-white flex items-center justify-center text-white shadow-lg shadow-indigo-500/50">
+                     <i class="fas fa-ambulance text-xs"></i>
+                   </div>`,
+            iconSize: [32, 32],
+            iconAnchor: [16, 16]
+        });
+        marker = L.marker([28.6139, 77.2090], { icon: customIcon }).addTo(map);
+    }
+
+    // Get Location
+    if ("geolocation" in navigator) {
+        navigator.geolocation.watchPosition(async (pos) => {
+            const { latitude, longitude } = pos.coords;
+            if (marker) {
                 marker.setLatLng([latitude, longitude]);
+            }
+            if (map && !patientMarker) {
                 map.setView([latitude, longitude], 15);
-                document.getElementById('coords').innerText = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
+            }
+            document.getElementById('coords').innerText = `${latitude.toFixed(4)}, ${longitude.toFixed(4)}`;
 
-                // Update server/DB
-                try {
-                    await fetch('/driver/update-location', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ lat: latitude, lng: longitude })
-                    });
-                } catch (err) {
-                    console.error('Error updating location:', err);
-                }
+            // Update server/DB
+            try {
+                await fetch('/driver/update-location', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ lat: latitude, lng: longitude })
+                });
+            } catch (err) {
+                console.error('Error updating location:', err);
+            }
+        });
+    }
+
+    initMap();
+
+    // UI helper for active trip button states
+    function updateButtonUI(status) {
+        const btnOnTheWay = document.getElementById('btnOnTheWay');
+        const btnArrived = document.getElementById('btnArrived');
+        
+        if (status === 'accepted') {
+            btnOnTheWay.disabled = false;
+            btnOnTheWay.classList.remove('opacity-50', 'cursor-not-allowed');
+            btnArrived.disabled = true;
+            btnArrived.classList.add('opacity-50', 'cursor-not-allowed');
+        } else if (status === 'on_the_way') {
+            btnOnTheWay.disabled = true;
+            btnOnTheWay.classList.add('opacity-50', 'cursor-not-allowed');
+            btnArrived.disabled = false;
+            btnArrived.classList.remove('opacity-50', 'cursor-not-allowed');
+        } else if (status === 'arrived') {
+            btnOnTheWay.disabled = true;
+            btnOnTheWay.classList.add('opacity-50', 'cursor-not-allowed');
+            btnArrived.disabled = true;
+            btnArrived.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+    }
+
+    // Display Patient Pin on Map & Auto Pan
+    function showPatientOnMap(lat, lng, address) {
+        if (patientMarker) {
+            map.removeLayer(patientMarker);
+            patientMarker = null;
+        }
+        if (lat && lng) {
+            const patientIcon = L.divIcon({
+                className: 'pulse-patient-marker',
+                html: `<div class="w-8 h-8 rounded-full bg-rose-600 border-2 border-white flex items-center justify-center text-white shadow-lg shadow-rose-500/50">
+                         <i class="fas fa-user-injured text-xs"></i>
+                       </div>`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 16]
             });
+            patientMarker = L.marker([lat, lng], { icon: patientIcon }).addTo(map)
+                .bindPopup(`<b>Patient Location</b><br>${address || 'Emergency Pickup'}`)
+                .openPopup();
+            
+            // Adjust bounds to include both driver and patient
+            const bounds = L.latLngBounds([marker.getLatLng(), patientMarker.getLatLng()]);
+            map.fitBounds(bounds.pad(0.2));
+        }
+    }
+
+    // Restore or initialize active trip state
+    function recoverActiveTrip(req) {
+        activeRequestId = req.id || req._id;
+        document.getElementById('activePatient').innerText = `Patient: ${req.patient_name || 'Emergency'}`;
+        document.getElementById('activePhone').innerText = req.patient_phone || 'N/A';
+        document.getElementById('activeAddress').innerText = req.pickup_address || 'N/A';
+        
+        const statusText = req.status === 'on_the_way' ? 'On The Way' : req.status === 'arrived' ? 'Arrived at Location' : req.status;
+        document.getElementById('tripStatus').innerText = `Status: ${statusText}`;
+        
+        if (req.eta) {
+            document.getElementById('etaDisplay').innerText = `ETA: ${req.eta}`;
+        } else {
+            document.getElementById('etaDisplay').innerText = 'ETA: Calculating...';
         }
 
-        initMap();
+        updateButtonUI(req.status);
+        document.getElementById('tripModal').classList.remove('hidden');
+        document.getElementById('requestContainer').innerHTML = '<p class="text-center text-gray-400 py-10">Trip in progress...</p>';
 
-        // Listen for new requests
+        if (req.pickup_lat && req.pickup_lng) {
+            showPatientOnMap(Number(req.pickup_lat), Number(req.pickup_lng), req.pickup_address);
+        }
+    }
+
+    // Parse backend active trip context
+    const initialActiveRequest = <%- activeRequest ? JSON.stringify(activeRequest) : 'null' %>;
+    document.addEventListener('DOMContentLoaded', () => {
+        if (initialActiveRequest) {
+            recoverActiveTrip(initialActiveRequest);
+        }
+    });
+
+    // Listen for new requests
+    if (socket) {
         socket.on('new-ambulance-request', (data) => {
             const container = document.getElementById('requestContainer');
             const noReq = document.getElementById('noRequests');
             if(noReq) noReq.remove();
 
             const card = document.createElement('div');
-            card.className = 'request-card bg-gray-50 border border-gray-100 rounded-xl p-4 animate-bounce';
+            card.className = 'request-card bg-white/5 border border-white/10 rounded-xl p-4 hms-hover-lift animate-bounce';
             card.id = `req-${data.id}`;
             card.innerHTML = `
                 <div class="flex justify-between items-start mb-3">
-                    <span class="text-xs font-bold uppercase tracking-wider text-red-500 bg-red-50 px-2 py-1 rounded">Emergency</span>
+                    <span class="text-[10px] font-black uppercase tracking-wider text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded">Emergency</span>
                     <span class="text-xs text-gray-400">Just now</span>
                 </div>
-                <h3 class="font-bold text-gray-800">${data.patient_name}</h3>
-                <p class="text-sm text-gray-600 mt-1"><i class="fas fa-map-marker-alt text-indigo-500 mr-2"></i>${data.pickup_address}</p>
+                <h3 class="font-bold text-white">${data.patient_name}</h3>
+                <p class="text-xs text-gray-300 mt-1 flex items-start gap-1"><i class="fas fa-map-marker-alt text-rose-400 mt-0.5"></i> <span>${data.pickup_address}</span></p>
                 <div class="mt-4 flex gap-2">
-                    <button onclick="acceptRequest(${data.id})" class="flex-1 bg-indigo-600 text-white py-2 rounded-lg font-medium hover:bg-indigo-700 transition">Accept</button>
-                    <button class="px-4 py-2 text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times"></i></button>
+                    <button onclick="acceptRequest('${data.id}')" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm py-2 rounded-lg font-bold transition">Accept</button>
+                    <button onclick="rejectRequest('${data.id}')" class="px-3 py-2 text-gray-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition"><i class="fas fa-times"></i></button>
                 </div>
             `;
             container.prepend(card);
@@ -212,131 +353,140 @@
             count.innerText = parseInt(count.innerText) + 1;
 
             // Play notification sound
-            new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play();
+            try {
+                new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg').play();
+            } catch(e) {}
         });
+    }
 
-        // Accept Request
-        async function acceptRequest(requestId) {
-            try {
-                const res = await fetch('/driver/accept-request', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ requestId })
-                });
-                const data = await res.json();
-                if(data.success) {
-                    activeRequestId = requestId;
-                    document.getElementById('activePatient').innerText = `Patient: ${data.request.patient_name}`;
-                    document.getElementById('activePhone').innerText = data.request.patient_phone;
-                    document.getElementById('activeAddress').innerText = data.request.pickup_address;
-                    document.getElementById('tripStatus').innerText = 'Status: Accepted';
-                    document.getElementById('etaDisplay').innerText = 'ETA: Calculating...';
-                    document.getElementById('tripModal').classList.remove('hidden');
-                    
-                    // Remove other cards
-                    document.getElementById('requestContainer').innerHTML = '<p class="text-center text-gray-400 py-10">Trip in progress...</p>';
-                } else {
-                    alert(data.error);
+    // Accept Request
+    async function acceptRequest(requestId) {
+        try {
+            const res = await fetch('/driver/accept-request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ requestId })
+            });
+            const data = await res.json();
+            if(data.success) {
+                activeRequestId = requestId;
+                document.getElementById('activePatient').innerText = `Patient: ${data.request.patient_name}`;
+                document.getElementById('activePhone').innerText = data.request.patient_phone;
+                document.getElementById('activeAddress').innerText = data.request.pickup_address;
+                document.getElementById('tripStatus').innerText = 'Status: Accepted';
+                document.getElementById('etaDisplay').innerText = 'ETA: Calculating...';
+                
+                updateButtonUI('accepted');
+                document.getElementById('tripModal').classList.remove('hidden');
+                
+                // Remove other cards
+                document.getElementById('requestContainer').innerHTML = '<p class="text-center text-gray-400 py-10">Trip in progress...</p>';
+
+                if (data.request.pickup_lat && data.request.pickup_lng) {
+                    showPatientOnMap(Number(data.request.pickup_lat), Number(data.request.pickup_lng), data.request.pickup_address);
                 }
-            } catch (err) {
-                console.error('Error accepting request:', err);
-                alert('Failed to accept request');
+            } else {
+                alert(data.error);
             }
+        } catch (err) {
+            console.error('Error accepting request:', err);
+            alert('Failed to accept request');
         }
+    }
 
-        // Reject Request
-        async function rejectRequest(requestId) {
-            if(!confirm('Are you sure you want to reject this request?')) return;
-            
-            try {
-                const res = await fetch('/driver/reject-request', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ requestId })
-                });
-                const data = await res.json();
-                if(data.success) {
-                    const card = document.getElementById(`req-${requestId}`);
-                    if(card) card.remove();
-                    
-                    // Update count
-                    const count = document.getElementById('requestCount');
-                    count.innerText = Math.max(0, parseInt(count.innerText) - 1);
-                    
-                    // Show no requests message if empty
-                    if(document.getElementById('requestContainer').children.length === 0) {
-                        document.getElementById('requestContainer').innerHTML = `
-                            <div class="text-center py-12" id="noRequests">
-                                <i class="fas fa-search-location text-4xl text-gray-200 mb-4 block"></i>
-                                <p class="text-gray-400">Waiting for new requests...</p>
-                            </div>
-                        `;
-                    }
-                } else {
-                    alert(data.error);
-                }
-            } catch (err) {
-                console.error('Error rejecting request:', err);
-                alert('Failed to reject request');
-            }
-        }
-
-        // Update Trip Status
-        async function updateTripStatus(status) {
-            if(!activeRequestId) return;
-            
-            try {
-                const res = await fetch('/driver/update-trip-status', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ requestId: activeRequestId, status })
-                });
-                const data = await res.json();
-                if(data.success) {
-                    const statusText = status === 'on_the_way' ? 'On The Way' : status === 'arrived' ? 'Arrived at Location' : status;
-                    document.getElementById('tripStatus').innerText = `Status: ${statusText}`;
-                    
-                    if(data.eta) {
-                        document.getElementById('etaDisplay').innerText = `ETA: ${data.eta} min`;
-                    }
-                } else {
-                    alert(data.error);
-                }
-            } catch (err) {
-                console.error('Error updating trip status:', err);
-                alert('Failed to update trip status');
-            }
-        }
-
-        // Complete Trip
-        async function completeTrip() {
-            if(!activeRequestId) return;
-            
-            try {
-                const res = await fetch('/driver/complete-trip', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ requestId: activeRequestId })
-                });
-                const data = await res.json();
-                if(data.success) {
-                    activeRequestId = null;
-                    document.getElementById('tripModal').classList.add('hidden');
+    // Reject Request
+    async function rejectRequest(requestId) {
+        if(!confirm('Are you sure you want to reject this request?')) return;
+        
+        try {
+            const res = await fetch('/driver/reject-request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ requestId })
+            });
+            const data = await res.json();
+            if(data.success) {
+                const card = document.getElementById(`req-${requestId}`);
+                if(card) card.remove();
+                
+                // Update count
+                const count = document.getElementById('requestCount');
+                count.innerText = Math.max(0, parseInt(count.innerText) - 1);
+                
+                // Show no requests message if empty
+                if(document.getElementById('requestContainer').children.length === 0) {
                     document.getElementById('requestContainer').innerHTML = `
                         <div class="text-center py-12" id="noRequests">
                             <i class="fas fa-search-location text-4xl text-gray-200 mb-4 block"></i>
                             <p class="text-gray-400">Waiting for new requests...</p>
                         </div>
                     `;
-                    document.getElementById('requestCount').innerText = '0';
-                } else {
-                    alert(data.error);
                 }
-            } catch (err) {
-                console.error('Error completing trip:', err);
-                alert('Failed to complete trip');
+            } else {
+                alert(data.error);
             }
+        } catch (err) {
+            console.error('Error rejecting request:', err);
+            alert('Failed to reject request');
         }
-    </script>
-</body>
-</html>
+    }
+
+    // Update Trip Status
+    async function updateTripStatus(status) {
+        if(!activeRequestId) return;
+        
+        try {
+            const res = await fetch('/driver/update-trip-status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ requestId: activeRequestId, status })
+            });
+            const data = await res.json();
+            if(data.success) {
+                const statusText = status === 'on_the_way' ? 'On The Way' : status === 'arrived' ? 'Arrived at Location' : status;
+                document.getElementById('tripStatus').innerText = `Status: ${statusText}`;
+                
+                if(data.eta) {
+                    document.getElementById('etaDisplay').innerText = `ETA: ${data.eta}`;
+                }
+                updateButtonUI(status);
+            } else {
+                alert(data.error);
+            }
+        } catch (err) {
+            console.error('Error updating trip status:', err);
+            alert('Failed to update trip status');
+        }
+    }
+
+    // Complete Trip
+    async function completeTrip() {
+        if(!activeRequestId) return;
+        
+        try {
+            const res = await fetch('/driver/complete-trip', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ requestId: activeRequestId })
+            });
+            const data = await res.json();
+            if(data.success) {
+                activeRequestId = null;
+                document.getElementById('tripModal').classList.add('hidden');
+                if (patientMarker) {
+                    map.removeLayer(patientMarker);
+                    patientMarker = null;
+                }
+                if (marker) {
+                    map.setView(marker.getLatLng(), 15);
+                }
+                window.location.reload();
+            } else {
+                alert(data.error);
+            }
+        } catch (err) {
+            console.error('Error completing trip:', err);
+            alert('Failed to complete trip');
+        }
+    }
+</script>

@@ -69,10 +69,18 @@ class AmbulanceModel {
   }
 
   static async getActiveRequestForDriver(driverId) {
-    const req = await AmbulanceRequest.findOne({ driver_id: driverId, status: "accepted" })
+    const req = await AmbulanceRequest.findOne({
+      driver_id: driverId,
+      status: { $in: ["accepted", "on_the_way", "arrived"] }
+    })
+      .populate({ path: "patient_id", select: "name phone" })
       .sort({ _id: -1 })
       .lean();
-    if (req) req.id = req._id;
+    if (req) {
+      req.id = req._id;
+      req.patient_name = req.patient_id ? req.patient_id.name : "";
+      req.patient_phone = req.patient_id ? req.patient_id.phone : "";
+    }
     return req;
   }
 
