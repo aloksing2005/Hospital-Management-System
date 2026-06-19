@@ -23,6 +23,9 @@ const io = new Server(server);
 // Global io access
 app.set("io", io);
 
+// Trust proxy (necessary for secure cookies behind reverse proxies like Render)
+app.set("trust proxy", 1);
+
 // Middleware
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -36,8 +39,7 @@ app.use(session({
     maxAge: 24 * 60 * 60 * 1000, // 24 hours
     secure: process.env.NODE_ENV === 'production', // HTTPS only in production
     httpOnly: true,
-    sameSite: 'lax',
-    domain: process.env.NODE_ENV === 'production' ? process.env.DOMAIN : undefined
+    sameSite: 'lax'
   },
   name: 'hms.sid',
   rolling: true, // Reset session cookie on each request
