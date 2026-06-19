@@ -121,9 +121,17 @@
   </script>
 </head>
 <body class="hms-bg-mesh selection:bg-indigo-500/30">
+  <!-- Mobile Sidebar Backdrop Overlay -->
+  <div id="hmsSidebarOverlay" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden hidden transition-opacity duration-300 opacity-0"></div>
+
   <% if (typeof user !== 'undefined' && user) { %>
     <nav class="hms-navbar flex items-center justify-between px-6 lg:px-8">
       <div class="flex items-center gap-4">
+        <% if (['patient', 'doctor', 'admin'].includes(user.role)) { %>
+          <button type="button" id="mobileSidebarToggleBtn" class="lg:hidden w-10 h-10 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white transition-all cursor-pointer" title="Toggle Sidebar">
+            <i class="fas fa-bars"></i>
+          </button>
+        <% } %>
         <a href="/" class="flex items-center gap-3 group">
           <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-105 transition-transform">
             <i class="fas fa-heartbeat text-xl"></i>
@@ -578,6 +586,58 @@
         var b2 = document.getElementById('hmsThemeToggleGuest');
         if (b1) b1.addEventListener('click', toggle);
         if (b2) b2.addEventListener('click', toggle);
+
+        // Mobile Sidebar Toggle Logic
+        (function() {
+          const toggleBtn = document.getElementById('mobileSidebarToggleBtn');
+          const container = document.getElementById('hmsSidebarContainer');
+          const overlay = document.getElementById('hmsSidebarOverlay');
+          
+          if (!toggleBtn || !container || !overlay) return;
+
+          function openSidebar() {
+            overlay.classList.remove('hidden');
+            // trigger reflow
+            void overlay.offsetWidth;
+            overlay.classList.add('opacity-100');
+            overlay.classList.remove('opacity-0');
+            
+            container.classList.add('translate-x-0');
+            container.classList.remove('-translate-x-full');
+            document.body.classList.add('overflow-hidden');
+          }
+
+          function closeSidebar() {
+            container.classList.remove('translate-x-0');
+            container.classList.add('-translate-x-full');
+            
+            overlay.classList.remove('opacity-100');
+            overlay.classList.add('opacity-0');
+            
+            document.body.classList.remove('overflow-hidden');
+            
+            setTimeout(() => {
+              if (!container.classList.contains('translate-x-0')) {
+                overlay.classList.add('hidden');
+              }
+            }, 300);
+          }
+
+          toggleBtn.addEventListener('click', openSidebar);
+          overlay.addEventListener('click', closeSidebar);
+          
+          document.addEventListener('click', function(e) {
+            if (e.target && (e.target.closest('.mobile-sidebar-close-btn') || e.target.closest('.hms-nav-link'))) {
+              closeSidebar();
+            }
+          });
+
+          window.addEventListener('resize', function() {
+            if (window.innerWidth >= 1024) {
+              closeSidebar();
+            }
+          });
+        })();
 
       });
     })();
