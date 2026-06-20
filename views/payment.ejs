@@ -1,18 +1,32 @@
-<% var title = 'Payment'; %>
+<% var title = 'Payment - HMS Premium'; %>
 <%- include('partials/header') %>
 
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-md-6">
-      <div class="card p-4">
-        <h3 class="fw-bold mb-4"><i class="fas fa-credit-card me-2"></i>Payment</h3>
-        <div class="mb-3">
-          <label class="form-label">Amount (₹)</label>
-          <input type="number" id="amount" class="form-control" value="500" min="100">
+<div class="flex items-center justify-center min-h-[80vh] px-4 py-12">
+  <div class="w-full max-w-md hms-card animate-scale-in">
+    <div class="text-center mb-8">
+      <div class="w-16 h-16 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 shadow-lg">
+        <i class="fas fa-credit-card"></i>
+      </div>
+      <h2 class="text-2xl font-black text-white tracking-tight">Secure Payment Gateway</h2>
+      <p class="text-gray-400 text-sm mt-1">Initialize Razorpay secure instant settlement.</p>
+    </div>
+
+    <div class="space-y-6">
+      <div>
+        <label class="hms-label">Amount to Pay (INR ₹)</label>
+        <div class="relative">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">₹</span>
+          <input type="number" id="amount" class="hms-input pl-10" value="500" min="100">
         </div>
-        <button id="payBtn" class="btn btn-primary w-100">
-          <i class="fas fa-rupee-sign me-2"></i>Pay Now
-        </button>
+      </div>
+
+      <button id="payBtn" class="hms-btn hms-btn-primary w-full py-4 text-base font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20">
+        <i class="fas fa-rupee-sign"></i>Pay Securely Now
+      </button>
+
+      <div class="flex items-center justify-center gap-2 text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-4">
+        <i class="fas fa-shield-alt text-indigo-500/60"></i>
+        <span>256-bit SSL Encrypted Transactions</span>
       </div>
     </div>
   </div>
@@ -23,36 +37,49 @@
   document.getElementById('payBtn').addEventListener('click', async () => {
     const amount = document.getElementById('amount').value;
 
-    const res = await fetch('/payment/create-order', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount })
-    });
-    const data = await res.json();
+    try {
+      if (window.hmsShowLoader) window.hmsShowLoader();
+      
+      const res = await fetch('/payment/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount })
+      });
+      const data = await res.json();
 
-    if (data.success) {
-      const options = {
-        key: data.key,
-        amount: data.amount,
-        currency: 'INR',
-        order_id: data.order_id,
-        handler: async (response) => {
-          const verifyRes = await fetch('/payment/verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(response)
-          });
-          const verifyData = await verifyRes.json();
+      if (window.hmsHideLoader) window.hmsHideLoader();
 
-          if (verifyData.success) {
-            showToast('Payment Successful', 'Your payment has been processed!', 'success');
-          } else {
-            showToast('Payment Failed', 'Please try again', 'error');
+      if (data.success) {
+        const options = {
+          key: data.key,
+          amount: data.amount,
+          currency: 'INR',
+          order_id: data.order_id,
+          handler: async (response) => {
+            if (window.hmsShowLoader) window.hmsShowLoader();
+            const verifyRes = await fetch('/payment/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(response)
+            });
+            const verifyData = await verifyRes.json();
+            if (window.hmsHideLoader) window.hmsHideLoader();
+
+            if (verifyData.success) {
+              if (window.hmsShowToast) window.hmsShowToast('Payment Successful', 'Your transaction was approved and processed.', 'success');
+            } else {
+              if (window.hmsShowToast) window.hmsShowToast('Payment Failed', 'Verification signature mismatch. Please retry.', 'error');
+            }
           }
-        }
-      };
-      const rzp = new Razorpay(options);
-      rzp.open();
+        };
+        const rzp = new Razorpay(options);
+        rzp.open();
+      } else {
+        if (window.hmsShowToast) window.hmsShowToast('Order Failure', data.error || 'Unable to instantiate transaction.', 'error');
+      }
+    } catch (err) {
+      if (window.hmsHideLoader) window.hmsHideLoader();
+      if (window.hmsShowToast) window.hmsShowToast('Network Error', 'Check your connectivity and try again.', 'error');
     }
   });
 </script>

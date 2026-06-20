@@ -1,87 +1,99 @@
-<% var title = 'Organ Donor Registry - HMS'; %>
+<% var title = 'Organ Donor Registry - HMS Premium'; %>
 <%- include('../partials/header') %>
-<script src="https://cdn.tailwindcss.com"></script>
 
-<div class="container-fluid bg-white min-h-screen">
-  <div class="row">
-    <%- include('../partials/patient-sidebar', { active: 'donor' }) %>
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <%- include('../partials/patient-sidebar', { active: 'donor' }) %>
 
-    <div class="col-md-9 col-lg-10 p-12">
-      <div class="max-w-4xl mx-auto">
-        <div class="bg-indigo-900 rounded-[50px] p-12 text-white relative overflow-hidden mb-12">
-            <div class="relative z-10">
-                <h2 class="text-5xl font-black mb-6 leading-tight">Be a Hero. <br/>Save a Life.</h2>
-                <p class="text-indigo-200 text-xl max-w-xl mb-8">Register as an organ donor and give the gift of life to those in need. Join our global network of life-savers.</p>
-                <div class="flex gap-4">
-                    <button onclick="document.getElementById('donorForm').scrollIntoView({behavior:'smooth'})" class="bg-white text-indigo-900 px-8 py-4 rounded-3xl font-black shadow-2xl transition hover:scale-105">Register Now</button>
-                    <div class="flex items-center gap-2">
-                        <div class="flex -space-x-3">
-                            <img class="w-10 h-10 rounded-full border-2 border-indigo-900" src="https://i.pravatar.cc/100?u=1" alt="">
-                            <img class="w-10 h-10 rounded-full border-2 border-indigo-900" src="https://i.pravatar.cc/100?u=2" alt="">
-                            <img class="w-10 h-10 rounded-full border-2 border-indigo-900" src="https://i.pravatar.cc/100?u=3" alt="">
-                        </div>
-                        <span class="text-sm font-bold text-indigo-300">12k+ Registered Donors</span>
-                    </div>
-                </div>
+  <!-- Main Content -->
+  <div class="flex-grow overflow-y-auto p-6 lg:p-12 hms-page-transition">
+    
+    <!-- Hero Header Panel -->
+    <div class="bg-indigo-950 border border-indigo-500/20 rounded-[32px] p-8 lg:p-12 text-white relative overflow-hidden mb-12 shadow-xl animate-fade-in">
+      <div class="relative z-10">
+        <h2 class="text-3xl lg:text-5xl font-black mb-6 leading-tight">Be a Hero.<br/>Save a Life.</h2>
+        <p class="text-indigo-300 text-base lg:text-lg max-w-xl mb-8">Register as an organ donor and give the gift of life to those in need. Join our global network of registered life-savers.</p>
+        <div class="flex flex-wrap items-center gap-4">
+          <button onclick="document.getElementById('donorForm').scrollIntoView({behavior:'smooth'})" class="hms-btn hms-btn-primary px-8 py-4 text-sm font-black shadow-lg">Register Now</button>
+          <div class="flex items-center gap-2">
+            <div class="flex -space-x-3">
+              <img class="w-9 h-9 rounded-full border-2 border-slate-900" src="https://i.pravatar.cc/100?u=11" alt="Avatar">
+              <img class="w-9 h-9 rounded-full border-2 border-slate-900" src="https://i.pravatar.cc/100?u=12" alt="Avatar">
+              <img class="w-9 h-9 rounded-full border-2 border-slate-900" src="https://i.pravatar.cc/100?u=13" alt="Avatar">
             </div>
-            <i class="fas fa-hand-holding-heart absolute -bottom-10 -right-10 text-[250px] text-white/5"></i>
-        </div>
-
-        <div id="donorForm" class="bg-gray-50 rounded-[40px] p-10 border border-gray-100">
-            <% if (donor) { %>
-                <div class="text-center py-8">
-                    <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <i class="fas fa-check text-3xl"></i>
-                    </div>
-                    <h3 class="text-3xl font-black text-gray-900 mb-4">You are a Registered Hero!</h3>
-                    <p class="text-gray-500 mb-2"><strong>Blood Group:</strong> <%= donor.blood_group %></p>
-                    <p class="text-gray-500 mb-8"><strong>Donation Type:</strong> <%= donor.organ_to_donate %></p>
-                    <div class="inline-block px-6 py-2 bg-green-500 text-white rounded-full font-bold text-sm uppercase tracking-widest">
-                        Status: <%= donor.status %>
-                    </div>
-                </div>
-            <% } else { %>
-                <h3 class="text-3xl font-black text-gray-900 mb-8">Donor Registration</h3>
-                <form action="/patient/donor-registry/register" method="POST" class="space-y-8">
-                    <div class="grid grid-cols-2 gap-6">
-                        <div>
-                            <label class="block text-xs font-black uppercase tracking-widest text-gray-400 mb-3">Blood Type</label>
-                            <select name="blood_group" class="w-full bg-white border-0 rounded-2xl px-6 py-4 shadow-sm focus:ring-2 focus:ring-indigo-600 outline-none transition">
-                                <option value="A+">A Positive (A+)</option>
-                                <option value="A-">A Negative (A-)</option>
-                                <option value="B+">B Positive (B+)</option>
-                                <option value="B-">B Negative (B-)</option>
-                                <option value="AB+">AB Positive (AB+)</option>
-                                <option value="AB-">AB Negative (AB-)</option>
-                                <option value="O+">O Positive (O+)</option>
-                                <option value="O-">O Negative (O-)</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-black uppercase tracking-widest text-gray-400 mb-3">Primary Organ to Donate</label>
-                            <select name="organ_to_donate" class="w-full bg-white border-0 rounded-2xl px-6 py-4 shadow-sm focus:ring-2 focus:ring-indigo-600 outline-none transition">
-                                <option value="All Organs">All Organs</option>
-                                <option value="Heart">Heart</option>
-                                <option value="Kidneys">Kidneys</option>
-                                <option value="Eyes (Cornea)">Eyes (Cornea)</option>
-                                <option value="Liver">Liver</option>
-                                <option value="Blood">Blood Only</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="p-6 bg-indigo-50 rounded-3xl border border-indigo-100 flex items-start gap-4">
-                        <input type="checkbox" class="w-6 h-6 mt-1 rounded-lg border-indigo-300 text-indigo-600 focus:ring-indigo-500" required>
-                        <p class="text-sm text-indigo-900 font-medium">I understand that organ donation is a voluntary act of kindness. My information will be stored securely and only shared with verified medical transplant coordinators in emergency situations.</p>
-                    </div>
-
-                    <button type="submit" class="w-full bg-gray-900 text-white py-5 rounded-[30px] font-black text-xl hover:bg-black transition-all shadow-2xl active:scale-95">
-                        Confirm Registration
-                    </button>
-                </form>
-            <% } %>
+            <span class="text-xs font-bold text-indigo-400">12k+ Registered Donors</span>
+          </div>
         </div>
       </div>
+      <i class="fas fa-hand-holding-heart absolute -bottom-10 -right-10 text-[200px] text-white/5 pointer-events-none"></i>
+    </div>
+
+    <!-- Registration Panel / Status Panel -->
+    <div id="donorForm" class="hms-card max-w-3xl animate-scale-in">
+      <% if (donor) { %>
+        <div class="text-center py-8 space-y-6">
+          <div class="w-20 h-20 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto text-3xl shadow-lg">
+            <i class="fas fa-check"></i>
+          </div>
+          <h3 class="text-2xl lg:text-3xl font-black text-white">You are a Registered Hero!</h3>
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md mx-auto text-left">
+            <div class="bg-white/5 p-4 rounded-xl border border-white/5">
+              <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Blood Group</span>
+              <span class="text-xl font-bold text-white mt-1 block"><%= donor.blood_group %></span>
+            </div>
+            <div class="bg-white/5 p-4 rounded-xl border border-white/5">
+              <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Donation Scope</span>
+              <span class="text-xl font-bold text-white mt-1 block truncate"><%= donor.organ_to_donate %></span>
+            </div>
+          </div>
+
+          <div class="inline-flex px-6 py-2.5 bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 rounded-full font-bold text-xs uppercase tracking-widest">
+            Registration Status: <%= donor.status %>
+          </div>
+        </div>
+      <% } else { %>
+        <h3 class="text-2xl font-black text-white mb-6">Donor Registration Form</h3>
+        <form action="/patient/donor-registry/register" method="POST" class="space-y-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label class="hms-label">Blood Type</label>
+              <select name="blood_group" class="hms-input hms-select">
+                <option value="A+">A Positive (A+)</option>
+                <option value="A-">A Negative (A-)</option>
+                <option value="B+">B Positive (B+)</option>
+                <option value="B-">B Negative (B-)</option>
+                <option value="AB+">AB Positive (AB+)</option>
+                <option value="AB-">AB Negative (AB-)</option>
+                <option value="O+">O Positive (O+)</option>
+                <option value="O-">O Negative (O-)</option>
+              </select>
+            </div>
+            <div>
+              <label class="hms-label">Primary Organ/Tissue to Donate</label>
+              <select name="organ_to_donate" class="hms-input hms-select">
+                <option value="All Organs">All Organs</option>
+                <option value="Heart">Heart</option>
+                <option value="Kidneys">Kidneys</option>
+                <option value="Eyes (Cornea)">Eyes (Cornea)</option>
+                <option value="Liver">Liver</option>
+                <option value="Blood">Blood Only</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="p-5 bg-indigo-500/10 rounded-2xl border border-indigo-500/20 flex gap-4">
+            <input type="checkbox" class="w-5 h-5 mt-0.5 rounded border-gray-600 bg-gray-700 text-indigo-500 focus:ring-indigo-500 cursor-pointer shrink-0" required id="consentCheckbox">
+            <label for="consentCheckbox" class="text-xs text-gray-300 font-medium leading-relaxed cursor-pointer select-none">
+              I understand that organ donation is a voluntary act of clinical goodwill. My registration details will be stored securely and only made available to verified transplant coordinators in acute care situations.
+            </label>
+          </div>
+
+          <button type="submit" class="hms-btn hms-btn-primary w-full py-4 text-base font-bold shadow-lg shadow-indigo-600/20">
+            Confirm Registration
+          </button>
+        </form>
+      <% } %>
     </div>
   </div>
 </div>

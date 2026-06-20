@@ -1,78 +1,77 @@
-<% var title = 'AI Voice Assistant - HMS'; %>
+<% var title = 'AI Voice Assistant - HMS Premium'; %>
 <%- include('../partials/header') %>
-<script src="https://cdn.tailwindcss.com"></script>
 
 <style>
     .hologram-pulse {
         animation: hologram 4s ease-in-out infinite;
-        background: radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
     }
     @keyframes hologram {
-        0%, 100% { transform: scale(1); opacity: 0.5; }
-        50% { transform: scale(1.1); opacity: 0.8; }
+        0%, 100% { transform: scale(1); opacity: 0.4; }
+        50% { transform: scale(1.08); opacity: 0.7; }
     }
     .voice-bars span {
         width: 4px; height: 20px; background: #6366f1; border-radius: 2px; display: inline-block;
-        margin: 0 2px; animation: voice 1s infinite;
+        margin: 0 2.5px; animation: voice 1s infinite;
     }
     @keyframes voice {
         0%, 100% { height: 10px; }
-        50% { height: 30px; }
+        50% { height: 32px; }
     }
 </style>
 
-<div class="container-fluid bg-gray-950 min-h-screen text-white">
-  <div class="row">
-    <%- include('../partials/patient-sidebar', { active: 'ai-voice' }) %>
+<div class="flex h-screen bg-gray-950 text-white">
+  <!-- Sidebar -->
+  <%- include('../partials/patient-sidebar', { active: 'ai-consultation' }) %>
 
-    <div class="col-md-9 col-lg-10 p-12 flex flex-col items-center justify-center relative overflow-hidden">
-        <!-- Hologram Background Effect -->
-        <div class="absolute inset-0 hologram-pulse pointer-events-none"></div>
+  <!-- Main Content -->
+  <div class="flex-grow overflow-y-auto p-6 lg:p-12 hms-page-transition flex flex-col items-center justify-center relative">
+    <!-- Hologram Background Effect -->
+    <div class="absolute inset-0 hologram-pulse pointer-events-none"></div>
 
-        <div class="relative z-10 text-center max-w-2xl">
-            <div class="w-48 h-48 rounded-full bg-indigo-500/20 border-2 border-indigo-500/50 flex items-center justify-center mx-auto mb-10 relative">
-                <div class="absolute inset-0 rounded-full border-4 border-indigo-500/20 animate-ping"></div>
-                <i class="fas fa-microchip text-6xl text-indigo-400"></i>
-            </div>
-            
-            <h1 class="text-5xl font-black mb-4 tracking-tight">Meet <span class="text-indigo-400">AURA</span></h1>
-            <p class="text-gray-400 text-xl mb-12">Your Futuristic AI Medical Companion. <br/> Just say <span class="text-indigo-400 font-bold">"Hey Aura"</span> to begin.</p>
+    <div class="relative z-10 text-center max-w-2xl w-full animate-scale-in">
+        <div class="w-36 h-36 lg:w-44 lg:h-44 rounded-full bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center mx-auto mb-8 relative">
+            <div class="absolute inset-0 rounded-full border border-indigo-500/20 animate-ping"></div>
+            <i class="fas fa-microchip text-5xl lg:text-6xl text-indigo-400"></i>
+        </div>
+        
+        <h1 class="text-4xl lg:text-5xl font-black mb-3 tracking-tight">Meet <span class="text-indigo-400">AURA</span></h1>
+        <p class="text-gray-400 text-base lg:text-lg mb-8 leading-relaxed">Your Clinical AI Voice Companion. <br/> Just say <span class="text-indigo-400 font-bold">"Hey Aura"</span> to begin.</p>
 
-            <div id="voiceIndicator" class="hidden flex justify-center items-center h-12 mb-8 voice-bars">
-                <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
-            </div>
-
-            <div id="aiResponse" class="bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-[40px] text-left mb-8 min-h-[100px] transition-all">
-                <p class="text-gray-500 italic">"Waiting for your voice command..."</p>
-            </div>
-
-            <div class="flex gap-4 justify-center">
-                <button id="startBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-4 rounded-3xl font-bold transition-all shadow-xl shadow-indigo-500/20">
-                    <i class="fas fa-microphone mr-2"></i> Activate AURA
-                </button>
-                <button onclick="window.location.reload()" class="bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-3xl font-bold transition-all">
-                    Reset
-                </button>
-            </div>
+        <div id="voiceIndicator" class="hidden flex justify-center items-center h-12 mb-8 voice-bars">
+            <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
         </div>
 
-        <!-- Futuristic Floating Cards -->
-        <div class="grid grid-cols-3 gap-6 mt-16 relative z-10 w-full max-w-4xl">
-            <div class="bg-white/5 border border-white/5 p-6 rounded-3xl backdrop-blur-sm">
-                <i class="fas fa-clock text-indigo-400 mb-3 text-2xl"></i>
-                <h4 class="font-bold">Next Meds</h4>
-                <p class="text-gray-500 text-sm">Paracetamol in 2 hrs</p>
-            </div>
-            <div class="bg-white/5 border border-white/5 p-6 rounded-3xl backdrop-blur-sm">
-                <i class="fas fa-heartbeat text-red-400 mb-3 text-2xl"></i>
-                <h4 class="font-bold">Vitals</h4>
-                <p class="text-gray-500 text-sm">Normal: 72 BPM</p>
-            </div>
-            <div class="bg-white/5 border border-white/5 p-6 rounded-3xl backdrop-blur-sm">
-                <i class="fas fa-calendar-alt text-green-400 mb-3 text-2xl"></i>
-                <h4 class="font-bold">Appointment</h4>
-                <p class="text-gray-500 text-sm">Dr. Smith tomorrow</p>
-            </div>
+        <div id="aiResponse" class="hms-glass-premium border border-white/10 p-6 lg:p-8 rounded-[24px] text-left mb-8 min-h-[120px] transition-all flex flex-col justify-center">
+            <p class="text-gray-500 italic text-center">"Waiting for your voice command..."</p>
+        </div>
+
+        <div class="flex flex-wrap gap-4 justify-center">
+            <button id="startBtn" class="hms-btn hms-btn-primary px-8 py-4 font-bold shadow-lg shadow-indigo-600/20 text-sm">
+                <i class="fas fa-microphone mr-2"></i> Activate AURA
+            </button>
+            <button onclick="window.location.reload()" class="hms-btn hms-btn-outline px-8 py-4 font-bold text-sm">
+                Reset
+            </button>
+        </div>
+    </div>
+
+    <!-- Futuristic Floating Cards Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-12 relative z-10 w-full max-w-3xl animate-scale-in">
+        <div class="bg-white/5 border border-white/5 p-5 rounded-2xl backdrop-blur-md">
+            <i class="fas fa-clock text-indigo-400 mb-3 text-xl block"></i>
+            <h4 class="font-bold text-white text-sm">Next Meds</h4>
+            <p class="text-gray-400 text-xs mt-1">Paracetamol in 2 hours</p>
+        </div>
+        <div class="bg-white/5 border border-white/5 p-5 rounded-2xl backdrop-blur-md">
+            <i class="fas fa-heartbeat text-rose-400 mb-3 text-xl block"></i>
+            <h4 class="font-bold text-white text-sm">Vitals Status</h4>
+            <p class="text-gray-400 text-xs mt-1">Normal (Heart rate: 72 BPM)</p>
+        </div>
+        <div class="bg-white/5 border border-white/5 p-5 rounded-2xl backdrop-blur-md">
+            <i class="fas fa-calendar-alt text-emerald-400 mb-3 text-xl block"></i>
+            <h4 class="font-bold text-white text-sm">Appointments</h4>
+            <p class="text-gray-400 text-xs mt-1">Dr. Smith tomorrow at 10 AM</p>
         </div>
     </div>
   </div>
@@ -83,50 +82,59 @@
     const aiResponse = document.getElementById('aiResponse');
     const voiceIndicator = document.getElementById('voiceIndicator');
 
-    // Web Speech API
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
+    let recognition;
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.lang = 'en-US';
+      
+      recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript.toLowerCase();
+          voiceIndicator.classList.add('hidden');
+          processCommand(transcript);
+      };
+      
+      startBtn.onclick = () => {
+          recognition.start();
+          voiceIndicator.classList.remove('hidden');
+          aiResponse.innerHTML = '<p class="text-indigo-400 animate-pulse text-center">Listening for commands...</p>';
+      };
+    } else {
+      startBtn.onclick = () => {
+        aiResponse.innerHTML = '<p class="text-rose-400 text-center">Web Speech Recognition API is not supported in this browser. Please use Chrome or Safari.</p>';
+      }
+    }
+
     const synth = window.speechSynthesis;
-
-    recognition.continuous = false;
-    recognition.lang = 'en-US';
-
-    startBtn.onclick = () => {
-        recognition.start();
-        voiceIndicator.classList.remove('hidden');
-        aiResponse.innerHTML = '<p class="text-indigo-400 animate-pulse">Listening...</p>';
-    };
-
-    recognition.onresult = (event) => {
-        const transcript = event.results[0][0].transcript.toLowerCase();
-        voiceIndicator.classList.add('hidden');
-        processCommand(transcript);
-    };
 
     function processCommand(text) {
         let response = "";
         
         if (text.includes("hello") || text.includes("aura")) {
-            response = "Hello! I am Aura, your futuristic medical assistant. How can I help you today?";
-        } else if (text.includes("appointments")) {
-            response = "You have one appointment scheduled with Dr. Smith for tomorrow at 10 AM.";
-        } else if (text.includes("vitals")) {
-            response = "Your current heart rate is 72 beats per minute, and your oxygen levels are at 98 percent. You are in excellent health!";
-        } else if (text.includes("ambulance")) {
-            response = "Emergency mode activated. I am notifying the nearest ambulance unit and sharing your current GPS coordinates. Please stay calm.";
+            response = "Hello! I am Aura, your clinical AI assistant. How can I assist you today?";
+        } else if (text.includes("appointments") || text.includes("appointment")) {
+            response = "You have an appointment booked with Doctor Smith tomorrow morning at 10 AM.";
+        } else if (text.includes("vitals") || text.includes("vital")) {
+            response = "Your telemetry heart rate is 72 beats per minute, and oxygen levels are 98 percent. Everything is normal.";
+        } else if (text.includes("emergency") || text.includes("ambulance")) {
+            response = "Emergency protocols triggered. Activating SOS mode and sending coordinate maps to the ambulance team.";
         } else {
-            response = "I heard you say: " + text + ". I am processing this information and updating your health records.";
+            response = "I recorded your command: " + text + ". Processing this record for updating your health logs.";
         }
 
-        aiResponse.innerHTML = `<p class="text-gray-300">You said: <span class="text-white font-bold">"${text}"</span></p>
-                                <p class="text-indigo-400 mt-4 font-medium">${response}</p>`;
+        aiResponse.innerHTML = `<p class="text-gray-400 text-xs font-bold uppercase tracking-wider">You said</p>
+                                <p class="text-white text-base font-bold mt-1">"${text}"</p>
+                                <div class="h-px bg-white/10 my-4"></div>
+                                <p class="text-indigo-400 font-semibold">${response}</p>`;
         
         speak(response);
     }
 
     function speak(text) {
+        if (!synth) return;
         const utter = new SpeechSynthesisUtterance(text);
-        utter.pitch = 1.2;
+        utter.pitch = 1.15;
         utter.rate = 1.0;
         synth.speak(utter);
     }

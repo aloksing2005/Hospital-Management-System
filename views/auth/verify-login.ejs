@@ -1,32 +1,44 @@
-<% var title = 'Verify Login - HMS'; %>
+<% var title = 'Verify Login - HMS Premium'; %>
 <%- include('../partials/header') %>
 
-<div class="container py-5">
-  <div class="row justify-content-center">
-    <div class="col-md-5">
-      <div class="card p-4">
-        <div class="text-center mb-4">
-          <i class="fas fa-shield-alt fa-3x text-primary mb-3"></i>
-          <h3 class="fw-bold">Verification Required</h3>
-          <p class="text-muted">A 6-digit confirmation code has been sent to your email. Please enter it below to continue.</p>
-        </div>
+<div class="flex items-center justify-center min-h-[80vh] px-4 py-12">
+  <div class="w-full max-w-md hms-card animate-scale-in">
+    <div class="text-center mb-8">
+      <div class="w-16 h-16 bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4 shadow-lg">
+        <i class="fas fa-shield-alt"></i>
+      </div>
+      <h2 class="text-2xl font-black text-white tracking-tight">Verification Required</h2>
+      <p class="text-gray-400 text-sm mt-2">A 6-digit confirmation code was dispatched to your email. Enter it below to unlock access.</p>
+    </div>
 
-        <form action="/verify-login" method="POST">
-          <div class="mb-4 text-center">
-            <div class="d-flex justify-content-center gap-2">
-                <input type="text" name="otp" class="form-control text-center fs-3 fw-bold tracking-widest" maxlength="6" pattern="\d{6}" required placeholder="000000" autofocus>
-            </div>
-          </div>
-          <button type="submit" class="btn btn-primary w-100 mb-3">
-            <i class="fas fa-check-circle me-2"></i>Verify & Login
-          </button>
-        </form>
-
-        <div class="text-center">
-          <p class="mb-0 text-muted small">Didn't receive the code? Check your spam folder or try logging in again.</p>
-          <a href="/login" class="text-primary fw-bold small mt-2 d-block">Back to Login</a>
+    <form action="/verify-login" method="POST" class="space-y-6">
+      <div>
+        <label class="hms-label text-center block mb-4">Enter 6-Digit OTP</label>
+        <div class="flex justify-center">
+          <input 
+            type="text" 
+            name="otp" 
+            class="hms-input text-center text-3xl font-black tracking-[0.5em] pl-[0.5em] max-w-[280px]" 
+            maxlength="6" 
+            pattern="\d{6}" 
+            required 
+            placeholder="000000" 
+            autofocus
+            autocomplete="one-time-code"
+          >
         </div>
       </div>
+
+      <button type="submit" class="hms-btn hms-btn-primary w-full py-4 text-base font-bold flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20">
+        <i class="fas fa-check-circle"></i>Verify & Authorize
+      </button>
+    </form>
+
+    <div class="text-center mt-8 pt-6 border-t border-white/5 space-y-3">
+      <p class="text-xs text-gray-500 leading-relaxed font-medium">Didn't receive the email? Check spam filters or confirm details.</p>
+      <a href="/login" class="inline-flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 font-bold transition-colors">
+        <i class="fas fa-arrow-left"></i> Back to Login
+      </a>
     </div>
   </div>
 </div>

@@ -2009,5 +2009,91 @@ body {
     z-index: 5;
 }
 
+/* Responsive Tables for Mobile/Tablet Breakpoints */
+@media (max-width: 767.98px) {
+    .hms-table-container {
+        border: none;
+        box-shadow: none;
+        background: transparent;
+        overflow: visible;
+    }
+    
+    .hms-table,
+    .hms-table thead,
+    .hms-table tbody,
+    .hms-table tr,
+    .hms-table td {
+        display: block;
+        width: 100%;
+    }
+    
+    .hms-table thead {
+        display: none !important;
+    }
+    
+    .hms-table tbody tr {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-xl);
+        padding: 1.25rem;
+        margin-bottom: 1.25rem;
+        box-shadow: var(--shadow-md);
+        transform: none !important;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .hms-table tbody tr:hover {
+        background: var(--bg-secondary);
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-2px) !important;
+    }
+    
+    .hms-table td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border-color);
+        text-align: right;
+        font-size: 0.875rem;
+    }
+    
+    .hms-table td:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    
+    .hms-table td:first-child {
+        padding-top: 0;
+    }
+    
+    .hms-table td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        float: left;
+        text-align: left;
+        margin-right: 1.5rem;
+    }
+
+    /* Align nested child components to the right in stacked layout cells */
+    .hms-table td img {
+        margin-left: auto;
+    }
+    
+    .hms-table td .hms-badge {
+        margin-left: auto;
+    }
+    
+    .hms-table td .flex,
+    .hms-table td .inline-flex,
+    .hms-table td form {
+        display: inline-flex;
+        justify-content: flex-end;
+    }
+}
+
 
 

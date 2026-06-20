@@ -1,85 +1,100 @@
-<% var title = 'AI Symptom Checker - HMS'; %>
+<% var title = 'AI Symptom Checker - HMS Premium'; %>
 <%- include('../partials/header') %>
 
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-md-3 col-lg-2 sidebar p-0">
-      <div class="p-3 text-white">
-        <h5 class="fw-bold"><i class="fas fa-heartbeat me-2"></i>Patient Panel</h5>
-      </div>
-      <nav class="nav flex-column">
-        <a class="nav-link" href="/patient/dashboard"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
-        <a class="nav-link" href="/patient/doctors"><i class="fas fa-user-md me-2"></i>Find Doctors</a>
-        <a class="nav-link" href="/patient/appointments"><i class="fas fa-calendar-check me-2"></i>My Appointments</a>
-        <a class="nav-link" href="/patient/prescriptions"><i class="fas fa-file-prescription me-2"></i>Prescriptions</a>
-        <a class="nav-link active" href="/patient/symptom-checker"><i class="fas fa-brain me-2"></i>AI Symptom Checker</a>
-        <a class="nav-link" href="/patient/chat"><i class="fas fa-comments me-2"></i>Chat</a>
-      </nav>
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <%- include('../partials/patient-sidebar', { active: 'ai-chat' }) %>
+
+  <!-- Main Content -->
+  <div class="flex-grow overflow-y-auto p-6 lg:p-12 hms-page-transition">
+    <div class="mb-10 animate-fade-in">
+      <h1 class="text-3xl font-black text-white tracking-tight flex items-center gap-3">
+        <i class="fas fa-brain text-indigo-400"></i>AI Symptom Checker
+      </h1>
+      <p class="text-gray-400 font-medium text-sm mt-1">Get instant insights about your symptoms powered by clinical intelligence.</p>
     </div>
 
-    <div class="col-md-9 col-lg-10 p-4">
-      <h2 class="fw-bold mb-4"><i class="fas fa-brain me-2"></i>AI Symptom Checker</h2>
-
-      <div class="row justify-content-center">
-        <div class="col-md-8">
-          <div class="card p-4 mb-4">
-            <h5 class="fw-bold mb-3">Describe Your Symptoms</h5>
-            <form action="/patient/symptom-checker" method="POST">
-              <div class="mb-3">
-                <textarea name="symptoms" class="form-control" rows="4" required 
-                  placeholder="Example: I have fever, headache, and cough since yesterday..."></textarea>
-              </div>
-              <button type="submit" class="btn btn-primary btn-lg w-100">
-                <i class="fas fa-stethoscope me-2"></i>Analyze Symptoms
-              </button>
-            </form>
-
-            <div class="mt-3 p-3 bg-light rounded">
-              <small class="text-muted">
-                <i class="fas fa-info-circle me-1"></i>
-                Common symptoms: fever, cough, cold, headache, stomach pain, chest pain, skin rash, eye pain, toothache, back pain
-              </small>
-            </div>
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <!-- Input Card -->
+      <div class="lg:col-span-6 hms-card animate-scale-in">
+        <h3 class="text-xl font-bold text-white mb-4">Describe Your Symptoms</h3>
+        <p class="text-gray-400 text-sm mb-6">Type how you feel in plain language. Mention severity, duration, and any factors that make it better or worse.</p>
+        
+        <form action="/patient/symptom-checker" method="POST" class="space-y-6">
+          <div>
+            <textarea 
+              name="symptoms" 
+              class="hms-input min-h-[140px] resize-none" 
+              required 
+              placeholder="Example: I have a high fever, sharp headache behind the eyes, and dry cough for the last two days..."
+            ></textarea>
           </div>
+          <button type="submit" class="hms-btn hms-btn-primary w-full py-4 text-base flex items-center justify-center gap-2">
+            <i class="fas fa-stethoscope"></i>Analyze Symptoms
+          </button>
+        </form>
 
-          <% if (result) { %>
-            <div class="card p-4 border-primary" style="border-left: 4px solid var(--primary)">
-              <h5 class="fw-bold text-primary mb-3"><i class="fas fa-clipboard-list me-2"></i>Analysis Result</h5>
-
-              <div class="mb-3">
-                <h6 class="fw-bold">Detected Symptoms:</h6>
-                <p class="text-muted"><%= result.symptoms %></p>
-              </div>
-
-              <% if (result.specialization) { %>
-                <div class="mb-3 p-3 bg-info bg-opacity-10 rounded">
-                  <h6 class="fw-bold text-info"><i class="fas fa-user-md me-2"></i>Recommended Specialist:</h6>
-                  <p class="mb-0 fs-5"><%= result.specialization %></p>
-                </div>
-              <% } %>
-
-              <div class="mb-3">
-                <h6 class="fw-bold"><i class="fas fa-pills me-2"></i>Suggested Medicines:</h6>
-                <ul class="list-group">
-                  <% result.medicines.forEach(med => { %>
-                    <li class="list-group-item"><i class="fas fa-capsules me-2 text-success"></i><%= med %></li>
-                  <% }) %>
-                </ul>
-              </div>
-
-              <div class="alert alert-warning" role="alert">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                <strong>Important:</strong> <%= result.recommendation %> This is AI-based suggestion only. Please consult a doctor for proper diagnosis.
-              </div>
-
-              <a href="/patient/doctors?specialization=<%= result.specialization %>" class="btn btn-primary">
-                <i class="fas fa-user-md me-2"></i>Find <%= result.specialization %>
-              </a>
-            </div>
-          <% } %>
+        <div class="mt-6 p-4 rounded-2xl bg-white/5 border border-white/5">
+          <small class="text-gray-400 leading-relaxed block">
+            <i class="fas fa-info-circle text-indigo-400 mr-1"></i>
+            <strong>Common symptoms:</strong> fever, cough, runny nose, headache, stomach ache, chest pain, rash, sore throat, joint pain
+          </small>
         </div>
       </div>
+
+      <!-- Result Card -->
+      <div class="lg:col-span-6">
+        <% if (result) { %>
+          <div class="hms-card border-l-4 border-indigo-500 animate-scale-in space-y-6">
+            <h3 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fas fa-clipboard-list text-indigo-400"></i>Analysis Result
+            </h3>
+
+            <div>
+              <span class="text-xs font-black text-gray-400 uppercase tracking-widest block mb-2">Detected Symptoms</span>
+              <p class="text-gray-200 bg-white/5 p-4 rounded-xl border border-white/5"><%= result.symptoms %></p>
+            </div>
+
+            <% if (result.specialization) { %>
+              <div class="p-5 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl">
+                <span class="text-xs font-black text-indigo-300 uppercase tracking-widest block mb-1">Recommended Specialist</span>
+                <p class="text-white text-xl font-black tracking-tight"><%= result.specialization %></p>
+              </div>
+            <% } %>
+
+            <div>
+              <span class="text-xs font-black text-gray-400 uppercase tracking-widest block mb-3">Suggested Over-The-Counter Medicines</span>
+              <ul class="space-y-2">
+                <% result.medicines.forEach(med => { %>
+                  <li class="flex items-center gap-3 text-gray-300 bg-white/5 px-4 py-3 rounded-xl border border-white/5">
+                    <i class="fas fa-capsules text-emerald-400"></i>
+                    <span class="font-medium"><%= med %></span>
+                  </li>
+                <% }) %>
+              </ul>
+            </div>
+
+            <div class="p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-amber-300 text-sm flex gap-3">
+              <i class="fas fa-exclamation-triangle mt-0.5 shrink-0"></i>
+              <p class="leading-relaxed"><strong>Important clinical disclaimer:</strong> <%= result.recommendation %> This is an AI assessment. Always consult a healthcare professional for proper medical diagnostics.</p>
+            </div>
+
+            <a href="/patient/doctors?specialization=<%= result.specialization %>" class="hms-btn hms-btn-primary w-full py-4 text-center block">
+              <i class="fas fa-user-md mr-1.5"></i>Find <%= result.specialization %>
+            </a>
+          </div>
+        <% } else { %>
+          <div class="hms-glass-premium rounded-[32px] p-10 text-center flex flex-col items-center justify-center min-h-[350px]">
+            <div class="w-16 h-16 bg-white/5 border border-white/10 text-gray-400 rounded-2xl flex items-center justify-center text-2xl mb-4">
+              <i class="fas fa-heartbeat"></i>
+            </div>
+            <h4 class="text-lg font-bold text-white mb-2">Awaiting Diagnosis Input</h4>
+            <p class="text-gray-400 text-sm max-w-xs mx-auto">Fill in the symptoms form on the left to invoke our AI diagnosis assistant and fetch recommendations.</p>
+          </div>
+        <% } %>
+      </div>
     </div>
+
   </div>
 </div>
 

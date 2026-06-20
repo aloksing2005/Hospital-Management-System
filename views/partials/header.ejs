@@ -639,6 +639,27 @@
           });
         })();
 
+        // Global responsive tables data-label helper
+        (function() {
+          function setupResponsiveTables() {
+            document.querySelectorAll('table.hms-table').forEach(table => {
+              const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.innerText.trim());
+              table.querySelectorAll('tbody tr').forEach(row => {
+                row.querySelectorAll('td').forEach((td, index) => {
+                  if (headers[index] && !td.getAttribute('data-label')) {
+                    td.setAttribute('data-label', headers[index]);
+                  }
+                });
+              });
+            });
+          }
+          setupResponsiveTables();
+          const observer = new MutationObserver(function() {
+            setupResponsiveTables();
+          });
+          observer.observe(document.body, { childList: true, subtree: true });
+        })();
+
       });
     })();
   </script>

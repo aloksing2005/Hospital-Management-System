@@ -1,92 +1,94 @@
-<% var title = 'Hospital Navigator - HMS'; %>
+<% var title = 'Hospital Navigator - HMS Premium'; %>
 <%- include('../partials/header') %>
-<script src="https://cdn.tailwindcss.com"></script>
 
-<div class="container-fluid bg-gray-50 min-h-screen">
-  <div class="row">
-    <%- include('../partials/patient-sidebar', { active: 'navigator' }) %>
+<div class="flex h-screen">
+  <!-- Sidebar -->
+  <%- include('../partials/patient-sidebar', { active: 'wellbeing' }) %>
 
-    <div class="col-md-9 col-lg-10 p-12">
-      <div class="max-w-6xl mx-auto">
-        <div class="flex justify-between items-end mb-12">
-            <div>
-                <h2 class="text-5xl font-black text-gray-900 tracking-tight">Smart Navigator</h2>
-                <p class="text-gray-500 mt-2 text-xl">Navigate the hospital floors with our real-time digital twin.</p>
-            </div>
-            <div class="flex bg-white p-2 rounded-2xl shadow-sm border">
-                <button class="bg-indigo-600 text-white px-4 py-2 rounded-xl font-bold text-sm">Floor 0</button>
-                <button class="px-4 py-2 text-gray-500 font-bold text-sm">Floor 1</button>
-                <button class="px-4 py-2 text-gray-500 font-bold text-sm">Floor 2</button>
-            </div>
+  <!-- Main Content -->
+  <div class="flex-grow overflow-y-auto p-6 lg:p-12 hms-page-transition">
+    <!-- Page Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10 animate-fade-in">
+      <div>
+        <h1 class="text-3xl font-black text-white tracking-tight flex items-center gap-3">
+          <i class="fas fa-map-marked-alt text-indigo-400"></i>Smart Navigator
+        </h1>
+        <p class="text-gray-400 font-medium text-sm mt-1">Navigate floor plans and departments in real-time.</p>
+      </div>
+      <div class="flex bg-white/5 p-1.5 rounded-2xl border border-white/10">
+        <button class="bg-indigo-600 text-white px-4 py-2 rounded-xl font-bold text-xs">Floor 0</button>
+        <button class="px-4 py-2 text-gray-400 font-bold text-xs hover:text-white transition">Floor 1</button>
+        <button class="px-4 py-2 text-gray-400 font-bold text-xs hover:text-white transition">Floor 2</button>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <!-- Navigation Sidebar -->
+      <div class="lg:col-span-4 space-y-6 animate-scale-in">
+        <div class="hms-card">
+          <h3 class="font-bold text-white mb-6">Quick Find</h3>
+          <div class="space-y-3">
+            <button class="w-full text-left p-4 rounded-2xl bg-indigo-600/20 border border-indigo-500/30 flex items-center gap-4 transition hover:bg-indigo-600/30">
+              <i class="fas fa-hospital-user text-indigo-400 text-lg"></i>
+              <span class="text-sm font-bold text-white">OPD Block</span>
+            </button>
+            <button class="w-full text-left p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 flex items-center gap-4 transition">
+              <i class="fas fa-flask text-gray-400 text-lg"></i>
+              <span class="text-sm font-bold text-gray-300">Pathology Lab</span>
+            </button>
+            <button class="w-full text-left p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 flex items-center gap-4 transition">
+              <i class="fas fa-vial text-gray-400 text-lg"></i>
+              <span class="text-sm font-bold text-gray-300">Pharmacy</span>
+            </button>
+            <button class="w-full text-left p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 flex items-center gap-4 transition">
+              <i class="fas fa-coffee text-gray-400 text-lg"></i>
+              <span class="text-sm font-bold text-gray-300">Cafeteria</span>
+            </button>
+          </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            <!-- Navigation Sidebar -->
-            <div class="lg:col-span-1 space-y-4">
-                <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6">
-                    <h3 class="font-bold text-gray-800 mb-6">Quick Find</h3>
-                    <div class="space-y-2">
-                        <button class="w-full text-left p-4 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center gap-4 transition">
-                            <i class="fas fa-hospital-user text-indigo-600"></i>
-                            <span class="text-sm font-bold text-indigo-900">OPD Block</span>
-                        </button>
-                        <button class="w-full text-left p-4 rounded-2xl hover:bg-gray-50 flex items-center gap-4 transition">
-                            <i class="fas fa-flask text-gray-400"></i>
-                            <span class="text-sm font-bold text-gray-700">Pathology Lab</span>
-                        </button>
-                        <button class="w-full text-left p-4 rounded-2xl hover:bg-gray-50 flex items-center gap-4 transition">
-                            <i class="fas fa-vial text-gray-400"></i>
-                            <span class="text-sm font-bold text-gray-700">Pharmacy</span>
-                        </button>
-                        <button class="w-full text-left p-4 rounded-2xl hover:bg-gray-50 flex items-center gap-4 transition">
-                            <i class="fas fa-coffee text-gray-400"></i>
-                            <span class="text-sm font-bold text-gray-700">Cafeteria</span>
-                        </button>
-                    </div>
-                </div>
+        <div class="bg-gradient-to-br from-indigo-900 to-purple-950 border border-indigo-500/20 rounded-[32px] p-6 text-white text-center shadow-lg">
+          <div class="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-white/10">
+            <i class="fas fa-qrcode text-xl text-indigo-300"></i>
+          </div>
+          <p class="text-sm font-bold mb-4">Scan QR code at any hospital kiosk to sync this directory map to your mobile device.</p>
+          <button class="hms-btn hms-btn-primary text-xs uppercase w-full">Get QR Code</button>
+        </div>
+      </div>
 
-                <div class="bg-indigo-900 rounded-3xl p-6 text-white text-center">
-                    <i class="fas fa-qrcode text-4xl mb-4"></i>
-                    <p class="text-sm font-bold mb-4">Scan QR at any kiosk to sync this map to your phone.</p>
-                    <button class="bg-white text-indigo-900 px-6 py-2 rounded-xl font-bold text-xs uppercase">Get QR Code</button>
-                </div>
-            </div>
+      <!-- Interactive Map Canvas -->
+      <div class="lg:col-span-8 hms-card relative overflow-hidden group min-h-[450px] animate-scale-in">
+        <div class="absolute inset-0 bg-slate-950 flex items-center justify-center p-6 lg:p-12">
+          <!-- Floor Plan SVG -->
+          <svg viewBox="0 0 800 600" class="w-full h-full drop-shadow-2xl">
+            <!-- Corridors -->
+            <path d="M100 100 H700 V500 H100 Z" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.1)" stroke-width="2"></path>
+            <!-- Rooms -->
+            <rect x="150" y="150" width="120" height="100" class="fill-indigo-500/10 stroke-indigo-500/30 hover:fill-indigo-500/30 transition-colors cursor-pointer" rx="12"></rect>
+            <text x="210" y="205" text-anchor="middle" class="text-xs font-black fill-indigo-300 pointer-events-none">ROOM 101</text>
+            
+            <rect x="300" y="150" width="200" height="100" class="fill-emerald-500/10 stroke-emerald-500/30 hover:fill-emerald-500/30 transition-colors cursor-pointer" rx="12"></rect>
+            <text x="400" y="205" text-anchor="middle" class="text-xs font-black fill-emerald-300 pointer-events-none">PATHOLOGY</text>
 
-            <!-- Interactive Map Canvas -->
-            <div class="lg:col-span-3 bg-white rounded-[40px] shadow-sm border border-gray-100 p-12 relative overflow-hidden group">
-                <div class="absolute inset-0 bg-gray-50 flex items-center justify-center p-12">
-                    <!-- Floor Plan SVG -->
-                    <svg viewBox="0 0 800 600" class="w-full h-full drop-shadow-2xl">
-                        <!-- Corridors -->
-                        <path d="M100 100 H700 V500 H100 Z" fill="#fff" stroke="#e5e7eb" stroke-width="2"></path>
-                        <!-- Rooms -->
-                        <rect x="150" y="150" width="120" height="100" class="fill-indigo-100 stroke-indigo-300 hover:fill-indigo-600 transition-colors cursor-pointer" rx="10"></rect>
-                        <text x="210" y="205" text-anchor="middle" class="text-xs font-black pointer-events-none fill-indigo-900 group-hover:fill-white">ROOM 101</text>
-                        
-                        <rect x="300" y="150" width="200" height="100" class="fill-green-100 stroke-green-300 hover:fill-green-600 transition-colors cursor-pointer" rx="10"></rect>
-                        <text x="400" y="205" text-anchor="middle" class="text-xs font-black pointer-events-none fill-green-900">PATHOLOGY</text>
+            <rect x="530" y="150" width="120" height="100" class="fill-rose-500/10 stroke-rose-500/30 hover:fill-rose-500/30 transition-colors cursor-pointer" rx="12"></rect>
+            <text x="590" y="205" text-anchor="middle" class="text-xs font-black fill-rose-300 pointer-events-none">EMERGENCY</text>
 
-                        <rect x="530" y="150" width="120" height="100" class="fill-red-100 stroke-red-300 hover:fill-red-600 transition-colors cursor-pointer" rx="10"></rect>
-                        <text x="590" y="205" text-anchor="middle" class="text-xs font-black pointer-events-none fill-red-900">EMERGENCY</text>
+            <rect x="150" y="300" width="120" height="150" class="fill-cyan-500/10 stroke-cyan-500/30 hover:fill-cyan-500/30 transition-colors cursor-pointer" rx="12"></rect>
+            <text x="210" y="380" text-anchor="middle" class="text-xs font-black fill-cyan-300 pointer-events-none">OPD 1</text>
 
-                        <rect x="150" y="300" width="120" height="150" class="fill-blue-100 stroke-blue-300 hover:fill-blue-600 transition-colors cursor-pointer" rx="10"></rect>
-                        <text x="210" y="380" text-anchor="middle" class="text-xs font-black pointer-events-none fill-blue-900">OPD 1</text>
+            <rect x="300" y="300" width="350" height="150" class="fill-white/5 stroke-white/10 hover:fill-white/10 transition-colors cursor-pointer" rx="12"></rect>
+            <text x="475" y="380" text-anchor="middle" class="text-xs font-black fill-gray-400 pointer-events-none">CENTRAL ATRIUM</text>
+          </svg>
+        </div>
+        
+        <div class="absolute bottom-6 right-6 flex gap-2">
+          <button class="w-10 h-10 bg-white/10 border border-white/10 shadow-lg rounded-xl flex items-center justify-center text-white hover:scale-105 hover:bg-white/20 transition"><i class="fas fa-plus"></i></button>
+          <button class="w-10 h-10 bg-white/10 border border-white/10 shadow-lg rounded-xl flex items-center justify-center text-white hover:scale-105 hover:bg-white/20 transition"><i class="fas fa-minus"></i></button>
+        </div>
 
-                        <rect x="300" y="300" width="350" height="150" class="fill-gray-100 stroke-gray-300 hover:fill-gray-600 transition-colors cursor-pointer" rx="10"></rect>
-                        <text x="475" y="380" text-anchor="middle" class="text-xs font-black pointer-events-none fill-gray-900">CENTRAL ATRIUM</text>
-                    </svg>
-                </div>
-                
-                <div class="absolute bottom-8 right-8 flex gap-2">
-                    <button class="w-12 h-12 bg-white shadow-lg rounded-2xl flex items-center justify-center text-indigo-600 hover:scale-110 transition"><i class="fas fa-plus"></i></button>
-                    <button class="w-12 h-12 bg-white shadow-lg rounded-2xl flex items-center justify-center text-indigo-600 hover:scale-110 transition"><i class="fas fa-minus"></i></button>
-                </div>
-
-                <div class="absolute top-8 right-8 bg-white/80 backdrop-blur-md px-4 py-2 rounded-full border shadow-sm flex items-center gap-2">
-                    <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                    <span class="text-xs font-bold text-gray-700 uppercase tracking-widest">You are here</span>
-                </div>
-            </div>
+        <div class="absolute top-6 right-6 bg-slate-900/90 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 shadow-sm flex items-center gap-2">
+          <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+          <span class="text-[10px] font-black text-emerald-400 uppercase tracking-widest">You are here</span>
         </div>
       </div>
     </div>
