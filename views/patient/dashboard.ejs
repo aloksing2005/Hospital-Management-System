@@ -21,90 +21,6 @@
     0%, 100% { transform: translateY(0px) rotate(0deg); }
     50% { transform: translateY(-6px) rotate(0.3deg); }
   }
-
-  /* Scoped Print Classes for Flawless Printing */
-  @media print {
-    @page {
-      size: A4 portrait;
-      margin: 0;
-    }
-    body.hms-printing-active {
-      background: #ffffff !important;
-      background-color: #ffffff !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      overflow: visible !important;
-      height: auto !important;
-    }
-    body.hms-printing-active * {
-      visibility: hidden !important;
-    }
-    body.hms-printing-active #healthCardToPrint,
-    body.hms-printing-active #healthCardToPrint * {
-      visibility: visible !important;
-    }
-    body.hms-printing-active #healthCardToPrint {
-      position: fixed !important;
-      left: 50% !important;
-      top: 50% !important;
-      transform: translate(-50%, -50%) scale(1.2) !important;
-      transform-origin: center !important;
-      width: 500px !important;
-      height: 310px !important;
-      border: 3px solid #6366f1 !important;
-      background: #ffffff !important;
-      background-color: #ffffff !important;
-      color: #020617 !important;
-      border-radius: 24px !important;
-      box-shadow: none !important;
-      padding: 24px !important;
-      display: flex !important;
-      flex-direction: column !important;
-      justify-content: space-between !important;
-      z-index: 99999999 !important;
-      box-sizing: border-box !important;
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
-    }
-    /* Force high-contrast text visibility in print */
-    body.hms-printing-active #healthCardToPrint p,
-    body.hms-printing-active #healthCardToPrint h3,
-    body.hms-printing-active #healthCardToPrint h4,
-    body.hms-printing-active #healthCardToPrint span,
-    body.hms-printing-active #healthCardToPrint div {
-      color: #020617 !important;
-    }
-    body.hms-printing-active #healthCardToPrint .text-indigo-300,
-    body.hms-printing-active #healthCardToPrint .text-indigo-400,
-    body.hms-printing-active #healthCardToPrint span[class*="text-indigo-"] {
-      color: #4f46e5 !important;
-    }
-    body.hms-printing-active #healthCardToPrint .text-gray-200,
-    body.hms-printing-active #healthCardToPrint .text-gray-400,
-    body.hms-printing-active #healthCardToPrint .text-gray-500,
-    body.hms-printing-active #healthCardToPrint span[class*="text-gray-"] {
-      color: #4b5563 !important;
-    }
-    body.hms-printing-active #healthCardToPrint .bg-emerald-500\/15 {
-      background-color: #d1fae5 !important;
-      border: 1px solid #10b981 !important;
-    }
-    body.hms-printing-active #healthCardToPrint .text-emerald-400 {
-      color: #047857 !important;
-    }
-    body.hms-printing-active #healthCardToPrint .bg-gradient-to-br {
-      background-color: #6366f1 !important;
-      background: #6366f1 !important;
-    }
-    body.hms-printing-active #healthCardToPrint .bg-gradient-to-br i {
-      color: #ffffff !important;
-    }
-    /* Hide decorative items in print */
-    body.hms-printing-active #healthCardToPrint .hud-shine-sweep,
-    body.hms-printing-active #healthCardToPrint .hud-grid-overlay {
-      display: none !important;
-    }
-  }
 </style>
 
 <div class="flex h-screen">
@@ -876,20 +792,137 @@
   }
 
   function printHealthCard() {
-    // Add print class to body to isolate printing
-    document.body.classList.add('hms-printing-active');
+    const cardElement = document.getElementById('healthCardToPrint');
+    if (!cardElement) return;
+
+    // Create a temporary hidden iframe
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.width = '0';
+    iframe.style.height = '0';
+    iframe.style.border = 'none';
+    iframe.style.left = '-9999px';
+    iframe.style.top = '-9999px';
+    document.body.appendChild(iframe);
+
+    const iframeDoc = iframe.contentWindow.document;
     
-    // Register afterprint listener to ensure clean state restore
-    const restoreLayout = () => {
-      document.body.classList.remove('hms-printing-active');
-      window.removeEventListener('afterprint', restoreLayout);
-    };
-    window.addEventListener('afterprint', restoreLayout);
-    
-    // Trigger print after brief rendering buffer
-    setTimeout(() => {
-      window.print();
-    }, 150);
+    // Copy all style sheets and style tags from parent document to iframe
+    let styles = '';
+    document.querySelectorAll('link[rel="stylesheet"], style').forEach(el => {
+      styles += el.outerHTML;
+    });
+
+    iframeDoc.open();
+    iframeDoc.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Health ID Card</title>
+          \${styles}
+          <style>
+            @page {
+              size: landscape;
+              margin: 0;
+            }
+            body {
+              margin: 0 !important;
+              padding: 0 !important;
+              background: #ffffff !important;
+              background-color: #ffffff !important;
+              display: flex !important;
+              align-items: center !important;
+              justify-content: center !important;
+              min-height: 100vh !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            #printWrapper {
+              width: 500px !important;
+              height: 310px !important;
+              box-sizing: border-box !important;
+              display: flex !important;
+              justify-content: center !important;
+              align-items: center !important;
+            }
+            /* Clean Print Rules for the Health Card */
+            #healthCardToPrint {
+              width: 500px !important;
+              height: 310px !important;
+              border: 3px solid #6366f1 !important;
+              background: #ffffff !important;
+              background-color: #ffffff !important;
+              color: #020617 !important;
+              border-radius: 24px !important;
+              box-shadow: none !important;
+              padding: 24px !important;
+              display: flex !important;
+              flex-direction: column !important;
+              justify-content: space-between !important;
+              box-sizing: border-box !important;
+              position: relative !important;
+              overflow: hidden !important;
+            }
+            /* High Contrast Print Text Colors */
+            #healthCardToPrint p,
+            #healthCardToPrint h3,
+            #healthCardToPrint h4,
+            #healthCardToPrint span,
+            #healthCardToPrint div {
+              color: #020617 !important;
+            }
+            #healthCardToPrint .text-indigo-300,
+            #healthCardToPrint .text-indigo-400,
+            #healthCardToPrint span[class*="text-indigo-"] {
+              color: #4f46e5 !important;
+            }
+            #healthCardToPrint .text-gray-200,
+            #healthCardToPrint .text-gray-400,
+            #healthCardToPrint .text-gray-500,
+            #healthCardToPrint span[class*="text-gray-"] {
+              color: #4b5563 !important;
+            }
+            #healthCardToPrint .bg-emerald-500\\\\/15 {
+              background-color: #d1fae5 !important;
+              border: 1px solid #10b981 !important;
+            }
+            #healthCardToPrint .text-emerald-400 {
+              color: #047857 !important;
+            }
+            #healthCardToPrint .bg-gradient-to-br {
+              background-color: #6366f1 !important;
+              background: #6366f1 !important;
+            }
+            #healthCardToPrint .bg-gradient-to-br i {
+              color: #ffffff !important;
+            }
+            #healthCardToPrint .hud-shine-sweep,
+            #healthCardToPrint .hud-grid-overlay {
+              display: none !important;
+            }
+          </style>
+        </head>
+        <body>
+          <div id="printWrapper">
+            <div id="healthCardToPrint">
+              \${cardElement.innerHTML}
+            </div>
+          </div>
+          \\x3Cscript>
+            window.onload = function() {
+              setTimeout(function() {
+                window.focus();
+                window.print();
+                setTimeout(function() {
+                  window.parent.document.body.removeChild(window.frameElement);
+                }, 200);
+              }, 300);
+            };
+          \\x3C/script>
+        </body>
+      </html>
+    `);
+    iframeDoc.close();
   }
 
   // --- Neural X-Ray & MRI HUD Scanner Logic ---
