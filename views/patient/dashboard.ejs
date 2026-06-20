@@ -327,7 +327,7 @@
 
             <!-- The Smart Card Container -->
             <div class="w-full max-w-2xl mx-auto relative">
-              <div id="healthCardToPrint" class="hms-cybercard-glow relative w-full aspect-[1.618/1] rounded-[28px] p-6 lg:p-8 overflow-hidden flex flex-col justify-between text-white transition-all duration-300">
+              <div id="healthCardToPrint" class="hms-cybercard-glow relative w-full aspect-[1.618/1] min-h-[260px] rounded-[28px] p-6 lg:p-8 overflow-hidden flex flex-col justify-between text-white transition-all duration-300">
                 <!-- Cyberpunk Holographic Shine Line Sweep -->
                 <div class="hud-shine-sweep"></div>
                 
@@ -819,7 +819,7 @@
       <html>
         <head>
           <title>Health ID Card</title>
-          \${styles}
+          ${styles}
           <style>
             @page {
               size: landscape;
@@ -882,7 +882,7 @@
             #healthCardToPrint span[class*="text-gray-"] {
               color: #4b5563 !important;
             }
-            #healthCardToPrint .bg-emerald-500\\\\/15 {
+            #healthCardToPrint .bg-emerald-500\\/15 {
               background-color: #d1fae5 !important;
               border: 1px solid #10b981 !important;
             }
@@ -905,10 +905,10 @@
         <body>
           <div id="printWrapper">
             <div id="healthCardToPrint">
-              \${cardElement.innerHTML}
+              ${cardElement.innerHTML}
             </div>
           </div>
-          \\x3Cscript>
+          \x3Cscript>
             window.onload = function() {
               setTimeout(function() {
                 window.focus();
@@ -918,7 +918,7 @@
                 }, 200);
               }, 300);
             };
-          \\x3C/script>
+          \x3C/script>
         </body>
       </html>
     `);
