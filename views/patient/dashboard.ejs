@@ -33,8 +33,8 @@
       background-color: #020617 !important;
       margin: 0 !important;
       padding: 0 !important;
-      overflow: hidden !important;
-      height: 100vh !important;
+      overflow: visible !important;
+      height: auto !important;
     }
     body.hms-printing-active * {
       visibility: hidden !important;
@@ -44,9 +44,9 @@
       visibility: visible !important;
     }
     body.hms-printing-active #healthCardToPrint {
-      position: absolute !important;
+      position: fixed !important;
       left: 50% !important;
-      top: 40% !important;
+      top: 50% !important;
       transform: translate(-50%, -50%) scale(1.2) !important;
       transform-origin: center !important;
       width: 500px !important;
@@ -63,6 +63,7 @@
       display: flex !important;
       flex-direction: column !important;
       justify-content: space-between !important;
+      z-index: 99999999 !important;
     }
     /* Hide decorative items in print */
     body.hms-printing-active #healthCardToPrint .hud-shine-sweep,
@@ -840,13 +841,17 @@
     // Add print class to body to isolate printing
     document.body.classList.add('hms-printing-active');
     
-    // Print original card element to avoid browser canvas-cloning bugs (preserving QR code)
-    window.print();
-    
-    // Clean up
-    setTimeout(() => {
+    // Register afterprint listener to ensure clean state restore
+    const restoreLayout = () => {
       document.body.classList.remove('hms-printing-active');
-    }, 500);
+      window.removeEventListener('afterprint', restoreLayout);
+    };
+    window.addEventListener('afterprint', restoreLayout);
+    
+    // Trigger print after brief rendering buffer
+    setTimeout(() => {
+      window.print();
+    }, 150);
   }
 
   // --- Neural X-Ray & MRI HUD Scanner Logic ---
