@@ -6,7 +6,8 @@ const {
   InsuranceClaim,
   WellbeingLog,
   EmergencyAlert,
-  Appointment
+  Appointment,
+  DietPlan
 } = require("../config/db");
 const appointmentModel = require("../models/appointmentModel");
 const notificationModel = require("../models/notificationModel");
@@ -352,13 +353,26 @@ exports.triggerSOS = async (req, res) => {
 
     await notifyAdmins(io, "SOS EMERGENCY", `${patientName} triggered SOS`, "danger");
 
+    // Automatically create pending ambulance request for the SOS
+    const AmbulanceModel = require("../models/ambulanceModel");
+    const requestId = await AmbulanceModel.createRequest({
+      patient_id: patientId,
+      pickup_address: "Emergency SOS Location",
+      emergency_type: "SOS Emergency",
+      pickup_lat: lat ? parseFloat(lat) : null,
+      pickup_lng: lng ? parseFloat(lng) : null
+    });
+
+    const ambulanceRequest = await AmbulanceModel.getRequestById(requestId);
+    io.to("drivers").emit("new-ambulance-request", ambulanceRequest);
+
     const { User } = require("../config/db");
     const drivers = await User.find({ role: "driver" }).select("_id").lean();
     for (const d of drivers) {
       await notifyUser(io, d._id, "SOS Dispatch", `${patientName} needs emergency help`, "danger");
     }
 
-    res.json({ success: true, alertId: alert._id });
+    res.json({ success: true, alertId: alert._id, requestId });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
@@ -396,6 +410,16 @@ exports.getNotificationsApi = async (req, res) => {
   }
 };
 
+exports.getDietPlanner = async (req, res) => {
+  try {
+    const plan = await DietPlan.findOne({ patient_id: req.session.user.id }).sort({ _id: -1 }).lean();
+    res.render("patient/diet-planner", { user: req.session.user, activePlan: plan });
+  } catch (err) {
+    req.flash("error", err.message);
+    res.redirect("/patient/dashboard");
+  }
+};
+
 exports.generateDiet = async (req, res) => {
   try {
     const { goal, activity } = req.body;
@@ -404,6 +428,18 @@ exports.generateDiet = async (req, res) => {
     }
     const { generateDietPlan } = require("../utils/medicalAI");
     const plan = await generateDietPlan(goal, activity);
+    
+    // Save generated diet plan to MongoDB
+    await DietPlan.create({
+      patient_id: req.session.user.id,
+      goal,
+      activity,
+      calories: plan.calories,
+      macros: plan.macros,
+      meals: plan.meals,
+      advice: plan.advice
+    });
+
     res.json({ success: true, plan });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });

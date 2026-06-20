@@ -183,6 +183,12 @@
 <%- include('../partials/footer') %>
 <script>
 (function () {
+  var map = null;
+  var patientMarker = null;
+  var driverMarker = null;
+  var patientCoords = [28.6139, 77.2090];
+  var HMS_PATIENT_ID = '<%= user.id %>';
+
   // Custom Select Dropdown Toggle
   document.addEventListener('DOMContentLoaded', () => {
     const dropdownBtn = document.getElementById('emergencyDropdownBtn');
@@ -219,18 +225,95 @@
     if (dropdownIcon) dropdownIcon.classList.remove('rotate-180');
   };
 
-  function bindSocket() {
-    var sock = window.hmsSocket();
-    if (!sock) return;
-    HMS_PATIENT_ID = '<%= user.id %>';
-    sock.emit('join', { userId: '<%= user.id %>', role: 'patient' });
+  function recoverActiveTrip(req) {
+    if (!req) return;
     
-    var patientCoords = [28.6139, 77.2090];
+    if (req.status === 'pending') {
+      document.getElementById('findingOverlay').classList.remove('hidden');
+      document.getElementById('statusDescription').innerText = "Locating nearby emergency services...";
+      if (req.pickup_lat && req.pickup_lng) {
+        patientCoords = [Number(req.pickup_lat), Number(req.pickup_lng)];
+        if (patientMarker && map) {
+          patientMarker.setLatLng(patientCoords);
+          map.setView(patientCoords, 15);
+        }
+      }
+    } else if (['accepted', 'on_the_way', 'arrived'].includes(req.status)) {
+      document.getElementById('findingOverlay').classList.add('hidden');
+      document.getElementById('requestForm').classList.add('hidden');
+      document.getElementById('activeTrip').classList.remove('hidden');
+      
+      const statusText = req.status === 'on_the_way' ? 'On The Way' : req.status === 'arrived' ? 'Arrived at Location' : req.status;
+      document.getElementById('statusDescription').innerText = "Ambulance is on the way!";
+      document.getElementById('driverName').innerText = req.driver_name || '—';
+      document.getElementById('vehicleNo').innerText = req.vehicle_no || '—';
+      document.getElementById('tripStatus').innerText = statusText;
+      
+      var tel = document.getElementById('driverCall');
+      if (tel) tel.href = 'tel:' + (req.driver_phone || '');
+      
+      if (req.eta) {
+        document.getElementById('etaText').innerText = req.eta;
+      }
+
+      // Update status indicator color
+      const indicator = document.getElementById('statusIndicator');
+      if (indicator) {
+        if (req.status === 'on_the_way') {
+          indicator.className = 'w-3 h-3 rounded-full bg-blue-400 mr-3 animate-pulse';
+        } else if (req.status === 'arrived') {
+          indicator.className = 'w-3 h-3 rounded-full bg-green-400 mr-3 animate-pulse';
+        }
+      }
+
+      // Show driver on map
+      var lat = req.current_lat != null ? Number(req.current_lat) : 28.6;
+      var lng = req.current_lng != null ? Number(req.current_lng) : 77.2;
+      
+      if (req.pickup_lat && req.pickup_lng) {
+        patientCoords = [Number(req.pickup_lat), Number(req.pickup_lng)];
+        if (patientMarker) patientMarker.setLatLng(patientCoords);
+      }
+
+      if (map) {
+        if (driverMarker) map.removeLayer(driverMarker);
+        
+        const customDriverIcon = L.divIcon({
+            className: 'pulse-driver-marker',
+            html: `<div class="w-8 h-8 rounded-full bg-indigo-600 border-2 border-white flex items-center justify-center text-white shadow-lg shadow-indigo-500/50">
+                     <i class="fas fa-ambulance text-xs animate-bounce"></i>
+                   </div>`,
+            iconSize: [32, 32],
+            iconAnchor: [16, 16]
+        });
+        
+        driverMarker = L.marker([lat, lng], { icon: customDriverIcon }).addTo(map).bindPopup('Driver Location').openPopup();
+        try {
+          map.fitBounds(L.featureGroup([patientMarker, driverMarker]).getBounds().pad(0.2));
+        } catch (e) {}
+      }
+    }
+  }
+
+  function bindSocket() {
+    var sock = window.hmsSocket ? window.hmsSocket() : null;
+    if (!sock) return;
+    sock.emit('join', { userId: HMS_PATIENT_ID, role: 'patient' });
 
     function initMap() {
       map = L.map('map').setView(patientCoords, 13);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
-      patientMarker = L.marker(patientCoords).addTo(map).bindPopup('Your Pickup Location').openPopup();
+      
+      const customPatientIcon = L.divIcon({
+          className: 'pulse-patient-marker',
+          html: `<div class="w-8 h-8 rounded-full bg-rose-600 border-2 border-white flex items-center justify-center text-white shadow-lg shadow-rose-500/50">
+                   <i class="fas fa-user-injured text-xs"></i>
+                 </div>`,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16]
+      });
+
+      patientMarker = L.marker(patientCoords, { icon: customPatientIcon }).addTo(map).bindPopup('Your Pickup Location').openPopup();
     }
 
     initMap();
@@ -245,113 +328,150 @@
       });
     }
 
-    window.requestAmbulance = async function () {
-    var address = document.getElementById('pickupAddress').value;
-    var type = document.getElementById('emergencyType').value;
-    if (!address) { alert("Please enter pickup address"); return; }
-
-    document.getElementById('findingOverlay').classList.remove('hidden');
-    document.getElementById('statusDescription').innerText = "Locating nearby emergency services...";
-
-    try {
-      const res = await fetch('/patient/ambulance/request', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          pickup_address: address,
-          emergency_type: type,
-          pickup_lat: patientCoords[0],
-          pickup_lng: patientCoords[1]
-        })
-      });
-      const data = await res.json();
-      if (!data.success) {
-        alert(data.error || 'Request failed');
-        document.getElementById('findingOverlay').classList.add('hidden');
-        return;
+    // Recover trip from template if available
+    const initialActiveRequest = <%- typeof activeRequest !== 'undefined' && activeRequest ? JSON.stringify(activeRequest) : 'null' %>;
+    if (initialActiveRequest) {
+      recoverActiveTrip(initialActiveRequest);
+      if (initialActiveRequest.id) {
+        sock.emit('join-trip', initialActiveRequest.id);
       }
-      if (window.hmsSocket && data.requestId) {
-        window.hmsSocket().emit('join-trip', data.requestId);
-      }
-      const prioRes = await fetch('/api/emergency-priority', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ emergency_type: type })
-      });
-      const prio = await prioRes.json();
-      if (prio.success) {
-        document.getElementById('statusDescription').innerText =
-          'Priority band: ' + prio.band + ' (score ' + prio.score + '). Waiting for driver…';
-      }
-    } catch (err) {
-      console.error('Error requesting ambulance:', err);
-      alert('Failed to request ambulance. Please try again.');
-      document.getElementById('findingOverlay').classList.add('hidden');
     }
-  };
 
-  // Socket event listeners
-  if (!window.__hmsAmbulanceListeners) {
-    window.__hmsAmbulanceListeners = true;
-    sock.on('ambulance-request-accepted', function (data) {
-      if (!data || String(data.patient_id) !== String(HMS_PATIENT_ID)) return;
-      document.getElementById('findingOverlay').classList.add('hidden');
-      document.getElementById('requestForm').classList.add('hidden');
-      document.getElementById('activeTrip').classList.remove('hidden');
-      document.getElementById('statusDescription').innerText = "Ambulance is on the way!";
-      document.getElementById('driverName').innerText = data.driver_name || '—';
-      document.getElementById('vehicleNo').innerText = data.vehicle_no || '—';
-      var tel = document.getElementById('driverCall');
-      if (tel) tel.href = 'tel:' + (data.driver_phone || '');
-      var lat = data.current_lat != null ? Number(data.current_lat) : 28.6;
-      var lng = data.current_lng != null ? Number(data.current_lng) : 77.2;
-      if (map) {
-        if (driverMarker) map.removeLayer(driverMarker);
-        driverMarker = L.marker([lat, lng]).addTo(map);
-        try {
-          map.fitBounds(L.featureGroup([patientMarker, driverMarker]).getBounds().pad(0.2));
-        } catch (e) {}
-      }
-      if (window.hmsShowToast) window.hmsShowToast('Ambulance', 'Driver accepted your request.', 'success');
-    });
+    window.requestAmbulance = async function () {
+      var address = document.getElementById('pickupAddress').value;
+      var type = document.getElementById('emergencyType').value;
+      if (!address) { alert("Please enter pickup address"); return; }
 
-    sock.on('ambulance-status-update', function (data) {
-      if (!data || String(data.request.patient_id) !== String(HMS_PATIENT_ID)) return;
-      
-      const statusText = data.status === 'on_the_way' ? 'On The Way' : data.status === 'arrived' ? 'Arrived at Location' : data.status;
-      document.getElementById('tripStatus').innerText = statusText;
-      
-      if (data.eta) {
-        document.getElementById('etaText').innerText = data.eta;
-      }
-      
-      // Update status indicator color
-      const indicator = document.getElementById('statusIndicator');
-      if (data.status === 'on_the_way') {
-        indicator.className = 'w-3 h-3 rounded-full bg-blue-400 mr-3 animate-pulse';
-      } else if (data.status === 'arrived') {
-        indicator.className = 'w-3 h-3 rounded-full bg-green-400 mr-3 animate-pulse';
-      }
-      
-      if (window.hmsShowToast) window.hmsShowToast('Status Update', `Ambulance is ${statusText}`, 'info');
-    });
+      document.getElementById('findingOverlay').classList.remove('hidden');
+      document.getElementById('statusDescription').innerText = "Locating nearby emergency services...";
 
-    sock.on('ambulance-location-sync', function (data) {
-      if (!driverMarker || !map || !patientMarker) return;
-      driverMarker.setLatLng([data.lat, data.lng]);
       try {
-        map.fitBounds(L.featureGroup([patientMarker, driverMarker]).getBounds().pad(0.2));
-      } catch (e) {}
-    });
+        const res = await fetch('/patient/ambulance/request', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            pickup_address: address,
+            emergency_type: type,
+            pickup_lat: patientCoords[0],
+            pickup_lng: patientCoords[1]
+          })
+        });
+        const data = await res.json();
+        if (!data.success) {
+          alert(data.error || 'Request failed');
+          document.getElementById('findingOverlay').classList.add('hidden');
+          return;
+        }
+        if (data.requestId) {
+          sock.emit('join-trip', data.requestId);
+        }
+        const prioRes = await fetch('/api/emergency-priority', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ emergency_type: type })
+        });
+        const prio = await prioRes.json();
+        if (prio.success) {
+          document.getElementById('statusDescription').innerText =
+            'Priority band: ' + prio.band + ' (score ' + prio.score + '). Waiting for driver…';
+        }
+      } catch (err) {
+        console.error('Error requesting ambulance:', err);
+        alert('Failed to request ambulance. Please try again.');
+        document.getElementById('findingOverlay').classList.add('hidden');
+      }
+    };
 
-    sock.on('ambulance-trip-completed', function () {
-      if (window.hmsShowToast) window.hmsShowToast('Trip complete', 'Thank you — take care.', 'info');
-      setTimeout(function () { window.location.reload(); }, 2500);
-    });
+    // Socket event listeners
+    if (!window.__hmsAmbulanceListeners) {
+      window.__hmsAmbulanceListeners = true;
+      
+      sock.on('ambulance-request-accepted', function (data) {
+        if (!data || String(data.patient_id) !== String(HMS_PATIENT_ID)) return;
+        document.getElementById('findingOverlay').classList.add('hidden');
+        document.getElementById('requestForm').classList.add('hidden');
+        document.getElementById('activeTrip').classList.remove('hidden');
+        document.getElementById('statusDescription').innerText = "Ambulance is on the way!";
+        document.getElementById('driverName').innerText = data.driver_name || '—';
+        document.getElementById('vehicleNo').innerText = data.vehicle_no || '—';
+        var tel = document.getElementById('driverCall');
+        if (tel) tel.href = 'tel:' + (data.driver_phone || '');
+        
+        var lat = data.current_lat != null ? Number(data.current_lat) : 28.6;
+        var lng = data.current_lng != null ? Number(data.current_lng) : 77.2;
+        
+        if (map) {
+          if (driverMarker) map.removeLayer(driverMarker);
+          const customDriverIcon = L.divIcon({
+              className: 'pulse-driver-marker',
+              html: `<div class="w-8 h-8 rounded-full bg-indigo-600 border-2 border-white flex items-center justify-center text-white shadow-lg shadow-indigo-500/50">
+                       <i class="fas fa-ambulance text-xs animate-bounce"></i>
+                     </div>`,
+              iconSize: [32, 32],
+              iconAnchor: [16, 16]
+          });
+          driverMarker = L.marker([lat, lng], { icon: customDriverIcon }).addTo(map);
+          try {
+            map.fitBounds(L.featureGroup([patientMarker, driverMarker]).getBounds().pad(0.2));
+          } catch (e) {}
+        }
+        if (window.hmsShowToast) window.hmsShowToast('Ambulance', 'Driver accepted your request.', 'success');
+      });
+
+      sock.on('ambulance-status-update', function (data) {
+        if (!data || String(data.request.patient_id) !== String(HMS_PATIENT_ID)) return;
+        
+        const statusText = data.status === 'on_the_way' ? 'On The Way' : data.status === 'arrived' ? 'Arrived at Location' : data.status;
+        document.getElementById('tripStatus').innerText = statusText;
+        
+        if (data.eta) {
+          document.getElementById('etaText').innerText = data.eta;
+        }
+        
+        // Update status indicator color
+        const indicator = document.getElementById('statusIndicator');
+        if (data.status === 'on_the_way') {
+          indicator.className = 'w-3 h-3 rounded-full bg-blue-400 mr-3 animate-pulse';
+        } else if (data.status === 'arrived') {
+          indicator.className = 'w-3 h-3 rounded-full bg-green-400 mr-3 animate-pulse';
+        }
+        
+        if (window.hmsShowToast) window.hmsShowToast('Status Update', `Ambulance is ${statusText}`, 'info');
+      });
+
+      sock.on('ambulance-location-sync', function (data) {
+        var lat = Number(data.lat);
+        var lng = Number(data.lng);
+        if (isNaN(lat) || isNaN(lng)) return;
+        
+        if (map) {
+          if (!driverMarker) {
+            const customDriverIcon = L.divIcon({
+                className: 'pulse-driver-marker',
+                html: `<div class="w-8 h-8 rounded-full bg-indigo-600 border-2 border-white flex items-center justify-center text-white shadow-lg shadow-indigo-500/50">
+                         <i class="fas fa-ambulance text-xs animate-bounce"></i>
+                       </div>`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 16]
+            });
+            driverMarker = L.marker([lat, lng], { icon: customDriverIcon }).addTo(map).bindPopup('Driver Location').openPopup();
+          } else {
+            driverMarker.setLatLng([lat, lng]);
+          }
+          try {
+            map.fitBounds(L.featureGroup([patientMarker, driverMarker]).getBounds().pad(0.2));
+          } catch (e) {}
+        }
+      });
+
+      sock.on('ambulance-trip-completed', function () {
+        if (window.hmsShowToast) window.hmsShowToast('Trip complete', 'Thank you — take care.', 'info');
+        setTimeout(function () { window.location.reload(); }, 2500);
+      });
+    }
   }
-}
 
-document.addEventListener('DOMContentLoaded', bindSocket);
+  document.addEventListener('DOMContentLoaded', bindSocket);
 })();
 </script>
 

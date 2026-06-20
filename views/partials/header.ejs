@@ -227,11 +227,16 @@
   <div id="hmsSosModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-4">
     <div class="bg-slate-900 border border-rose-500/50 rounded-2xl p-8 max-w-md w-full text-center shadow-2xl">
       <div class="w-20 h-20 bg-rose-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-        <i class="fas fa-exclamation-triangle text-4xl text-rose-400"></i>
+        <i class="fas fa-exclamation-triangle text-4xl text-rose-400 animate-bounce"></i>
       </div>
       <h2 class="text-2xl font-black text-white mb-2">SOS Activated</h2>
       <p class="text-gray-300 mb-6">Emergency teams, admin, and nearest ambulance drivers have been notified with your live location.</p>
-      <button type="button" onclick="document.getElementById('hmsSosModal').classList.add('hidden')" class="hms-btn hms-btn-primary w-full">Acknowledge</button>
+      <div class="flex flex-col gap-3">
+        <a href="/patient/ambulance" class="w-full bg-gradient-to-br from-indigo-500 to-indigo-600 text-white font-bold py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-indigo-500/25">
+          <i class="fas fa-map-location-dot"></i> Track Live Location
+        </a>
+        <button type="button" onclick="document.getElementById('hmsSosModal').classList.add('hidden')" class="w-full bg-slate-800 hover:bg-slate-700 text-gray-300 font-bold py-3.5 px-4 rounded-xl transition-colors">Acknowledge</button>
+      </div>
     </div>
   </div>
   <% } %>

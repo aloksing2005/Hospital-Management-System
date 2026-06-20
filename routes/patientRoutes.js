@@ -60,9 +60,7 @@ router.get("/ai-voice", isPatient, (req, res) => {
   res.render("patient/ai-voice", { user: req.session.user });
 });
 
-router.get("/diet-planner", isPatient, (req, res) => {
-  res.render("patient/diet-planner", { user: req.session.user });
-});
+router.get("/diet-planner", isPatient, patientFeatures.getDietPlanner);
 
 router.post("/diet-planner/generate", isPatient, patientFeatures.generateDiet);
 

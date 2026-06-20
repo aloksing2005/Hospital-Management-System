@@ -269,8 +269,15 @@ exports.getHistory = async (req, res) => {
   }
 };
 
-exports.getAmbulance = (req, res) => {
-  res.render("patient/ambulance", { user: req.session.user });
+exports.getAmbulance = async (req, res) => {
+  try {
+    const AmbulanceModel = require("../models/ambulanceModel");
+    const activeRequest = await AmbulanceModel.getActiveRequestForPatient(req.session.user.id);
+    res.render("patient/ambulance", { user: req.session.user, activeRequest });
+  } catch (err) {
+    req.flash("error", err.message);
+    res.redirect("/patient/dashboard");
+  }
 };
 
 exports.getLabReports = async (req, res) => {

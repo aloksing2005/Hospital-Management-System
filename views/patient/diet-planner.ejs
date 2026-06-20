@@ -145,6 +145,93 @@
 </div>
 
 <script>
+    function recoverActivePlan(plan) {
+        if (!plan) return;
+        
+        const placeholder = document.getElementById('dietPlaceholder');
+        const result = document.getElementById('dietResult');
+        
+        placeholder.classList.add('hidden');
+        result.classList.remove('hidden');
+
+        // Set input fields if they exist
+        const dietGoalSelect = document.getElementById('dietGoal');
+        const activitySelect = document.getElementById('activity');
+        if (dietGoalSelect && plan.goal) dietGoalSelect.value = plan.goal;
+        if (activitySelect && plan.activity) activitySelect.value = plan.activity;
+
+        // Update ratios
+        const protein = plan.macros?.protein || 0;
+        const carbs = plan.macros?.carbs || 0;
+        const fats = plan.macros?.fats || 0;
+
+        document.getElementById('macroProteinPct').innerText = protein + '%';
+        document.getElementById('macroProteinBar').style.width = protein + '%';
+
+        document.getElementById('macroCarbsPct').innerText = carbs + '%';
+        document.getElementById('macroCarbsBar').style.width = carbs + '%';
+
+        document.getElementById('macroFatsPct').innerText = fats + '%';
+        document.getElementById('macroFatsBar').style.width = fats + '%';
+
+        // Calories
+        document.getElementById('targetCalories').innerText = (plan.calories || 0).toLocaleString() + ' kcal';
+
+        // Meals
+        const mealsContainer = document.getElementById('mealsContainer');
+        mealsContainer.innerHTML = '';
+
+        if (plan.meals && plan.meals.length > 0) {
+            const colors = [
+              'text-amber-400 bg-amber-500/10 border-amber-500/20', 
+              'text-indigo-400 bg-indigo-500/10 border-indigo-500/20', 
+              'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', 
+              'text-cyan-400 bg-cyan-500/10 border-cyan-500/20'
+            ];
+            plan.meals.forEach((meal, index) => {
+                const colorClass = colors[index % colors.length];
+                const mealHtml = `
+                    <div class="flex flex-col sm:flex-row items-start gap-4 p-5 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-all">
+                        <div class="px-4 py-2 rounded-xl text-xs font-bold shrink-0 border uppercase tracking-wider ${colorClass}">
+                            ${meal.time || 'Meal'}
+                        </div>
+                        <div class="min-w-0">
+                            <h4 class="font-bold text-white text-base">${meal.name || ''}</h4>
+                            <p class="text-gray-400 text-sm mt-1 leading-relaxed">${meal.desc || ''}</p>
+                        </div>
+                    </div>
+                `;
+                mealsContainer.insertAdjacentHTML('beforeend', mealHtml);
+            });
+        } else {
+            mealsContainer.innerHTML = '<p class="text-gray-500 text-center py-6">No meal details found.</p>';
+        }
+
+        // Clinical Tips
+        const tipsList = document.getElementById('clinicalTipsList');
+        tipsList.innerHTML = '';
+        if (plan.advice && plan.advice.length > 0) {
+            plan.advice.forEach(tip => {
+                const tipHtml = `
+                    <li class="flex items-start gap-3 text-xs text-gray-300 leading-relaxed">
+                        <i class="fas fa-check-circle text-emerald-400 mt-0.5 shrink-0"></i>
+                        <span>${tip}</span>
+                    </li>
+                `;
+                tipsList.insertAdjacentHTML('beforeend', tipHtml);
+            });
+        } else {
+            tipsList.innerHTML = '<li class="text-gray-500 text-xs">Follow general healthy eating habits.</li>';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const activePlan = <%- typeof activePlan !== 'undefined' && activePlan ? JSON.stringify(activePlan) : 'null' %>;
+        if (activePlan) {
+            recoverActivePlan(activePlan);
+        }
+    });
+
     async function generateDiet() {
         const goal = document.getElementById('dietGoal').value;
         const activity = document.getElementById('activity').value;
@@ -220,7 +307,7 @@
                 mealsContainer.innerHTML = '<p class="text-gray-500 text-center py-6">No meal details found.</p>';
             }
 
-            // Clinical Tips
+            // Clinical Advice
             const tipsList = document.getElementById('clinicalTipsList');
             tipsList.innerHTML = '';
             if (plan.advice && plan.advice.length > 0) {

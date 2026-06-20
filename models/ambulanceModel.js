@@ -84,6 +84,32 @@ class AmbulanceModel {
     return req;
   }
 
+  static async getActiveRequestForPatient(patientId) {
+    const req = await AmbulanceRequest.findOne({
+      patient_id: patientId,
+      status: { $in: ["pending", "accepted", "on_the_way", "arrived"] }
+    })
+      .populate({ path: "patient_id", select: "name phone" })
+      .populate({ path: "driver_id", select: "name phone" })
+      .populate({ path: "vehicle_id", select: "vehicle_no current_lat current_lng" })
+      .sort({ _id: -1 })
+      .lean();
+    if (req) {
+      req.id = req._id;
+      req.patient_name = req.patient_id ? req.patient_id.name : "";
+      req.patient_phone = req.patient_id ? req.patient_id.phone : "";
+      req.driver_name = req.driver_id ? req.driver_id.name : "";
+      req.driver_phone = req.driver_id ? req.driver_id.phone : "";
+      req.vehicle_no = req.vehicle_id ? req.vehicle_id.vehicle_no : "";
+      req.current_lat = req.vehicle_id ? req.vehicle_id.current_lat : null;
+      req.current_lng = req.vehicle_id ? req.vehicle_id.current_lng : null;
+      req.patient_id = req.patient_id ? req.patient_id._id : null;
+      req.driver_id = req.driver_id ? req.driver_id._id : null;
+      req.vehicle_id = req.vehicle_id ? req.vehicle_id._id : null;
+    }
+    return req;
+  }
+
   static async listAvailableWithCoords() {
     const rows = await Ambulance.find({
       status: "available",

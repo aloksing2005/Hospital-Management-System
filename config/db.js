@@ -350,6 +350,23 @@ const emergencyAlertSchema = new mongoose.Schema({
 
 emergencyAlertSchema.index({ status: 1 });
 
+// --- Diet Plans ---
+const dietPlanSchema = new mongoose.Schema({
+  patient_id: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  goal:       { type: String, required: true },
+  activity:   { type: String, required: true },
+  calories:   { type: Number },
+  macros:     {
+    protein: { type: Number },
+    carbs:   { type: Number },
+    fats:    { type: Number }
+  },
+  meals:      [{ time: String, name: String, desc: String }],
+  advice:     [{ type: String }]
+}, { timestamps: { createdAt: "created_at", updatedAt: false } });
+
+dietPlanSchema.index({ patient_id: 1 });
+
 // ─── Model Exports ─────────────────────────────────────────────────────────────
 const User               = mongoose.model("User", userSchema);
 const Doctor             = mongoose.model("Doctor", doctorSchema);
@@ -377,6 +394,7 @@ const InsuranceClaim     = mongoose.model("InsuranceClaim", insuranceClaimSchema
 const WellbeingLog       = mongoose.model("WellbeingLog", wellbeingLogSchema);
 const AIConsultation     = mongoose.model("AIConsultation", aiConsultationSchema);
 const EmergencyAlert     = mongoose.model("EmergencyAlert", emergencyAlertSchema);
+const DietPlan           = mongoose.model("DietPlan", dietPlanSchema);
 
 // ─── Seed Default Data ──────────────────────────────────────────────────────────
 async function seedDB() {
@@ -581,5 +599,6 @@ module.exports = {
   InsuranceClaim,
   WellbeingLog,
   AIConsultation,
-  EmergencyAlert
+  EmergencyAlert,
+  DietPlan
 };
