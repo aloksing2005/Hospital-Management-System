@@ -29,8 +29,8 @@
       margin: 0;
     }
     body.hms-printing-active {
-      background: #020617 !important;
-      background-color: #020617 !important;
+      background: #ffffff !important;
+      background-color: #ffffff !important;
       margin: 0 !important;
       padding: 0 !important;
       overflow: visible !important;
@@ -51,19 +51,53 @@
       transform-origin: center !important;
       width: 500px !important;
       height: 310px !important;
-      border: 2px solid #6366f1 !important; /* solid Indigo border for defined printable shape */
-      background: linear-gradient(135deg, #020617 0%, #0f172a 100%) !important;
-      background-color: #020617 !important;
-      color: white !important;
-      border-radius: 28px !important;
+      border: 3px solid #6366f1 !important;
+      background: #ffffff !important;
+      background-color: #ffffff !important;
+      color: #020617 !important;
+      border-radius: 24px !important;
       box-shadow: none !important;
-      -webkit-print-color-adjust: exact !important;
-      print-color-adjust: exact !important;
       padding: 24px !important;
       display: flex !important;
       flex-direction: column !important;
       justify-content: space-between !important;
       z-index: 99999999 !important;
+      box-sizing: border-box !important;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    /* Force high-contrast text visibility in print */
+    body.hms-printing-active #healthCardToPrint p,
+    body.hms-printing-active #healthCardToPrint h3,
+    body.hms-printing-active #healthCardToPrint h4,
+    body.hms-printing-active #healthCardToPrint span,
+    body.hms-printing-active #healthCardToPrint div {
+      color: #020617 !important;
+    }
+    body.hms-printing-active #healthCardToPrint .text-indigo-300,
+    body.hms-printing-active #healthCardToPrint .text-indigo-400,
+    body.hms-printing-active #healthCardToPrint span[class*="text-indigo-"] {
+      color: #4f46e5 !important;
+    }
+    body.hms-printing-active #healthCardToPrint .text-gray-200,
+    body.hms-printing-active #healthCardToPrint .text-gray-400,
+    body.hms-printing-active #healthCardToPrint .text-gray-500,
+    body.hms-printing-active #healthCardToPrint span[class*="text-gray-"] {
+      color: #4b5563 !important;
+    }
+    body.hms-printing-active #healthCardToPrint .bg-emerald-500\/15 {
+      background-color: #d1fae5 !important;
+      border: 1px solid #10b981 !important;
+    }
+    body.hms-printing-active #healthCardToPrint .text-emerald-400 {
+      color: #047857 !important;
+    }
+    body.hms-printing-active #healthCardToPrint .bg-gradient-to-br {
+      background-color: #6366f1 !important;
+      background: #6366f1 !important;
+    }
+    body.hms-printing-active #healthCardToPrint .bg-gradient-to-br i {
+      color: #ffffff !important;
     }
     /* Hide decorative items in print */
     body.hms-printing-active #healthCardToPrint .hud-shine-sweep,
@@ -411,13 +445,17 @@
                       <p class="text-xl font-black tracking-tight text-white leading-none uppercase"><%= user.name %></p>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-3 gap-2">
                       <div>
-                        <span class="text-[8px] text-gray-500 uppercase tracking-widest block font-bold font-mono">Blood Group</span>
-                        <p class="text-xs font-black text-gray-200">O+ (OPTIMAL)</p>
+                        <span class="text-[8px] text-gray-500 uppercase tracking-widest block font-bold font-mono">Health ID</span>
+                        <p class="text-xs font-black text-indigo-400 font-mono">PAT-<%= user.id.slice(-6).toUpperCase() %></p>
                       </div>
                       <div>
-                        <span class="text-[8px] text-gray-500 uppercase tracking-widest block font-bold font-mono">Emergency Uplink</span>
+                        <span class="text-[8px] text-gray-500 uppercase tracking-widest block font-bold font-mono">Blood Group</span>
+                        <p class="text-xs font-black text-gray-200">O+</p>
+                      </div>
+                      <div>
+                        <span class="text-[8px] text-gray-500 uppercase tracking-widest block font-bold font-mono">Emergency</span>
                         <p class="text-xs font-black text-gray-200"><%= user.phone || '9876543210' %></p>
                       </div>
                     </div>
